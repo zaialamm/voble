@@ -1,0 +1,4974 @@
+{
+  "address": "AmDAGNow7v26x6g7XE8FYgboEezpzSdS1dW5ZR4DRrJk",
+  "metadata": {
+    "name": "voble",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Created with Anchor"
+  },
+  "instructions": [
+    {
+      "name": "buy_ticket_and_start_game",
+      "docs": [
+        "Buy ticket and start game in one transaction (RECOMMENDED)"
+      ],
+      "discriminator": [
+        159,
+        31,
+        1,
+        132,
+        228,
+        204,
+        93,
+        106
+      ],
+      "accounts": [
+        {
+          "name": "player",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "user_profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114,
+                  95,
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "player"
+              }
+            ]
+          }
+        },
+        {
+          "name": "session",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  115,
+                  115,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "player"
+              },
+              {
+                "kind": "arg",
+                "path": "period_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "global_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103,
+                  95,
+                  118,
+                  50
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "daily_prize_vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  97,
+                  105,
+                  108,
+                  121,
+                  95,
+                  112,
+                  114,
+                  105,
+                  122,
+                  101,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "weekly_prize_vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  119,
+                  101,
+                  101,
+                  107,
+                  108,
+                  121,
+                  95,
+                  112,
+                  114,
+                  105,
+                  122,
+                  101,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "monthly_prize_vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  111,
+                  110,
+                  116,
+                  104,
+                  108,
+                  121,
+                  95,
+                  112,
+                  114,
+                  105,
+                  122,
+                  101,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "platform_vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  116,
+                  102,
+                  111,
+                  114,
+                  109,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "period_id",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "claim_daily",
+      "discriminator": [
+        13,
+        226,
+        153,
+        154,
+        27,
+        168,
+        111,
+        103
+      ],
+      "accounts": [
+        {
+          "name": "winner_entitlement",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  119,
+                  105,
+                  110,
+                  110,
+                  101,
+                  114,
+                  95,
+                  101,
+                  110,
+                  116,
+                  105,
+                  116,
+                  108,
+                  101,
+                  109,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "winner"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  97,
+                  105,
+                  108,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "winner_entitlement.period_id",
+                "account": "WinnerEntitlement"
+              }
+            ]
+          }
+        },
+        {
+          "name": "daily_prize_vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  97,
+                  105,
+                  108,
+                  121,
+                  95,
+                  112,
+                  114,
+                  105,
+                  122,
+                  101,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "winner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "claim_monthly",
+      "discriminator": [
+        27,
+        202,
+        64,
+        42,
+        199,
+        229,
+        58,
+        71
+      ],
+      "accounts": [
+        {
+          "name": "winner_entitlement",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  119,
+                  105,
+                  110,
+                  110,
+                  101,
+                  114,
+                  95,
+                  101,
+                  110,
+                  116,
+                  105,
+                  116,
+                  108,
+                  101,
+                  109,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "winner"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  111,
+                  110,
+                  116,
+                  104,
+                  108,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "winner_entitlement.period_id",
+                "account": "WinnerEntitlement"
+              }
+            ]
+          }
+        },
+        {
+          "name": "monthly_prize_vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  111,
+                  110,
+                  116,
+                  104,
+                  108,
+                  121,
+                  95,
+                  112,
+                  114,
+                  105,
+                  122,
+                  101,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "winner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "claim_weekly",
+      "discriminator": [
+        122,
+        217,
+        42,
+        236,
+        16,
+        140,
+        62,
+        59
+      ],
+      "accounts": [
+        {
+          "name": "winner_entitlement",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  119,
+                  105,
+                  110,
+                  110,
+                  101,
+                  114,
+                  95,
+                  101,
+                  110,
+                  116,
+                  105,
+                  116,
+                  108,
+                  101,
+                  109,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "winner"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  119,
+                  101,
+                  101,
+                  107,
+                  108,
+                  121
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "winner_entitlement.period_id",
+                "account": "WinnerEntitlement"
+              }
+            ]
+          }
+        },
+        {
+          "name": "weekly_prize_vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  119,
+                  101,
+                  101,
+                  107,
+                  108,
+                  121,
+                  95,
+                  112,
+                  114,
+                  105,
+                  122,
+                  101,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "winner",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "commit_user_profile",
+      "discriminator": [
+        101,
+        76,
+        219,
+        215,
+        161,
+        51,
+        237,
+        32
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "user_profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114,
+                  95,
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "payer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "player",
+          "relations": [
+            "user_profile"
+          ]
+        },
+        {
+          "name": "delegation_program",
+          "address": "DELeGGvXpWV2fqJUhqcF5ZSYMS4JTLjteaAMARRSaeSh"
+        },
+        {
+          "name": "magic_context",
+          "address": "MagicContext1111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "complete_voble_game",
+      "discriminator": [
+        9,
+        240,
+        54,
+        167,
+        213,
+        152,
+        147,
+        162
+      ],
+      "accounts": [
+        {
+          "name": "user_profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114,
+                  95,
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "signer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "session",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  115,
+                  115,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "signer"
+              },
+              {
+                "kind": "arg",
+                "path": "period_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "leaderboard",
+          "docs": [
+            "Leaderboard for auto-update after game completion"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  101,
+                  97,
+                  100,
+                  101,
+                  114,
+                  98,
+                  111,
+                  97,
+                  114,
+                  100
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "period_id"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  97,
+                  105,
+                  108,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "session_token",
+          "optional": true
+        },
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "period_id",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "create_daily_winner_entitlement",
+      "discriminator": [
+        57,
+        246,
+        40,
+        130,
+        17,
+        36,
+        103,
+        119
+      ],
+      "accounts": [
+        {
+          "name": "global_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103,
+                  95,
+                  118,
+                  50
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "period_state",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  97,
+                  105,
+                  108,
+                  121,
+                  95,
+                  112,
+                  101,
+                  114,
+                  105,
+                  111,
+                  100
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "period_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "winner_entitlement",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  119,
+                  105,
+                  110,
+                  110,
+                  101,
+                  114,
+                  95,
+                  101,
+                  110,
+                  116,
+                  105,
+                  116,
+                  108,
+                  101,
+                  109,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "winner"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  97,
+                  105,
+                  108,
+                  121
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "period_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "winner"
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "global_config"
+          ]
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "period_id",
+          "type": "string"
+        },
+        {
+          "name": "rank",
+          "type": "u8"
+        },
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "create_monthly_winner_entitlement",
+      "discriminator": [
+        49,
+        242,
+        169,
+        40,
+        90,
+        65,
+        98,
+        114
+      ],
+      "accounts": [
+        {
+          "name": "global_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103,
+                  95,
+                  118,
+                  50
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "period_state",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  111,
+                  110,
+                  116,
+                  104,
+                  108,
+                  121,
+                  95,
+                  112,
+                  101,
+                  114,
+                  105,
+                  111,
+                  100
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "period_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "winner_entitlement",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  119,
+                  105,
+                  110,
+                  110,
+                  101,
+                  114,
+                  95,
+                  101,
+                  110,
+                  116,
+                  105,
+                  116,
+                  108,
+                  101,
+                  109,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "winner"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  111,
+                  110,
+                  116,
+                  104,
+                  108,
+                  121
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "period_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "winner"
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "global_config"
+          ]
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "period_id",
+          "type": "string"
+        },
+        {
+          "name": "rank",
+          "type": "u8"
+        },
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "create_weekly_winner_entitlement",
+      "discriminator": [
+        138,
+        17,
+        124,
+        116,
+        61,
+        144,
+        68,
+        95
+      ],
+      "accounts": [
+        {
+          "name": "global_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103,
+                  95,
+                  118,
+                  50
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "period_state",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  119,
+                  101,
+                  101,
+                  107,
+                  108,
+                  121,
+                  95,
+                  112,
+                  101,
+                  114,
+                  105,
+                  111,
+                  100
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "period_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "winner_entitlement",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  119,
+                  105,
+                  110,
+                  110,
+                  101,
+                  114,
+                  95,
+                  101,
+                  110,
+                  116,
+                  105,
+                  116,
+                  108,
+                  101,
+                  109,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "winner"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  119,
+                  101,
+                  101,
+                  107,
+                  108,
+                  121
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "period_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "winner"
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "global_config"
+          ]
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "period_id",
+          "type": "string"
+        },
+        {
+          "name": "rank",
+          "type": "u8"
+        },
+        {
+          "name": "amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "delegate_user_profile",
+      "discriminator": [
+        205,
+        1,
+        92,
+        198,
+        12,
+        90,
+        20,
+        133
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "buffer_user_profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  117,
+                  102,
+                  102,
+                  101,
+                  114
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "user_profile"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                145,
+                12,
+                124,
+                172,
+                40,
+                48,
+                42,
+                251,
+                184,
+                118,
+                245,
+                138,
+                72,
+                142,
+                255,
+                152,
+                155,
+                72,
+                108,
+                129,
+                220,
+                131,
+                164,
+                0,
+                235,
+                85,
+                37,
+                139,
+                138,
+                62,
+                213,
+                73
+              ]
+            }
+          }
+        },
+        {
+          "name": "delegation_record_user_profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  108,
+                  101,
+                  103,
+                  97,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "user_profile"
+              }
+            ],
+            "program": {
+              "kind": "account",
+              "path": "delegation_program"
+            }
+          }
+        },
+        {
+          "name": "delegation_metadata_user_profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  101,
+                  108,
+                  101,
+                  103,
+                  97,
+                  116,
+                  105,
+                  111,
+                  110,
+                  45,
+                  109,
+                  101,
+                  116,
+                  97,
+                  100,
+                  97,
+                  116,
+                  97
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "user_profile"
+              }
+            ],
+            "program": {
+              "kind": "account",
+              "path": "delegation_program"
+            }
+          }
+        },
+        {
+          "name": "user_profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114,
+                  95,
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "payer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "player",
+          "relations": [
+            "user_profile"
+          ]
+        },
+        {
+          "name": "delegation_buffer",
+          "writable": true
+        },
+        {
+          "name": "delegation_record",
+          "writable": true
+        },
+        {
+          "name": "delegation_metadata",
+          "writable": true
+        },
+        {
+          "name": "delegation_program",
+          "address": "DELeGGvXpWV2fqJUhqcF5ZSYMS4JTLjteaAMARRSaeSh"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "owner_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "commit_frequency_ms",
+          "type": "u32"
+        }
+      ]
+    },
+    {
+      "name": "finalize_daily",
+      "discriminator": [
+        0,
+        35,
+        76,
+        81,
+        222,
+        203,
+        182,
+        100
+      ],
+      "accounts": [
+        {
+          "name": "global_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103,
+                  95,
+                  118,
+                  50
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "period_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  97,
+                  105,
+                  108,
+                  121,
+                  95,
+                  112,
+                  101,
+                  114,
+                  105,
+                  111,
+                  100
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "period_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "daily_prize_vault",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  97,
+                  105,
+                  108,
+                  121,
+                  95,
+                  112,
+                  114,
+                  105,
+                  122,
+                  101,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "leaderboard",
+          "docs": [
+            "Leaderboard to get top winners"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  101,
+                  97,
+                  100,
+                  101,
+                  114,
+                  98,
+                  111,
+                  97,
+                  114,
+                  100
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "period_id"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  97,
+                  105,
+                  108,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "global_config"
+          ]
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "period_id",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "finalize_daily_with_winners",
+      "discriminator": [
+        115,
+        219,
+        214,
+        198,
+        251,
+        178,
+        103,
+        197
+      ],
+      "accounts": [
+        {
+          "name": "global_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103,
+                  95,
+                  118,
+                  50
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "period_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  97,
+                  105,
+                  108,
+                  121,
+                  95,
+                  112,
+                  101,
+                  114,
+                  105,
+                  111,
+                  100
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "period_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "daily_prize_vault",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  97,
+                  105,
+                  108,
+                  121,
+                  95,
+                  112,
+                  114,
+                  105,
+                  122,
+                  101,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "first_place_entitlement",
+          "writable": true
+        },
+        {
+          "name": "second_place_entitlement",
+          "writable": true
+        },
+        {
+          "name": "third_place_entitlement",
+          "writable": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "period_id",
+          "type": "string"
+        },
+        {
+          "name": "winners",
+          "type": {
+            "vec": "pubkey"
+          }
+        },
+        {
+          "name": "scores",
+          "type": {
+            "vec": {
+              "defined": {
+                "name": "LeaderboardScore"
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "finalize_leaderboard",
+      "discriminator": [
+        11,
+        114,
+        186,
+        16,
+        25,
+        67,
+        144,
+        145
+      ],
+      "accounts": [
+        {
+          "name": "leaderboard",
+          "writable": true
+        },
+        {
+          "name": "global_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103,
+                  95,
+                  118,
+                  50
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "global_config"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "period_id",
+          "type": "string"
+        },
+        {
+          "name": "period_type",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "finalize_monthly",
+      "discriminator": [
+        145,
+        165,
+        2,
+        255,
+        73,
+        165,
+        9,
+        37
+      ],
+      "accounts": [
+        {
+          "name": "global_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103,
+                  95,
+                  118,
+                  50
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "period_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  111,
+                  110,
+                  116,
+                  104,
+                  108,
+                  121,
+                  95,
+                  112,
+                  101,
+                  114,
+                  105,
+                  111,
+                  100
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "period_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "monthly_prize_vault",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  111,
+                  110,
+                  116,
+                  104,
+                  108,
+                  121,
+                  95,
+                  112,
+                  114,
+                  105,
+                  122,
+                  101,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "leaderboard",
+          "docs": [
+            "Leaderboard to get top winners"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  101,
+                  97,
+                  100,
+                  101,
+                  114,
+                  98,
+                  111,
+                  97,
+                  114,
+                  100
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "period_id"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  111,
+                  110,
+                  116,
+                  104,
+                  108,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "global_config"
+          ]
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "period_id",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "finalize_weekly",
+      "discriminator": [
+        193,
+        134,
+        60,
+        97,
+        52,
+        174,
+        222,
+        3
+      ],
+      "accounts": [
+        {
+          "name": "global_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103,
+                  95,
+                  118,
+                  50
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "period_state",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  119,
+                  101,
+                  101,
+                  107,
+                  108,
+                  121,
+                  95,
+                  112,
+                  101,
+                  114,
+                  105,
+                  111,
+                  100
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "period_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "weekly_prize_vault",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  119,
+                  101,
+                  101,
+                  107,
+                  108,
+                  121,
+                  95,
+                  112,
+                  114,
+                  105,
+                  122,
+                  101,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "leaderboard",
+          "docs": [
+            "Leaderboard to get top winners"
+          ],
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  101,
+                  97,
+                  100,
+                  101,
+                  114,
+                  98,
+                  111,
+                  97,
+                  114,
+                  100
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "period_id"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  119,
+                  101,
+                  101,
+                  107,
+                  108,
+                  121
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "global_config"
+          ]
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "period_id",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "get_leaderboard",
+      "discriminator": [
+        120,
+        151,
+        17,
+        201,
+        227,
+        143,
+        94,
+        32
+      ],
+      "accounts": [
+        {
+          "name": "leaderboard",
+          "writable": true
+        },
+        {
+          "name": "user_profile",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114,
+                  95,
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "player"
+              }
+            ]
+          }
+        },
+        {
+          "name": "player",
+          "relations": [
+            "user_profile"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "period_id",
+          "type": "string"
+        },
+        {
+          "name": "period_type",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "get_voble_stats",
+      "discriminator": [
+        8,
+        6,
+        165,
+        77,
+        147,
+        78,
+        161,
+        127
+      ],
+      "accounts": [
+        {
+          "name": "user_profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114,
+                  95,
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "player"
+              }
+            ]
+          }
+        },
+        {
+          "name": "player",
+          "signer": true,
+          "relations": [
+            "user_profile"
+          ]
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "initialize_global_config",
+      "discriminator": [
+        113,
+        216,
+        122,
+        131,
+        225,
+        209,
+        22,
+        55
+      ],
+      "accounts": [
+        {
+          "name": "global_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103,
+                  95,
+                  118,
+                  50
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "ticket_price",
+          "type": "u64"
+        },
+        {
+          "name": "prize_split_daily",
+          "type": "u16"
+        },
+        {
+          "name": "prize_split_weekly",
+          "type": "u16"
+        },
+        {
+          "name": "prize_split_monthly",
+          "type": "u16"
+        },
+        {
+          "name": "platform_revenue_split",
+          "type": "u16"
+        },
+        {
+          "name": "winner_splits",
+          "type": {
+            "vec": "u16"
+          }
+        }
+      ]
+    },
+    {
+      "name": "initialize_period_leaderboard",
+      "discriminator": [
+        190,
+        78,
+        69,
+        63,
+        216,
+        254,
+        68,
+        137
+      ],
+      "accounts": [
+        {
+          "name": "leaderboard",
+          "writable": true
+        },
+        {
+          "name": "global_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103,
+                  95,
+                  118,
+                  50
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "global_config"
+          ]
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "period_id",
+          "type": "string"
+        },
+        {
+          "name": "period_type",
+          "type": "u8"
+        }
+      ]
+    },
+    {
+      "name": "initialize_user_profile",
+      "discriminator": [
+        192,
+        144,
+        204,
+        140,
+        113,
+        25,
+        59,
+        102
+      ],
+      "accounts": [
+        {
+          "name": "user_profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114,
+                  95,
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "payer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "username",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "initialize_vaults",
+      "discriminator": [
+        234,
+        84,
+        214,
+        3,
+        128,
+        195,
+        81,
+        125
+      ],
+      "accounts": [
+        {
+          "name": "global_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103,
+                  95,
+                  118,
+                  50
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "daily_prize_vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  97,
+                  105,
+                  108,
+                  121,
+                  95,
+                  112,
+                  114,
+                  105,
+                  122,
+                  101,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "weekly_prize_vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  119,
+                  101,
+                  101,
+                  107,
+                  108,
+                  121,
+                  95,
+                  112,
+                  114,
+                  105,
+                  122,
+                  101,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "monthly_prize_vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  111,
+                  110,
+                  116,
+                  104,
+                  108,
+                  121,
+                  95,
+                  112,
+                  114,
+                  105,
+                  122,
+                  101,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "platform_vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  116,
+                  102,
+                  111,
+                  114,
+                  109,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "global_config"
+          ]
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "process_undelegation",
+      "discriminator": [
+        196,
+        28,
+        41,
+        206,
+        48,
+        37,
+        51,
+        167
+      ],
+      "accounts": [
+        {
+          "name": "base_account",
+          "writable": true
+        },
+        {
+          "name": "buffer"
+        },
+        {
+          "name": "payer",
+          "writable": true
+        },
+        {
+          "name": "system_program"
+        }
+      ],
+      "args": [
+        {
+          "name": "account_seeds",
+          "type": {
+            "vec": "bytes"
+          }
+        }
+      ]
+    },
+    {
+      "name": "set_config",
+      "discriminator": [
+        108,
+        158,
+        154,
+        175,
+        212,
+        98,
+        52,
+        66
+      ],
+      "accounts": [
+        {
+          "name": "global_config",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103,
+                  95,
+                  118,
+                  50
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "signer": true,
+          "relations": [
+            "global_config"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "ticket_price",
+          "type": {
+            "option": "u64"
+          }
+        },
+        {
+          "name": "paused",
+          "type": {
+            "option": "bool"
+          }
+        }
+      ]
+    },
+    {
+      "name": "submit_guess",
+      "discriminator": [
+        61,
+        124,
+        32,
+        227,
+        64,
+        198,
+        252,
+        3
+      ],
+      "accounts": [
+        {
+          "name": "user_profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114,
+                  95,
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "signer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "session",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  115,
+                  115,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "signer"
+              },
+              {
+                "kind": "arg",
+                "path": "period_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "session_token",
+          "optional": true
+        },
+        {
+          "name": "signer",
+          "writable": true,
+          "signer": true
+        }
+      ],
+      "args": [
+        {
+          "name": "period_id",
+          "type": "string"
+        },
+        {
+          "name": "guess",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "undelegate_user_profile",
+      "discriminator": [
+        196,
+        202,
+        192,
+        177,
+        54,
+        134,
+        176,
+        173
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "user_profile",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114,
+                  95,
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "payer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "player",
+          "relations": [
+            "user_profile"
+          ]
+        },
+        {
+          "name": "delegation_program",
+          "address": "DELeGGvXpWV2fqJUhqcF5ZSYMS4JTLjteaAMARRSaeSh"
+        },
+        {
+          "name": "magic_context",
+          "address": "MagicContext1111111111111111111111111111111"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "update_leaderboard",
+      "discriminator": [
+        72,
+        95,
+        102,
+        32,
+        118,
+        158,
+        247,
+        34
+      ],
+      "accounts": [
+        {
+          "name": "leaderboard",
+          "writable": true
+        },
+        {
+          "name": "user_profile",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114,
+                  95,
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "player"
+              }
+            ]
+          }
+        },
+        {
+          "name": "player",
+          "relations": [
+            "user_profile"
+          ]
+        }
+      ],
+      "args": [
+        {
+          "name": "period_id",
+          "type": "string"
+        },
+        {
+          "name": "period_type",
+          "type": "u8"
+        },
+        {
+          "name": "score",
+          "type": "u32"
+        },
+        {
+          "name": "guesses_used",
+          "type": "u8"
+        },
+        {
+          "name": "time_ms",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "withdraw_platform_revenue",
+      "discriminator": [
+        224,
+        137,
+        184,
+        13,
+        183,
+        171,
+        214,
+        128
+      ],
+      "accounts": [
+        {
+          "name": "global_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103,
+                  95,
+                  118,
+                  50
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "platform_vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  112,
+                  108,
+                  97,
+                  116,
+                  102,
+                  111,
+                  114,
+                  109,
+                  95,
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true,
+          "relations": [
+            "global_config"
+          ]
+        },
+        {
+          "name": "destination",
+          "writable": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "amount",
+          "type": {
+            "option": "u64"
+          }
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "GlobalConfig",
+      "discriminator": [
+        149,
+        8,
+        156,
+        202,
+        160,
+        252,
+        176,
+        217
+      ]
+    },
+    {
+      "name": "PeriodLeaderboard",
+      "discriminator": [
+        26,
+        134,
+        78,
+        244,
+        95,
+        145,
+        85,
+        142
+      ]
+    },
+    {
+      "name": "PeriodState",
+      "discriminator": [
+        78,
+        101,
+        179,
+        174,
+        153,
+        68,
+        44,
+        127
+      ]
+    },
+    {
+      "name": "SessionAccount",
+      "discriminator": [
+        74,
+        34,
+        65,
+        133,
+        96,
+        163,
+        80,
+        69
+      ]
+    },
+    {
+      "name": "SessionToken",
+      "discriminator": [
+        233,
+        4,
+        115,
+        14,
+        46,
+        21,
+        1,
+        15
+      ]
+    },
+    {
+      "name": "UserProfile",
+      "discriminator": [
+        32,
+        37,
+        119,
+        205,
+        179,
+        180,
+        13,
+        194
+      ]
+    },
+    {
+      "name": "WinnerEntitlement",
+      "discriminator": [
+        238,
+        179,
+        142,
+        247,
+        27,
+        173,
+        52,
+        249
+      ]
+    }
+  ],
+  "events": [
+    {
+      "name": "AchievementUnlocked",
+      "discriminator": [
+        125,
+        160,
+        118,
+        30,
+        180,
+        209,
+        171,
+        62
+      ]
+    },
+    {
+      "name": "BatchLeaderboardMigrated",
+      "discriminator": [
+        113,
+        236,
+        30,
+        123,
+        226,
+        192,
+        42,
+        106
+      ]
+    },
+    {
+      "name": "FriendAdded",
+      "discriminator": [
+        209,
+        122,
+        33,
+        111,
+        75,
+        239,
+        0,
+        160
+      ]
+    },
+    {
+      "name": "GameSessionStarted",
+      "discriminator": [
+        35,
+        114,
+        138,
+        131,
+        184,
+        0,
+        208,
+        130
+      ]
+    },
+    {
+      "name": "GlobalConfigInitialized",
+      "discriminator": [
+        5,
+        221,
+        172,
+        158,
+        77,
+        87,
+        157,
+        113
+      ]
+    },
+    {
+      "name": "GuessSubmitted",
+      "discriminator": [
+        9,
+        204,
+        248,
+        63,
+        138,
+        8,
+        159,
+        123
+      ]
+    },
+    {
+      "name": "LeaderboardEntryCreated",
+      "discriminator": [
+        176,
+        246,
+        87,
+        191,
+        32,
+        27,
+        237,
+        150
+      ]
+    },
+    {
+      "name": "LeaderboardEntryMigrated",
+      "discriminator": [
+        130,
+        197,
+        66,
+        176,
+        193,
+        98,
+        192,
+        229
+      ]
+    },
+    {
+      "name": "LeaderboardFinalized",
+      "discriminator": [
+        253,
+        167,
+        44,
+        2,
+        9,
+        81,
+        88,
+        0
+      ]
+    },
+    {
+      "name": "LeaderboardInitialized",
+      "discriminator": [
+        135,
+        70,
+        99,
+        96,
+        246,
+        187,
+        226,
+        226
+      ]
+    },
+    {
+      "name": "LeaderboardUpdated",
+      "discriminator": [
+        28,
+        209,
+        133,
+        1,
+        229,
+        195,
+        230,
+        228
+      ]
+    },
+    {
+      "name": "MigrationStatusChecked",
+      "discriminator": [
+        247,
+        36,
+        68,
+        99,
+        1,
+        84,
+        64,
+        174
+      ]
+    },
+    {
+      "name": "PeriodFinalized",
+      "discriminator": [
+        181,
+        157,
+        218,
+        0,
+        139,
+        166,
+        39,
+        238
+      ]
+    },
+    {
+      "name": "PeriodFinalizedWithWinners",
+      "discriminator": [
+        93,
+        23,
+        213,
+        1,
+        30,
+        147,
+        210,
+        140
+      ]
+    },
+    {
+      "name": "PlatformRevenueWithdrawn",
+      "discriminator": [
+        65,
+        63,
+        59,
+        118,
+        181,
+        91,
+        144,
+        229
+      ]
+    },
+    {
+      "name": "PrizeClaimed",
+      "discriminator": [
+        213,
+        150,
+        192,
+        76,
+        199,
+        33,
+        212,
+        38
+      ]
+    },
+    {
+      "name": "ProfileSettingsUpdated",
+      "discriminator": [
+        109,
+        90,
+        97,
+        191,
+        91,
+        239,
+        236,
+        159
+      ]
+    },
+    {
+      "name": "ScoreRecorded",
+      "discriminator": [
+        49,
+        189,
+        142,
+        188,
+        114,
+        203,
+        130,
+        97
+      ]
+    },
+    {
+      "name": "SessionCompleted",
+      "discriminator": [
+        191,
+        190,
+        106,
+        122,
+        152,
+        219,
+        165,
+        90
+      ]
+    },
+    {
+      "name": "SessionEnded",
+      "discriminator": [
+        58,
+        51,
+        229,
+        78,
+        240,
+        232,
+        236,
+        18
+      ]
+    },
+    {
+      "name": "SessionScoreUpdated",
+      "discriminator": [
+        99,
+        155,
+        233,
+        203,
+        138,
+        222,
+        86,
+        129
+      ]
+    },
+    {
+      "name": "TicketPurchased",
+      "discriminator": [
+        108,
+        59,
+        246,
+        95,
+        84,
+        145,
+        13,
+        71
+      ]
+    },
+    {
+      "name": "UserProfileCreated",
+      "discriminator": [
+        175,
+        83,
+        79,
+        167,
+        6,
+        194,
+        72,
+        125
+      ]
+    },
+    {
+      "name": "UserStatsCalculated",
+      "discriminator": [
+        112,
+        234,
+        77,
+        22,
+        228,
+        85,
+        72,
+        53
+      ]
+    },
+    {
+      "name": "VaultsInitialized",
+      "discriminator": [
+        249,
+        38,
+        181,
+        202,
+        246,
+        173,
+        175,
+        90
+      ]
+    },
+    {
+      "name": "VobleGameCompleted",
+      "discriminator": [
+        52,
+        68,
+        40,
+        69,
+        76,
+        78,
+        220,
+        126
+      ]
+    },
+    {
+      "name": "VobleGameStarted",
+      "discriminator": [
+        134,
+        158,
+        106,
+        167,
+        189,
+        192,
+        227,
+        130
+      ]
+    },
+    {
+      "name": "VobleStatsCalculated",
+      "discriminator": [
+        244,
+        122,
+        103,
+        154,
+        117,
+        60,
+        243,
+        36
+      ]
+    },
+    {
+      "name": "WinnerDetermined",
+      "discriminator": [
+        24,
+        94,
+        250,
+        188,
+        62,
+        159,
+        205,
+        240
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "GamePaused",
+      "msg": "Game is currently paused"
+    },
+    {
+      "code": 6001,
+      "name": "InvalidCorrectCount",
+      "msg": "Invalid correct count (must be 0-3)"
+    },
+    {
+      "code": 6002,
+      "name": "InvalidGuessesUsed",
+      "msg": "Invalid guesses used (must be 0-15)"
+    },
+    {
+      "code": 6003,
+      "name": "AlreadyClaimed",
+      "msg": "Prize already claimed"
+    },
+    {
+      "code": 6004,
+      "name": "PeriodAlreadyFinalized",
+      "msg": "Period already finalized"
+    },
+    {
+      "code": 6005,
+      "name": "InsufficientVaultBalance",
+      "msg": "Insufficient vault balance"
+    },
+    {
+      "code": 6006,
+      "name": "NoParticipants",
+      "msg": "No participants found for this period"
+    },
+    {
+      "code": 6007,
+      "name": "InvalidWinnerSplits",
+      "msg": "Invalid winner splits configuration"
+    },
+    {
+      "code": 6008,
+      "name": "InvalidPrizeSplits",
+      "msg": "Invalid prize split percentages"
+    },
+    {
+      "code": 6009,
+      "name": "SessionIdTooLong",
+      "msg": "Session ID too long (max 50 characters)"
+    },
+    {
+      "code": 6010,
+      "name": "PeriodIdTooLong",
+      "msg": "Period ID too long (max 20 characters)"
+    },
+    {
+      "code": 6011,
+      "name": "PeriodTypeTooLong",
+      "msg": "Period type too long (max 10 characters)"
+    },
+    {
+      "code": 6012,
+      "name": "Unauthorized",
+      "msg": "Unauthorized access"
+    },
+    {
+      "code": 6013,
+      "name": "PeriodNotFound",
+      "msg": "Period not found"
+    },
+    {
+      "code": 6014,
+      "name": "InvalidPeriodState",
+      "msg": "Invalid period state"
+    },
+    {
+      "code": 6015,
+      "name": "DailyLimitExceeded",
+      "msg": "Daily play limit exceeded (1 game per day)"
+    },
+    {
+      "code": 6016,
+      "name": "SessionIdEmpty",
+      "msg": "Session ID cannot be empty"
+    },
+    {
+      "code": 6017,
+      "name": "InvalidScore",
+      "msg": "Invalid score (must be 0-3)"
+    },
+    {
+      "code": 6018,
+      "name": "InvalidGuessCount",
+      "msg": "Invalid guess count (must be 0-15)"
+    },
+    {
+      "code": 6019,
+      "name": "InvalidWinnerCount",
+      "msg": "Invalid winner count (must be exactly 3)"
+    },
+    {
+      "code": 6020,
+      "name": "InvalidWinnerOrder",
+      "msg": "Winners not sorted correctly by score"
+    },
+    {
+      "code": 6021,
+      "name": "InvalidPrizeAmount",
+      "msg": "Invalid prize amount"
+    },
+    {
+      "code": 6022,
+      "name": "InvalidTimeMs",
+      "msg": "Invalid time in milliseconds"
+    },
+    {
+      "code": 6023,
+      "name": "WordNotSet",
+      "msg": "Target word not set - VRF callback pending"
+    }
+  ],
+  "types": [
+    {
+      "name": "Achievement",
+      "docs": [
+        "Achievement tracking - Optimized (name/description stored in frontend)"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "id",
+            "type": "u8"
+          },
+          {
+            "name": "unlocked_at",
+            "type": {
+              "option": "i64"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "AchievementUnlocked",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "achievement_id",
+            "type": "u8"
+          },
+          {
+            "name": "unlocked_at",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "BatchLeaderboardMigrated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "entries_migrated",
+            "type": "u32"
+          },
+          {
+            "name": "total_score_added",
+            "type": "u64"
+          },
+          {
+            "name": "new_total_games",
+            "type": "u32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "FriendAdded",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "friend",
+            "type": "pubkey"
+          },
+          {
+            "name": "total_friends",
+            "type": "u32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "GameSessionStarted",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "session_id",
+            "type": "string"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "GlobalConfig",
+      "docs": [
+        "Global configuration for the Voble game"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "ticket_price",
+            "type": "u64"
+          },
+          {
+            "name": "prize_split_daily",
+            "type": "u16"
+          },
+          {
+            "name": "prize_split_weekly",
+            "type": "u16"
+          },
+          {
+            "name": "prize_split_monthly",
+            "type": "u16"
+          },
+          {
+            "name": "platform_revenue_split",
+            "type": "u16"
+          },
+          {
+            "name": "winner_splits",
+            "type": {
+              "vec": "u16"
+            }
+          },
+          {
+            "name": "paused",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "GlobalConfigInitialized",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "ticket_price",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "GuessData",
+      "docs": [
+        "Guess data with result (used in fixed array)"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "guess",
+            "type": "string"
+          },
+          {
+            "name": "result",
+            "type": {
+              "array": [
+                {
+                  "defined": {
+                    "name": "LetterResult"
+                  }
+                },
+                6
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "GuessSubmitted",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "session_id",
+            "type": "string"
+          },
+          {
+            "name": "guess",
+            "type": "string"
+          },
+          {
+            "name": "guess_number",
+            "type": "u8"
+          },
+          {
+            "name": "is_correct",
+            "type": "bool"
+          },
+          {
+            "name": "result",
+            "type": {
+              "array": [
+                {
+                  "defined": {
+                    "name": "LetterResult"
+                  }
+                },
+                6
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "LeaderEntry",
+      "docs": [
+        "Single leaderboard entry"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "score",
+            "type": "u32"
+          },
+          {
+            "name": "guesses_used",
+            "type": "u8"
+          },
+          {
+            "name": "time_ms",
+            "type": "u64"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          },
+          {
+            "name": "username",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LeaderboardEntryCreated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "session_id",
+            "type": "string"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LeaderboardEntryMigrated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "old_session_id",
+            "type": "string"
+          },
+          {
+            "name": "migrated_score",
+            "type": "u32"
+          },
+          {
+            "name": "total_games",
+            "type": "u32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LeaderboardFinalized",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "period_id",
+            "type": "string"
+          },
+          {
+            "name": "period_type",
+            "type": {
+              "defined": {
+                "name": "PeriodType"
+              }
+            }
+          },
+          {
+            "name": "total_players",
+            "type": "u32"
+          },
+          {
+            "name": "winners_count",
+            "type": "u8"
+          },
+          {
+            "name": "finalized_at",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LeaderboardInitialized",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "period_id",
+            "type": "string"
+          },
+          {
+            "name": "period_type",
+            "type": {
+              "defined": {
+                "name": "PeriodType"
+              }
+            }
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LeaderboardScore",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "correct_count",
+            "type": "u8"
+          },
+          {
+            "name": "time_ms",
+            "type": "u64"
+          },
+          {
+            "name": "guesses_used",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LeaderboardUpdated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "period_id",
+            "type": "string"
+          },
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "score",
+            "type": "u32"
+          },
+          {
+            "name": "rank",
+            "type": "u8"
+          },
+          {
+            "name": "total_players",
+            "type": "u32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "LetterResult",
+      "docs": [
+        "Result for each letter in a guess"
+      ],
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Correct"
+          },
+          {
+            "name": "Present"
+          },
+          {
+            "name": "Absent"
+          }
+        ]
+      }
+    },
+    {
+      "name": "MigrationStatusChecked",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "total_games_played",
+            "type": "u32"
+          },
+          {
+            "name": "total_score",
+            "type": "u64"
+          },
+          {
+            "name": "profile_created_at",
+            "type": "i64"
+          },
+          {
+            "name": "migration_complete",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PeriodFinalized",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "period_type",
+            "type": "string"
+          },
+          {
+            "name": "period_id",
+            "type": "string"
+          },
+          {
+            "name": "vault_balance",
+            "type": "u64"
+          },
+          {
+            "name": "winner_amounts",
+            "type": {
+              "vec": "u64"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "PeriodFinalizedWithWinners",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "period_type",
+            "type": "string"
+          },
+          {
+            "name": "period_id",
+            "type": "string"
+          },
+          {
+            "name": "vault_balance",
+            "type": "u64"
+          },
+          {
+            "name": "winners",
+            "type": {
+              "vec": "pubkey"
+            }
+          },
+          {
+            "name": "winner_amounts",
+            "type": {
+              "vec": "u64"
+            }
+          },
+          {
+            "name": "total_participants",
+            "type": "u32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PeriodLeaderboard",
+      "docs": [
+        "Period leaderboard tracking top players"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "period_id",
+            "type": "string"
+          },
+          {
+            "name": "period_type",
+            "type": {
+              "defined": {
+                "name": "PeriodType"
+              }
+            }
+          },
+          {
+            "name": "entries",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "LeaderEntry"
+                }
+              }
+            }
+          },
+          {
+            "name": "total_players",
+            "type": "u32"
+          },
+          {
+            "name": "prize_pool",
+            "type": "u64"
+          },
+          {
+            "name": "finalized",
+            "type": "bool"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "finalized_at",
+            "type": {
+              "option": "i64"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "PeriodState",
+      "docs": [
+        "Period state tracking finalization and winners"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "period_type",
+            "type": "string"
+          },
+          {
+            "name": "period_id",
+            "type": "string"
+          },
+          {
+            "name": "finalized",
+            "type": "bool"
+          },
+          {
+            "name": "total_participants",
+            "type": "u32"
+          },
+          {
+            "name": "vault_balance_at_finalization",
+            "type": "u64"
+          },
+          {
+            "name": "winners",
+            "type": {
+              "vec": "pubkey"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "PeriodType",
+      "docs": [
+        "Period type enum"
+      ],
+      "repr": {
+        "kind": "rust"
+      },
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "Daily"
+          },
+          {
+            "name": "Weekly"
+          },
+          {
+            "name": "Monthly"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PlatformRevenueWithdrawn",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "destination",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "remaining_balance",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "PrizeClaimed",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "winner",
+            "type": "pubkey"
+          },
+          {
+            "name": "period_type",
+            "type": "string"
+          },
+          {
+            "name": "period_id",
+            "type": "string"
+          },
+          {
+            "name": "rank",
+            "type": "u8"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ProfileSettingsUpdated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "username",
+            "type": "string"
+          },
+          {
+            "name": "is_premium",
+            "type": "bool"
+          }
+        ]
+      }
+    },
+    {
+      "name": "ScoreRecorded",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "session_id",
+            "type": "string"
+          },
+          {
+            "name": "correct_count",
+            "type": "u8"
+          },
+          {
+            "name": "time_ms",
+            "type": "u64"
+          },
+          {
+            "name": "guesses_used",
+            "type": "u8"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SessionAccount",
+      "docs": [
+        "Separate SessionAccount for active game (Priority 1 & 3: Separate account + Fixed arrays)"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "session_id",
+            "type": "string"
+          },
+          {
+            "name": "target_word_hash",
+            "type": {
+              "array": [
+                "u8",
+                32
+              ]
+            }
+          },
+          {
+            "name": "word_index",
+            "type": "u32"
+          },
+          {
+            "name": "target_word",
+            "type": "string"
+          },
+          {
+            "name": "guesses",
+            "type": {
+              "array": [
+                {
+                  "option": {
+                    "defined": {
+                      "name": "GuessData"
+                    }
+                  }
+                },
+                7
+              ]
+            }
+          },
+          {
+            "name": "is_solved",
+            "type": "bool"
+          },
+          {
+            "name": "guesses_used",
+            "type": "u8"
+          },
+          {
+            "name": "time_ms",
+            "type": "u64"
+          },
+          {
+            "name": "score",
+            "type": "u32"
+          },
+          {
+            "name": "completed",
+            "type": "bool"
+          },
+          {
+            "name": "period_id",
+            "type": "string"
+          },
+          {
+            "name": "vrf_request_timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SessionCompleted",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "session_id",
+            "type": "string"
+          },
+          {
+            "name": "final_score",
+            "type": "u32"
+          },
+          {
+            "name": "total_games_played",
+            "type": "u32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SessionEnded",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "session_id",
+            "type": "string"
+          },
+          {
+            "name": "rent_returned",
+            "type": "u64"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SessionScoreUpdated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "session_id",
+            "type": "string"
+          },
+          {
+            "name": "correct_count",
+            "type": "u8"
+          },
+          {
+            "name": "time_ms",
+            "type": "u64"
+          },
+          {
+            "name": "guesses_used",
+            "type": "u8"
+          },
+          {
+            "name": "score",
+            "type": "u32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "SessionToken",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "authority",
+            "type": "pubkey"
+          },
+          {
+            "name": "target_program",
+            "type": "pubkey"
+          },
+          {
+            "name": "session_signer",
+            "type": "pubkey"
+          },
+          {
+            "name": "valid_until",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "TicketPurchased",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "daily_amount",
+            "type": "u64"
+          },
+          {
+            "name": "weekly_amount",
+            "type": "u64"
+          },
+          {
+            "name": "monthly_amount",
+            "type": "u64"
+          },
+          {
+            "name": "platform_amount",
+            "type": "u64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "UserProfile",
+      "docs": [
+        "User profile for Voble game - Optimized for minimal rent cost"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "username",
+            "type": "string"
+          },
+          {
+            "name": "total_games_played",
+            "type": "u32"
+          },
+          {
+            "name": "games_won",
+            "type": "u32"
+          },
+          {
+            "name": "current_streak",
+            "type": "u32"
+          },
+          {
+            "name": "max_streak",
+            "type": "u32"
+          },
+          {
+            "name": "total_score",
+            "type": "u64"
+          },
+          {
+            "name": "best_score",
+            "type": "u32"
+          },
+          {
+            "name": "average_guesses",
+            "type": "f32"
+          },
+          {
+            "name": "guess_distribution",
+            "type": {
+              "array": [
+                "u32",
+                7
+              ]
+            }
+          },
+          {
+            "name": "last_played_period",
+            "type": "string"
+          },
+          {
+            "name": "has_played_this_period",
+            "type": "bool"
+          },
+          {
+            "name": "achievements",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "Achievement"
+                }
+              }
+            }
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          },
+          {
+            "name": "last_played",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "UserProfileCreated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "username",
+            "type": "string"
+          },
+          {
+            "name": "created_at",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "UserStatsCalculated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "total_games",
+            "type": "u32"
+          },
+          {
+            "name": "best_score",
+            "type": "u32"
+          },
+          {
+            "name": "average_score",
+            "type": "u64"
+          },
+          {
+            "name": "accuracy_percentage",
+            "type": "u32"
+          },
+          {
+            "name": "total_friends",
+            "type": "u32"
+          },
+          {
+            "name": "achievements_unlocked",
+            "type": "u32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VaultsInitialized",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "daily_vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "weekly_vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "monthly_vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "platform_vault",
+            "type": "pubkey"
+          },
+          {
+            "name": "authority",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VobleGameCompleted",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "session_id",
+            "type": "string"
+          },
+          {
+            "name": "target_word",
+            "type": "string"
+          },
+          {
+            "name": "is_solved",
+            "type": "bool"
+          },
+          {
+            "name": "guesses_used",
+            "type": "u8"
+          },
+          {
+            "name": "final_score",
+            "type": "u32"
+          },
+          {
+            "name": "current_streak",
+            "type": "u32"
+          },
+          {
+            "name": "total_games_played",
+            "type": "u32"
+          },
+          {
+            "name": "games_won",
+            "type": "u32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VobleGameStarted",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "session_id",
+            "type": "string"
+          },
+          {
+            "name": "period_id",
+            "type": "string"
+          },
+          {
+            "name": "target_word_hash",
+            "type": "string"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
+          }
+        ]
+      }
+    },
+    {
+      "name": "VobleStatsCalculated",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "total_games",
+            "type": "u32"
+          },
+          {
+            "name": "games_won",
+            "type": "u32"
+          },
+          {
+            "name": "win_rate",
+            "type": "f32"
+          },
+          {
+            "name": "current_streak",
+            "type": "u32"
+          },
+          {
+            "name": "max_streak",
+            "type": "u32"
+          },
+          {
+            "name": "average_guesses",
+            "type": "f32"
+          },
+          {
+            "name": "best_score",
+            "type": "u32"
+          },
+          {
+            "name": "average_score",
+            "type": "u64"
+          },
+          {
+            "name": "guess_distribution",
+            "type": {
+              "array": [
+                "u32",
+                7
+              ]
+            }
+          },
+          {
+            "name": "achievements_unlocked",
+            "type": "u32"
+          }
+        ]
+      }
+    },
+    {
+      "name": "WinnerDetermined",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "period_id",
+            "type": "string"
+          },
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "rank",
+            "type": "u8"
+          },
+          {
+            "name": "score",
+            "type": "u32"
+          },
+          {
+            "name": "username",
+            "type": "string"
+          }
+        ]
+      }
+    },
+    {
+      "name": "WinnerEntitlement",
+      "docs": [
+        "Winner entitlement for prize claiming"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "period_type",
+            "type": "string"
+          },
+          {
+            "name": "period_id",
+            "type": "string"
+          },
+          {
+            "name": "rank",
+            "type": "u8"
+          },
+          {
+            "name": "amount",
+            "type": "u64"
+          },
+          {
+            "name": "claimed",
+            "type": "bool"
+          }
+        ]
+      }
+    }
+  ]
+}
