@@ -50,19 +50,15 @@ export function ERConnectionProvider({ children }: ERConnectionProviderProps) {
         confirmTransactionInitialTimeout: 60000,
       })
       
-      // Test connection with getSlot instead of getVersion (Magic Router compatible)
-      try {
-        await connection.getSlot()
-      } catch (testError) {
-        console.warn('⚠️ [ER] Connection test failed, but continuing anyway:', testError)
-        // Continue anyway - Magic Router might not support all RPC methods
-      }
+      // Note: We don't test the connection here because Magic Router may not support
+      // standard RPC methods like getSlot or getVersion. The connection will be validated
+      // when actually used for transactions.
       
       setERConnection(connection)
       setIsERConnected(true)
       setERError(null)
       if (process.env.NODE_ENV === 'development') {
-        console.log('✅ [ER] Magic Router connected:', endpoint)
+        console.log('✅ [ER] Magic Router connection initialized:', endpoint)
       }
     } catch (error) {
       console.error('❌ [ER] Failed to connect to Magic Router:', error)
