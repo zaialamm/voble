@@ -59,6 +59,7 @@ export function useUnifiedSession(): UnifiedSessionStatus {
       setIsLoadingSession(false)
     }
     checkSession()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionWalletPublicKey, sessionTokenProperty, hasGetSessionTokenMethod]) // ✅ Only primitive dependencies
   
   // Debug: Log session wallet properties (moved to useEffect to avoid render spam)
@@ -71,6 +72,7 @@ export function useUnifiedSession(): UnifiedSessionStatus {
         sessionTokenMethod: sessionTokenFromMethod,
       })
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionWalletPublicKey, sessionTokenProperty, sessionTokenFromMethod])
   
   // Check both the property and the method result
