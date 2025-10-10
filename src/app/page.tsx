@@ -314,7 +314,7 @@ export default function Home() {
                 Is the game fair?
               </AccordionTrigger>
               <AccordionContent className="text-slate-600 dark:text-slate-400 text-sm">
-                Yes! Each word is randomly selected using blockchain technology that cannot be manipulated. 
+                Yes! Each word is randomly selected using Ephemeral VRF (Verifiable Random Function) from Magicblocks. 
                 The selection process is verifiable and transparent—no one can predict or influence which word you will get. 
                 Every player gets a fair shot at winning.
               </AccordionContent>
