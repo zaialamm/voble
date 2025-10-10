@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { 
@@ -10,7 +11,8 @@ import {
   Timer,
   WalletIcon,
   Wallet,
-  Ticket
+  Ticket,
+  UserCircle
 } from 'lucide-react'
 import { usePrivy } from "@privy-io/react-auth"
 import { useConnectedStandardWallets } from "@privy-io/react-auth/solana"
@@ -18,10 +20,12 @@ import {
   useBuyTicket,
   useSubmitGuess,
   useCompleteGame,
-  useFetchSession
+  useFetchSession,
+  useUserProfile
 } from '@/hooks/web3-js'
 import { useSessionWallet } from '@magicblock-labs/gum-react-sdk'
 import { PrizeVaultsDisplay } from '@/components/prize-vaults-display'
+import Link from 'next/link'
 // ER Integration
 import { useUnifiedSession } from '@/hooks/mb-er'
 
@@ -52,6 +56,7 @@ const KEYBOARD_ROWS = [
 ]
 
 export default function GamePage() {
+  const router = useRouter()
   const { ready, authenticated, login, user } = usePrivy()
   const { wallets } = useConnectedStandardWallets() // External wallets only
   const wallet = wallets[0] // First external Solana wallet
@@ -87,6 +92,8 @@ export default function GamePage() {
   const { submitGuess: submitGuessToBlockchain } = useSubmitGuess()
   const { completeGame } = useCompleteGame()
   const { session, refetch: refetchSession } = useFetchSession(periodId)
+  // Use activeWallet address to support both external and embedded wallets
+  const { profile, isLoading: isLoadingProfile, refetch: refetchProfile } = useUserProfile(activeWallet?.address)
   
   // Debug: Log session status (only when session data changes)
   useEffect(() => {
@@ -564,6 +571,50 @@ export default function GamePage() {
     }
   }
 
+  // Refetch profile when page loads to ensure fresh data
+  useEffect(() => {
+    if (ready && authenticated && activeWallet) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🔄 [Game Page] Refetching profile to ensure fresh data', {
+          walletAddress: activeWallet?.address,
+          isLoadingProfile,
+          hasProfile: !!profile,
+        })
+      }
+      refetchProfile()
+    }
+    // Only run on mount or when authentication changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready, authenticated, activeWallet?.address])
+
+  // Redirect to create profile if user doesn't have one
+  // MUST be before early returns to follow Rules of Hooks
+  useEffect(() => {
+    // Only check after authentication is ready and profile data is loaded
+    if (ready && authenticated && activeWallet && !isLoadingProfile) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🔍 [Game Page] Profile check:', {
+          ready,
+          authenticated,
+          activeWalletAddress: activeWallet?.address,
+          isLoadingProfile,
+          hasProfile: !!profile,
+          profileUsername: profile?.username,
+        })
+      }
+      
+      if (!profile) {
+        // User doesn't have a profile, redirect to create profile page
+        if (process.env.NODE_ENV === 'development') {
+          console.log('⚠️ [Game Page] No profile found, redirecting to create profile')
+        }
+        router.push('/create-profile')
+      } else if (process.env.NODE_ENV === 'development') {
+        console.log('✅ [Game Page] Profile exists:', profile.username)
+      }
+    }
+  }, [ready, authenticated, activeWallet, profile, isLoadingProfile, router])
+
   // Log session status to console - MOVED BEFORE EARLY RETURNS
   useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
@@ -579,21 +630,23 @@ export default function GamePage() {
   }, [hasSessionKey, canPlayGasless, statusMessage, statusType, sessionWallet?.publicKey, sessionWallet?.sessionToken])
 
   // Add BEFORE the authentication check
-  // Show loading while Privy is initializing
-  if (!ready) {
+  // Show loading while Privy is initializing or checking profile
+  if (!ready || (authenticated && activeWallet && isLoadingProfile)) {
     return (
       <div className="container mx-auto py-8">
         <Card className="text-center py-12">
           <CardContent>
             <div className="flex flex-col items-center gap-4">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 dark:border-gray-100"></div>
-              <p className="text-muted-foreground">Initializing...</p>
+              <p className="text-muted-foreground">
+                {!ready ? 'Initializing...' : 'Checking profile...'}
+              </p>
             </div>
           </CardContent>
         </Card>
       </div>
     )
-  }  
+  }
 
   // Show login prompt if not authenticated or no wallet
   if (!authenticated || !activeWallet) {
@@ -610,6 +663,30 @@ export default function GamePage() {
               <Wallet className="h-5 w-5 mr-2" />
               {authenticated ? 'Create Wallet' : 'Sign In'}
             </Button>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  // Show create profile prompt if user doesn't have a profile
+  // This is a fallback in case the redirect hasn't happened yet
+  if (!profile) {
+    return (
+      <div className="container mx-auto py-8">
+        <Card className="text-center py-12">
+          <CardContent>
+            <UserCircle className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+            <h2 className="text-2xl font-bold mb-2">Profile Required</h2>
+            <p className="text-muted-foreground mb-6">
+              You need to create a profile before you can play the game.
+            </p>
+            <Link href="/create-profile">
+              <Button size="lg">
+                <UserCircle className="h-5 w-5 mr-2" />
+                Create Profile
+              </Button>
+            </Link>
           </CardContent>
         </Card>
       </div>
