@@ -39,6 +39,12 @@ export function useCompleteGame() {
     setError(null)
 
     try {
+      // ✅ SECURITY: Validate session key exists
+      if (!sessionWallet?.sessionToken) {
+        console.error('❌ [useCompleteGame] SECURITY: No session key found!')
+        throw new Error('Session key required. Please create a session key first.')
+      }
+      
       // Validate inputs
       if (!selectedWallet) {
         console.error('❌ [useCompleteGame] No wallet connected')

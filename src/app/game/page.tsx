@@ -265,7 +265,19 @@ export default function GamePage() {
     }
   }
 
+  // ✅ SECURITY: Validate ALL THREE requirements before allowing gameplay
+  // 1. Has session key (for gasless transactions)
+  // 2. Has valid ticket (paid and on-chain)
+  // 3. Session exists on-chain for current period
+  const canPlayGame = hasSessionKey && session && session.periodId === periodId && !session.completed && session.guessesUsed < 7
+
   const handleKeyPress = (key: string) => {
+    // ✅ SECURITY: Block input if no session key or ticket
+    if (!canPlayGame) {
+      console.warn('⚠️ Cannot play: Missing session key or valid ticket')
+      return
+    }
+    
     if (gameState.gameStatus !== 'playing') return
 
     if (key === 'BACKSPACE') {
@@ -294,6 +306,13 @@ export default function GamePage() {
   }
 
   const submitGuess = async () => {
+    // ✅ SECURITY: Double-check before submitting to blockchain
+    if (!canPlayGame) {
+      console.error('❌ SECURITY: Attempted to submit guess without session key or ticket!')
+      alert('Error: You must have a session key and valid ticket to play.')
+      return
+    }
+    
     const currentGuess = gameState.grid[gameState.currentRow]
       .map(tile => tile.letter)
       .join('')
@@ -302,6 +321,7 @@ export default function GamePage() {
     
     if (process.env.NODE_ENV === 'development') {
       console.log('🎯 Submitting guess to blockchain:', currentGuess)
+      console.log('🔐 Security checks passed: hasSessionKey=', hasSessionKey, ', hasTicket=', !!session)
     }
     setGameState(prev => ({ ...prev, gameStatus: 'loading' }))
 
@@ -401,36 +421,35 @@ export default function GamePage() {
       }
       const result = await buyTicket(periodId)
       
-      if (result.success) {
-        if (process.env.NODE_ENV === 'development') {
-          console.log('✅ [handleBuyTicket] Ticket purchased successfully!')
-        }
-        
-        // Refetch session to get the new game session from blockchain
-        await refetchSession()
-        
-        // Reset game state for new session
-        setGameState({
-          grid: Array(7).fill(null).map(() => 
-            Array(6).fill(null).map(() => ({ letter: '', state: 'empty' }))
-          ),
-          currentRow: 0,
-          currentCol: 0,
-          gameStatus: 'playing',
-          targetWord: '', // Will come from blockchain
-          guesses: [],
-          score: 0,
-          timeElapsed: 0
-        })
-        setKeyboardState({})
-        setStartTime(Date.now()) // Reset timer
-        
-        if (process.env.NODE_ENV === 'development') {
-          console.log('🎮 [handleBuyTicket] Ready to play with gasless transactions!')
-        }
-        
-      } else {
+      if (!result.success) {
         throw new Error(result.error || 'Failed to buy ticket')
+      }
+      
+      if (process.env.NODE_ENV === 'development') {
+        console.log('✅ [handleBuyTicket] Ticket purchased successfully!')
+      }
+      
+      // Refetch session to get the new game session from blockchain
+      await refetchSession()
+      
+      // Reset game state for new session
+      setGameState({
+        grid: Array(7).fill(null).map(() => 
+          Array(6).fill(null).map(() => ({ letter: '', state: 'empty' }))
+        ),
+        currentRow: 0,
+        currentCol: 0,
+        gameStatus: 'playing',
+        targetWord: '', // Will come from blockchain
+        guesses: [],
+        score: 0,
+        timeElapsed: 0
+      })
+      setKeyboardState({})
+      setStartTime(Date.now()) // Reset timer
+      
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🎮 [handleBuyTicket] Ready to play with gasless transactions!')
       }
     } catch (error: unknown) {
       const err = error as Error & { message?: string }
@@ -604,9 +623,9 @@ export default function GamePage() {
       <PrizeVaultsDisplay />
 
       {/* Buy Ticket Section */}
-      {/* ✅ FIX: Check if session is for current period AND not used up */}
-      {/* Session is "used up" if completed OR all guesses used (7 max) */}
-      {(!session || session.periodId !== periodId || session.completed || session.guessesUsed >= 7) && (
+      {/* ✅ SECURITY: Show if ANY of the 3 requirements are missing */}
+      {/* Show when: no session key OR no valid ticket OR session not on-chain */}
+      {(!hasSessionKey || !session || session.periodId !== periodId || session.completed || session.guessesUsed >= 7) && (
         <Card className="mb-6 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
           <CardContent className="pt-6">
             <div className="text-center space-y-4">
@@ -614,24 +633,16 @@ export default function GamePage() {
                 <Ticket className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                 <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Ready to Play?</h2>
               </div>
-              <p className="text-slate-600 dark:text-slate-400">
-                Purchase a ticket to start your daily word puzzle challenge!
-              </p>
+
               <div className="flex flex-col items-center gap-4 w-full max-w-md mx-auto">
                 {/* Session Status Display */}
-                <div className="w-full space-y-2 p-4 bg-slate-100 dark:bg-slate-700 rounded-lg">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-slate-600 dark:text-slate-400">Session Status:</span>
-                    <span className={`font-medium ${hasSessionKey ? 'text-green-600 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'}`}>
-                      {hasSessionKey ? '✅ Active' : '⚠️ No Session'}
-                    </span>
-                  </div>
-                  {sessionWallet?.publicKey && (
+                {sessionWallet?.publicKey && (
+                  <div className="w-full space-y-2 p-3 bg-slate-100 dark:bg-slate-700 rounded-lg">
                     <div className="text-xs text-slate-500 dark:text-slate-400 break-all">
                       Session Key: {sessionWallet.publicKey.toString().substring(0, 30)}...
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
 
                 {/* 🧪 TEST: Create Session Button */}
                 {/* Commented out for production - only show Buy Ticket and Start Game */}
@@ -675,27 +686,34 @@ export default function GamePage() {
                 )} */}
 
                 {/* Original Buy Ticket Button */}
-                <p className="text-sm text-slate-600 dark:text-slate-400">
-                  Ticket Price: <span className="font-bold text-blue-600 dark:text-blue-400">0.001 SOL</span>
-                </p>
-                <Button
-                  onClick={handleBuyTicket}
-                  disabled={isBuyingTicket || creatingSession}
-                  size="lg"
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium"
-                >
-                  {(isBuyingTicket || creatingSession) ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      {creatingSession ? 'Creating Session...' : 'Processing...'}
-                    </>
-                  ) : (
-                    <>
-                      <Ticket className="h-5 w-5 mr-2" />
-                      Buy Ticket & Start Game
-                    </>
+                <div className="w-full space-y-3">
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    Ticket Price: <span className="font-bold text-blue-600 dark:text-blue-400">0.001 SOL</span>
+                  </p>
+                  <Button
+                    onClick={handleBuyTicket}
+                    disabled={isBuyingTicket || creatingSession}
+                    size="lg"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium"
+                  >
+                    {(isBuyingTicket || creatingSession) ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        {creatingSession ? 'Creating Session...' : 'Processing...'}
+                      </>
+                    ) : (
+                      <>
+                        <Ticket className="h-5 w-5 mr-2" />
+                        {hasSessionKey ? 'Buy Ticket & Start Game' : 'Create Session & Buy Ticket'}
+                      </>
+                    )}
+                  </Button>
+                  {!hasSessionKey && (
+                    <p className="text-xs text-slate-500 dark:text-slate-400 text-center">
+                      This will create your session key first, then purchase your ticket.
+                    </p>
                   )}
-                </Button>
+                </div>
                 {buyTicketError && (
                   <p className="text-red-500 text-sm mt-2">
                     {buyTicketError}
@@ -707,9 +725,11 @@ export default function GamePage() {
         </Card>
       )}
 
+      {/* ✅ SECURITY: No warning banner - game UI only shows when ALL requirements met */}
+
       {/* Game Header */}
-      {/* ✅ FIX: Only show game for valid, active sessions with guesses remaining */}
-      {session && session.periodId === periodId && !session.completed && session.guessesUsed < 7 && (
+      {/* ✅ SECURITY: Only show game if BOTH session key AND valid ticket exist */}
+      {canPlayGame && (
         <>
           <div className="flex justify-center items-center mb-8">
             <div className="text-center">
@@ -717,11 +737,22 @@ export default function GamePage() {
                 Voble
               </h1>
               <p className="text-slate-600 dark:text-slate-400">Guess the 6-letter word!</p>
-              {hasSessionKey && (
-                <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                  🔑 Session Active - No popups needed!
+              <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
+                <p className="text-xs text-green-600 dark:text-green-400">
+                  ✅ Session Key
                 </p>
-              )}
+                <span className="text-slate-400">•</span>
+                <p className="text-xs text-green-600 dark:text-green-400">
+                  ✅ Ticket Paid
+                </p>
+                <span className="text-slate-400">•</span>
+                <p className="text-xs text-green-600 dark:text-green-400">
+                  ✅ On-Chain
+                </p>
+              </div>
+              <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                🔒 All requirements met - Secure gameplay enabled!
+              </p>
             </div>
           </div>
 
@@ -814,7 +845,8 @@ export default function GamePage() {
                       ${key === 'ENTER' || key === 'BACKSPACE' ? 'px-6 min-w-[4rem]' : ''} 
                       ${getKeyStyle(key)}
                     `}
-                    disabled={gameState.gameStatus !== 'playing'}
+                    disabled={gameState.gameStatus !== 'playing' || !canPlayGame}
+                    title={!canPlayGame ? 'Session key and ticket required' : ''}
                   >
                     {key === 'BACKSPACE' ? '⌫' : key}
                   </Button>

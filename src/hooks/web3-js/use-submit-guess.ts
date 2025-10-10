@@ -50,6 +50,12 @@ export function useSubmitGuess() {
     setError(null)
 
     try {
+      // ✅ SECURITY: Validate session key exists
+      if (!sessionWallet?.sessionToken) {
+        console.error('❌ [useSubmitGuess] SECURITY: No session key found!')
+        throw new Error('Session key required. Please create a session key first.')
+      }
+      
       // Validate inputs
       if (!selectedWallet) {
         console.error('❌ [useSubmitGuess] No wallet connected')
