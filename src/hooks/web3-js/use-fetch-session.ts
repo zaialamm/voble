@@ -70,7 +70,7 @@ export function useFetchSession(periodId: string): FetchSessionResult {
 
       try {
         // Fetch the session account using Anchor
-        const sessionAccount = await vocabeeProgram.account.sessionAccount.fetch(sessionPDA)
+        const sessionAccount = await (vocabeeProgram.account as any).sessionAccount.fetch(sessionPDA)
 
         if (process.env.NODE_ENV === 'development') {
           console.log('✅ [useFetchSession] Session fetched:', {

@@ -5,9 +5,7 @@ import { PublicKey } from '@solana/web3.js'
 import { vocabeeProgram } from './program'
 import { getUserProfilePDA, getSessionPDA } from './pdas'
 import { 
-  buildTransaction, 
-  sendTransaction, 
-  type TransactionResult 
+  buildTransaction
 } from './transaction-builder'
 import { handleTransactionError } from './utils'
 import { useSessionWallet } from '@magicblock-labs/gum-react-sdk'
@@ -92,7 +90,12 @@ export function useSubmitGuess() {
       }
 
       // Create the submit guess instruction using Anchor
-      const accounts: any = {
+      const accounts: {
+        userProfile: PublicKey
+        session: PublicKey
+        signer: PublicKey
+        sessionToken?: PublicKey
+      } = {
         userProfile: userProfilePDA,
         session: sessionPDA,
         signer: signerPublicKey,
@@ -169,21 +172,22 @@ export function useSubmitGuess() {
         signature: result.signature,
         // guessResult will be populated by fetching the updated session account
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('❌ [useSubmitGuess] Error submitting guess:', err)
       
+      const error = err as Error & { message?: string }
       let errorMessage = handleTransactionError(err)
       
       // Check for specific game-related errors
-      if (err?.message?.includes('User rejected')) {
+      if (error?.message?.includes('User rejected')) {
         errorMessage = 'Transaction was rejected'
-      } else if (err?.message?.includes('insufficient')) {
+      } else if (error?.message?.includes('insufficient')) {
         errorMessage = 'Insufficient SOL balance for transaction fees'
-      } else if (err?.message?.includes('game already completed')) {
+      } else if (error?.message?.includes('game already completed')) {
         errorMessage = 'Game has already been completed'
-      } else if (err?.message?.includes('invalid guess')) {
+      } else if (error?.message?.includes('invalid guess')) {
         errorMessage = 'Invalid guess - must be 6 letters'
-      } else if (err?.message?.includes('no active session')) {
+      } else if (error?.message?.includes('no active session')) {
         errorMessage = 'No active game session found. Please buy a ticket first.'
       }
       

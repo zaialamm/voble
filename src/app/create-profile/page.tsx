@@ -17,7 +17,7 @@ export default function CreateProfilePage() {
   const router = useRouter()
   const { ready, authenticated, login } = usePrivy()
   const { wallets } = useConnectedStandardWallets()
-  const { initializeProfile, initializeProfileWithER, isLoading, error } = useInitializeProfile()
+  const { initializeProfileWithER, isLoading, error } = useInitializeProfile()
   const { delegateUserProfile, isDelegating, error: delegateError } = useDelegateUserProfile()
   
   const [username, setUsername] = useState('')
@@ -105,7 +105,7 @@ export default function CreateProfilePage() {
       console.log('🚀 [CreateProfile] Delegating existing profile to ER...')
     }
     
-    const result = await delegateUserProfile({})
+    const result = await delegateUserProfile()
     
     if (result.success) {
       if (process.env.NODE_ENV === 'development') {

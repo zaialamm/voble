@@ -17,7 +17,6 @@ interface ERStatusIndicatorProps {
 }
 
 export function ERStatusIndicator({ 
-  showDetails = false, 
   variant = 'minimal' 
 }: ERStatusIndicatorProps) {
   const {
@@ -32,7 +31,6 @@ export function ERStatusIndicator({
   // Determine overall status
   const isFullyConnected = isERConnected && isBaseConnected
   const hasErrors = erError || baseError
-  const isPartiallyConnected = isERConnected || isBaseConnected
 
   if (variant === 'minimal') {
     return (

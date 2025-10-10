@@ -21,7 +21,7 @@ interface ERTransactionResult {
 
 export function useERTransaction() {
   const { wallets } = useConnectedStandardWallets()
-  const { erConnection, baseConnection, isERConnected, isBaseConnected } = useERConnection()
+  const { erConnection, baseConnection, isERConnected } = useERConnection()
   const sessionWallet = useSessionWallet() // Use GUM session wallet
   const wallet = wallets[0]
 
@@ -105,7 +105,7 @@ export function useERTransaction() {
             }
             
             console.log('✅ [ER Transaction] Simulation successful!')
-          } catch (simError: any) {
+          } catch (simError: unknown) {
             console.error('❌ [ER Transaction] Simulation error:', simError)
             throw simError
           }
@@ -113,7 +113,7 @@ export function useERTransaction() {
           // Use Privy's signAndSendTransaction (as per Privy docs)
           // This handles both signing and sending in one call
           const result = await wallet.signAndSendTransaction({
-            chain: 'solana:devnet' as any,
+            chain: 'solana:devnet' as const,
             transaction: new Uint8Array(
               transaction.serialize({
                 requireAllSignatures: false,
@@ -123,21 +123,22 @@ export function useERTransaction() {
           })
           
           // Convert signature to base58 format (Privy returns base64 or Uint8Array)
-          if (typeof result.signature === 'string') {
+          const resultSignature: string | Uint8Array = result.signature as string | Uint8Array
+          if (typeof resultSignature === 'string') {
             // If it's a string, check if it's base64 or base58
-            if (result.signature.includes('+') || result.signature.includes('/') || result.signature.includes('=')) {
+            if (resultSignature.includes('+') || resultSignature.includes('/') || resultSignature.includes('=')) {
               // It's base64, convert to base58
               const bs58 = await import('bs58')
-              const signatureBytes = Buffer.from(result.signature, 'base64')
+              const signatureBytes = Buffer.from(resultSignature, 'base64')
               signature = bs58.default.encode(signatureBytes)
             } else {
               // Already base58
-              signature = result.signature
+              signature = resultSignature
             }
           } else {
             // It's Uint8Array, convert to base58
             const bs58 = await import('bs58')
-            signature = bs58.default.encode(result.signature as Uint8Array)
+            signature = bs58.default.encode(resultSignature)
           }
           
           console.log('✅ [ER Transaction] Transaction signed and sent via Privy')
@@ -161,22 +162,23 @@ export function useERTransaction() {
           routedTo,
         }
 
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const err = error as Error & { message?: string; logs?: string[]; code?: number }
         console.error('❌ [ER Transaction] Transaction failed:', {
           error,
-          message: error?.message,
-          logs: error?.logs,
-          code: error?.code,
+          message: err?.message,
+          logs: err?.logs,
+          code: err?.code,
         })
         
         // Provide helpful error messages
-        let errorMessage = error.message || 'Transaction failed'
+        let errorMessage = err.message || 'Transaction failed'
         
-        if (error.message?.includes('ER connection required')) {
+        if (err.message?.includes('ER connection required')) {
           errorMessage = 'Ephemeral Rollup not connected. Please refresh the page.'
-        } else if (error.message?.includes('session')) {
+        } else if (err.message?.includes('session')) {
           errorMessage = 'Session key error. Please create a new session.'
-        } else if (error.message?.includes('insufficient')) {
+        } else if (err.message?.includes('insufficient')) {
           errorMessage = 'Insufficient SOL balance for transaction fees.'
         }
         

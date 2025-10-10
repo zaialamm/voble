@@ -101,9 +101,10 @@ export function useVaultBalances(): VaultBalancesResult {
         }
 
         return balances
-      } catch (err: any) {
+      } catch (err: unknown) {
+        const error = err as Error & { message?: string }
         console.error('❌ [useVaultBalances] Error fetching balances:', err)
-        throw new Error(`Failed to fetch vault balances: ${err.message}`)
+        throw new Error(`Failed to fetch vault balances: ${error.message}`)
       }
     },
     staleTime: 15000, // Consider data stale after 15 seconds
@@ -177,9 +178,10 @@ export function useVaultBalance(vaultType: 'daily' | 'weekly' | 'monthly' | 'pla
           balance: balance / LAMPORTS_PER_SOL,
           balanceLamports: balance,
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
+        const error = err as Error & { message?: string }
         console.error(`❌ [useVaultBalance] Error fetching ${vaultType} balance:`, err)
-        throw new Error(`Failed to fetch ${vaultType} vault balance: ${err.message}`)
+        throw new Error(`Failed to fetch ${vaultType} vault balance: ${error.message}`)
       }
     },
     staleTime: 15000, // Consider data stale after 15 seconds

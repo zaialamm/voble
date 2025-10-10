@@ -5,9 +5,7 @@ import { PublicKey } from '@solana/web3.js'
 import { vocabeeProgram } from './program'
 import { getUserProfilePDA, getSessionPDA, getLeaderboardPDA } from './pdas'
 import { 
-  buildTransaction, 
-  sendTransaction, 
-  type TransactionResult 
+  buildTransaction
 } from './transaction-builder'
 import { handleTransactionError } from './utils'
 import { useSessionWallet } from '@magicblock-labs/gum-react-sdk'

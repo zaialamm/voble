@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Clock } from 'lucide-react'
 
 interface TimeLeft {
@@ -19,9 +19,7 @@ interface CountdownTimerProps {
 }
 
 export function CountdownTimer({ targetDate, label, variant = 'daily', compact = false, minimal = false }: CountdownTimerProps) {
-  const [timeLeft, setTimeLeft] = useState<TimeLeft>(calculateTimeLeft())
-
-  function calculateTimeLeft(): TimeLeft {
+  const calculateTimeLeft = useCallback((): TimeLeft => {
     const difference = +targetDate - +new Date()
     
     if (difference > 0) {
@@ -34,7 +32,9 @@ export function CountdownTimer({ targetDate, label, variant = 'daily', compact =
     }
     
     return { days: 0, hours: 0, minutes: 0, seconds: 0 }
-  }
+  }, [targetDate])
+
+  const [timeLeft, setTimeLeft] = useState<TimeLeft>(calculateTimeLeft())
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -42,7 +42,7 @@ export function CountdownTimer({ targetDate, label, variant = 'daily', compact =
     }, 1000)
 
     return () => clearInterval(timer)
-  }, [targetDate])
+  }, [targetDate, calculateTimeLeft])
 
   const variantColors = {
     daily: 'from-blue-600 to-cyan-600',

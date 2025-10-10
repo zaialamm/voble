@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { useConnectedStandardWallets } from '@privy-io/react-auth/solana'
 import { useQueryClient } from '@tanstack/react-query'
-import { PublicKey, Transaction } from '@solana/web3.js'
-import { BN } from '@coral-xyz/anchor'
+import { PublicKey } from '@solana/web3.js'
 
 import { 
   vocabeeProgram, 
@@ -11,12 +10,9 @@ import {
 } from './program'
 import { getUserProfilePDA } from './pdas'
 import { 
-  buildTransaction, 
-  sendTransaction, 
-  type TransactionResult 
+  buildTransaction
 } from './transaction-builder'
 import { handleTransactionError } from './utils'
-import { useSessionWallet } from '@magicblock-labs/gum-react-sdk'
 
 export interface InitializeProfileResult {
   success: boolean
@@ -31,7 +27,6 @@ export function useInitializeProfile() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const queryClient = useQueryClient()
-  const sessionWallet = useSessionWallet()
 
   const selectedWallet = wallets[0]
 

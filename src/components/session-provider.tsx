@@ -29,6 +29,9 @@ export const SessionProvider: React.FC<SessionProviderProps> = ({ children }) =>
   // Use the proper connection hook (matches @solana/wallet-adapter-react)
   const { connection } = useConnection()
   
+  // ✅ FIX: Extract stable wallet address to prevent infinite re-renders
+  const walletAddress = wallets[0]?.address
+  
   // Convert Privy wallet to AnchorWallet format - ONLY SIGNING, NO SENDING
   const anchorWallet: AnchorWallet | undefined = React.useMemo(() => {
     const solanaWallet = wallets[0] // useConnectedStandardWallets already filters for Solana
@@ -116,9 +119,7 @@ export const SessionProvider: React.FC<SessionProviderProps> = ({ children }) =>
         return signedTransactions
       },
       signAndSendTransaction: async <T extends Transaction | VersionedTransaction>(
-        transactions: T | T[], 
-        connection?: Connection, 
-        options?: any
+        transactions: T | T[]
       ): Promise<string[]> => {
         // ✅ GUM SDK needs this to properly track transaction confirmation and store session in IndexedDB
         // Must return string[] (array of signatures) as per SessionWalletInterface
@@ -166,7 +167,7 @@ export const SessionProvider: React.FC<SessionProviderProps> = ({ children }) =>
         }
       }
     }
-  }, [wallets])
+  }, [walletAddress]) // ✅ Only depend on wallet address string, not entire wallets array
   
   const cluster = 'devnet' as const
   
@@ -176,22 +177,22 @@ export const SessionProvider: React.FC<SessionProviderProps> = ({ children }) =>
       console.log('🔍 [SessionProvider] Wallet status:', {
         hasAnchorWallet: !!anchorWallet,
         anchorWalletPubkey: anchorWallet?.publicKey?.toString(),
-        hasPrivyWallet: !!wallets[0],
-        privyWalletAddress: wallets[0]?.address,
+        hasPrivyWallet: !!walletAddress,
+        privyWalletAddress: walletAddress,
         usingDummyWallet: !anchorWallet,
       })
       console.log('🔍 [SessionProvider] Initializing with:', anchorWallet ? 'REAL WALLET' : 'DUMMY WALLET')
     }
-  }, [anchorWallet, wallets])
+  }, [walletAddress, anchorWallet?.publicKey?.toString()]) // ✅ Only depend on stable primitive values
   
   // Create a dummy wallet for when no real wallet is connected
   // This allows SessionWalletProvider to always render (required for hooks)
   const dummyWallet: AnchorWallet = React.useMemo(() => ({
     publicKey: new PublicKey('11111111111111111111111111111111'),
-    signTransaction: async <T extends Transaction | VersionedTransaction>(tx: T): Promise<T> => {
+    signTransaction: async <T extends Transaction | VersionedTransaction>(): Promise<T> => {
       throw new Error('No wallet connected')
     },
-    signAllTransactions: async <T extends Transaction | VersionedTransaction>(txs: T[]): Promise<T[]> => {
+    signAllTransactions: async <T extends Transaction | VersionedTransaction>(): Promise<T[]> => {
       throw new Error('No wallet connected')
     },
   }), [])

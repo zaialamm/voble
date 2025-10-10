@@ -36,7 +36,6 @@ export function SessionStatus({
   const {
     hasSessionKey: isSessionActive,
     sessionPublicKey,
-    sessionToken,
     isLoadingSession,
     createSession,
     revokeSession,
@@ -52,7 +51,7 @@ export function SessionStatus({
   const isSessionExpiringSoon = false // TODO: Implement expiry check
   const timeRemaining = null // TODO: Implement time remaining
 
-  const [showCreateForm, setShowCreateForm] = useState(false)
+  const [, setShowCreateForm] = useState(false)
 
   // Format time remaining
   const formatTimeRemaining = (seconds: number | null) => {

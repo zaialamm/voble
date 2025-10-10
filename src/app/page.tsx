@@ -1,7 +1,6 @@
 'use client'
 
 import { usePrivy } from "@privy-io/react-auth"  
-import { useRouter } from 'next/navigation'  
 import Image from 'next/image'
 import { Card, CardContent} from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -19,8 +18,7 @@ import { LiveGameFeed } from '@/components/live-game-feed'
 import { InteractiveDemo } from '@/components/interactive-demo'
 
 export default function Home() {
-  const router = useRouter()
-  const { authenticated, ready, login } = usePrivy() 
+  const { ready } = usePrivy() 
 
   // Calculate countdown dates
   const now = new Date()
@@ -36,14 +34,6 @@ export default function Home() {
 
   // Ticket price 
   const TICKET_PRICE = '0.001 SOL'
-
-  const handlePlayClick = () => {
-    if (!authenticated) {
-      login()
-    } else {
-      router.push('/game')
-    }
-  }
 
   if (!ready) {
     return <div>Loading...</div>
@@ -353,11 +343,11 @@ export default function Home() {
 
             <AccordionItem value="item-6" className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-6">
               <AccordionTrigger className="text-base font-medium hover:no-underline text-slate-900 dark:text-white">
-                What if I don't win the top 3?
+                What if I don&apos;t win the top 3?
               </AccordionTrigger>
               <AccordionContent className="text-slate-600 dark:text-slate-400 text-sm">
                 Every player who plays has a chance to win our weekly lucky draw! One random player is selected each week 
-                to win a special prize from our platform revenue. Plus, you can try again tomorrow—your 0.001 SOL helps 
+                to win a special prize from our platform revenue. Plus, you can try again tomorrow&mdash;your 0.001 SOL helps 
                 grow the prize pools for the entire community.
               </AccordionContent>
             </AccordionItem>
@@ -367,7 +357,7 @@ export default function Home() {
                 Can we play Voble on Seeker / Solana Mobile?
               </AccordionTrigger>
               <AccordionContent className="text-slate-600 dark:text-slate-400 text-sm">
-                Yes, it's coming soon! We're working on optimizing Voble for Solana Mobile and Seeker devices 
+                Yes, it&apos;s coming soon! We&apos;re working on optimizing Voble for Solana Mobile and Seeker devices 
                 to give you the best mobile gaming experience.
               </AccordionContent>
             </AccordionItem>
@@ -381,7 +371,7 @@ export default function Home() {
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">Join the Beta</h2>
           <p className="text-lg mb-8 opacity-90">
-            We're in early beta—expect bugs and rough edges. Your feedback helps us improve before launch.
+            We&apos;re in early beta&mdash;expect bugs and rough edges. Your feedback helps us improve before launch.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-3 justify-center">

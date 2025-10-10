@@ -183,7 +183,7 @@ export default function LeaderboardPage() {
                   </div>
                   
                   <div className="text-center">
-                    <p className="font-semibold">{typeof player.guesses === 'number' ? player.guesses : player.guesses.toFixed(1)}</p>
+                    <p className="font-semibold">{Number.isInteger(player.guesses) ? player.guesses : player.guesses.toFixed(1)}</p>
                     <p className="text-muted-foreground">Avg Guesses</p>
                   </div>
                   

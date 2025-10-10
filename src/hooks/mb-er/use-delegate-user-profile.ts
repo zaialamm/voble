@@ -1,21 +1,16 @@
 import { useMutation } from '@tanstack/react-query'
 import { useConnectedStandardWallets } from '@privy-io/react-auth/solana'
-import { PublicKey, Transaction } from '@solana/web3.js'
+import { PublicKey } from '@solana/web3.js'
 import { useERConnection } from '@/components/mb-er/er-connection-provider'
-import { vocabeeProgram, VOBLE_PROGRAM_ID } from '@/hooks/web3-js/program'
+import { vocabeeProgram } from '@/hooks/web3-js/program'
 import { getUserProfilePDA } from '@/hooks/web3-js/pdas'
-import { ER_CONFIG, PROGRAM_IDS } from './config'
+import { PROGRAM_IDS } from './config'
 import { connection } from '@/hooks/web3-js/utils'
 
 interface DelegateUserProfileResult {
   success: boolean
   signature?: string
   error?: string
-}
-
-interface DelegateUserProfileParams {
-  // Optional: specify validator region
-  validatorRegion?: 'asia' | 'eu' | 'us' | 'local'
 }
 
 export function useDelegateUserProfile() {
@@ -26,7 +21,7 @@ export function useDelegateUserProfile() {
 
   const mutation = useMutation({
     mutationKey: ['delegateUserProfile'],
-    mutationFn: async (params: DelegateUserProfileParams = {}): Promise<DelegateUserProfileResult> => {
+    mutationFn: async (): Promise<DelegateUserProfileResult> => {
       if (!wallet?.address) {
         throw new Error('Wallet not connected')
       }

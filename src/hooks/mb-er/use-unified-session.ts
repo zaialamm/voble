@@ -35,9 +35,10 @@ export function useUnifiedSession(): UnifiedSessionStatus {
   const [sessionTokenFromMethod, setSessionTokenFromMethod] = React.useState<string | null>(null)
   const [isLoadingSession, setIsLoadingSession] = React.useState(true)
   
-  // ✅ FIX: Use stable reference to prevent infinite loop
+  // ✅ FIX: Extract only primitive/stable values to prevent infinite loop
   const sessionWalletPublicKey = sessionWallet?.publicKey?.toString()
-  const sessionWalletHasMethod = !!sessionWallet?.getSessionToken
+  const sessionTokenProperty = sessionWallet?.sessionToken
+  const hasGetSessionTokenMethod = !!sessionWallet?.getSessionToken
   
   React.useEffect(() => {
     const checkSession = async () => {
@@ -52,23 +53,25 @@ export function useUnifiedSession(): UnifiedSessionStatus {
         } catch (error) {
           console.error('❌ [Unified Session] Error getting session token:', error)
         }
+      } else {
+        setSessionTokenFromMethod(null)
       }
       setIsLoadingSession(false)
     }
     checkSession()
-  }, [sessionWalletPublicKey, sessionWalletHasMethod]) // ✅ Use stable dependencies
+  }, [sessionWalletPublicKey, sessionTokenProperty, hasGetSessionTokenMethod]) // ✅ Only primitive dependencies
   
   // Debug: Log session wallet properties (moved to useEffect to avoid render spam)
   React.useEffect(() => {
     if (process.env.NODE_ENV === 'development') {
       console.log('🔍 [Unified Session] Session wallet:', {
         hasWallet: !!sessionWallet,
-        publicKey: sessionWallet?.publicKey?.toString(),
-        sessionTokenProperty: sessionWallet?.sessionToken,
+        publicKey: sessionWalletPublicKey,
+        sessionTokenProperty,
         sessionTokenMethod: sessionTokenFromMethod,
       })
     }
-  }, [sessionWallet, sessionTokenFromMethod])
+  }, [sessionWalletPublicKey, sessionTokenProperty, sessionTokenFromMethod])
   
   // Check both the property and the method result
   const hasSessionKey = !!(sessionWallet?.sessionToken || sessionTokenFromMethod)
@@ -139,12 +142,32 @@ export function useUnifiedSession(): UnifiedSessionStatus {
         logs: error.logs,
       })
       
-      // ✅ FIX: Handle "already processed" error gracefully
-      // This happens when transaction succeeds but gets retried (e.g., React strict mode)
-      if (error.message?.includes('already been processed') || 
-          error.message?.includes('already processed') ||
-          error.transactionMessage?.includes('already been processed') ||
-          error.transactionMessage?.includes('already processed')) {
+      // ✅ FIX: Handle "already processed" error - but ONLY if it's NOT a simulation failure
+      // Simulation failures mean the transaction never went through
+      const isSimulationFailure = error.message?.includes('Simulation failed') || 
+                                   error.message?.includes('simulation failed')
+      const isAlreadyProcessed = error.message?.includes('already been processed') || 
+                                 error.message?.includes('already processed') ||
+                                 error.transactionMessage?.includes('already been processed') ||
+                                 error.transactionMessage?.includes('already processed')
+      
+      // If it's a simulation failure, it's a real error - don't treat as success
+      if (isSimulationFailure) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error('❌ [Unified Session] Transaction simulation failed - this is a real error')
+          console.error('💡 [Unified Session] Possible causes:')
+          console.error('   - Session already exists for this wallet')
+          console.error('   - Insufficient funds')
+          console.error('   - Invalid program state')
+        }
+        return {
+          success: false,
+          error: error.message || 'Transaction simulation failed'
+        }
+      }
+      
+      // Only treat as potential success if transaction was sent (not simulation failure)
+      if (isAlreadyProcessed && !isSimulationFailure) {
         if (process.env.NODE_ENV === 'development') {
           console.log('⚠️ [Unified Session] Transaction already processed - retrieving existing session')
           console.log('⏰ [Unified Session] Waiting for GUM SDK to finish IndexedDB write...')
@@ -174,9 +197,9 @@ export function useUnifiedSession(): UnifiedSessionStatus {
                 setSessionTokenFromMethod(token)
                 return { success: true }  // ✅ Mark as success since session exists!
               }
-            } catch (retrieveError) {
+            } catch {
               if (process.env.NODE_ENV === 'development' && retries % 10 === 0) {
-                console.log(`⏳ [Unified Session] Polling for session token... (${retries + 1}/${maxRetries}) - ${(retries * 0.5).toFixed(1)}s elapsed`)
+                console.log(`⏳ [Unified Session] Polling for session token... (${retries + 0.5}/${maxRetries}) - ${(retries * 0.5).toFixed(1)}s elapsed`)
               }
             }
             await new Promise(resolve => setTimeout(resolve, 500))

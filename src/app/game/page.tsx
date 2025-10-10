@@ -9,6 +9,7 @@ import {
   Zap,
   Timer,
   WalletIcon,
+  Wallet,
   Ticket
 } from 'lucide-react'
 import { usePrivy } from "@privy-io/react-auth"
@@ -22,7 +23,7 @@ import {
 import { useSessionWallet } from '@magicblock-labs/gum-react-sdk'
 import { PrizeVaultsDisplay } from '@/components/prize-vaults-display'
 // ER Integration
-import { useUnifiedSession, useDelegateUserProfile } from '@/hooks/mb-er'
+import { useUnifiedSession } from '@/hooks/mb-er'
 
 // Game state types
 type TileState = 'empty' | 'filled' | 'correct' | 'present' | 'absent'
@@ -57,7 +58,7 @@ export default function GamePage() {
   
   // Check for embedded wallet from user object
   const embeddedWallet = user?.linkedAccounts?.find(
-    (account: any) => account.type === 'wallet' && account.chainType === 'solana'
+    (account: { type: string; chainType?: string }) => account.type === 'wallet' && account.chainType === 'solana'
   )
   
   // Use embedded wallet if no external wallet
@@ -73,17 +74,18 @@ export default function GamePage() {
         hasExternalWallet: !!wallet,
         hasEmbeddedWallet: !!embeddedWallet,
         activeWalletAddress: activeWallet?.address,
-        userLinkedAccounts: user?.linkedAccounts?.map((a: any) => ({ type: a.type, chainType: a.chainType })),
+        userLinkedAccounts: user?.linkedAccounts?.map((a: { type: string; chainType?: string }) => ({ type: a.type, chainType: a.chainType })),
       })
     }
-  }, [ready, authenticated]) // Only log when these change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ready, authenticated]) // Only log when these change - intentionally limited deps for debug logging
   
   // Generate period ID (daily format: YYYY-MM-DD)
   const periodId = new Date().toISOString().split('T')[0]
   
   const { buyTicket, isLoading: isBuyingTicket, error: buyTicketError } = useBuyTicket()
-  const { submitGuess: submitGuessToBlockchain, isLoading: isSubmittingGuess } = useSubmitGuess()
-  const { completeGame, isLoading: isCompletingGame } = useCompleteGame()
+  const { submitGuess: submitGuessToBlockchain } = useSubmitGuess()
+  const { completeGame } = useCompleteGame()
   const { session, refetch: refetchSession } = useFetchSession(periodId)
   
   // Debug: Log session status (only when session data changes)
@@ -103,7 +105,8 @@ export default function GamePage() {
         shouldShowGame: session && session.periodId === periodId && !session.completed && session.guessesUsed < 7,
       })
     }
-  }, [session?.periodId, session?.completed, session?.isSolved, session?.guessesUsed]) // Only log when these specific fields change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.periodId, session?.completed, session?.isSolved, session?.guessesUsed]) // Only log when these specific fields change - intentionally limited deps
   
   // ER Integration - Unified Session Management
   const sessionWallet = useSessionWallet()
@@ -114,10 +117,6 @@ export default function GamePage() {
     statusMessage,
     statusType
   } = useUnifiedSession()
-  const { 
-    delegateUserProfile, 
-    isDelegating 
-  } = useDelegateUserProfile()
   
   const [creatingSession, setCreatingSession] = useState(false)
   const creatingSessionRef = useRef(false) // ✅ FIX: Prevent double-calling createSession
@@ -158,7 +157,7 @@ export default function GamePage() {
     const newKeyboardState: Record<string, TileState> = {}
     
     // Update grid with guesses from blockchain
-    session.guesses.forEach((guessData: any, rowIndex: number) => {
+    session.guesses.forEach((guessData: { guess: string; result: string[] } | null, rowIndex: number) => {
       // Check if guess data exists
       if (!guessData || !guessData.guess) return
       
@@ -172,10 +171,11 @@ export default function GamePage() {
         let state: TileState = 'absent'
         
         // LetterResult is an enum: 0 = Correct, 1 = Present, 2 = Absent
-        if (result === 0) { // LetterResult.Correct
+        // Result comes as string from the array
+        if (result === '0') { // LetterResult.Correct
           state = 'correct'
           newKeyboardState[letter] = 'correct'
-        } else if (result === 1) { // LetterResult.Present
+        } else if (result === '1') { // LetterResult.Present
           state = 'present'
           if (newKeyboardState[letter] !== 'correct') {
             newKeyboardState[letter] = 'present'
@@ -212,7 +212,8 @@ export default function GamePage() {
     if (session) {
       updateGridFromSession()
     }
-  }, [session?.guessesUsed]) // Re-run when guesses change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.guessesUsed]) // Re-run when guesses change - session and updateGridFromSession are stable
 
   // Timer effect
   useEffect(() => {
@@ -340,19 +341,22 @@ export default function GamePage() {
     }
   }
 
-  const calculateScore = (guessCount: number, timeElapsed: number) => {
-    // Mock scoring - will be handled by smart contract
-    const baseScore = 1000
-    const guessBonus = Math.max(0, (8 - guessCount) * 100)
-    const timeBonus = Math.max(0, (300 - timeElapsed) * 2)
-    return baseScore + guessBonus + timeBonus
-  }
+  // Score calculation handled by smart contract
+  // const calculateScore = (guessCount: number, timeElapsed: number) => {
+  //   const baseScore = 1000
+  //   const guessBonus = Math.max(0, (8 - guessCount) * 100)
+  //   const timeBonus = Math.max(0, (300 - timeElapsed) * 2)
+  //   return baseScore + guessBonus + timeBonus
+  // }
 
 
   const handleBuyTicket = async () => {
     if (process.env.NODE_ENV === 'development') {
       console.log('🎫 [handleBuyTicket] Starting ticket purchase...')
     }
+    
+    // Clear previous errors
+    setSessionError(null)
     
     try {
       // Step 1: Ensure session key exists FIRST (one wallet popup)
@@ -375,7 +379,10 @@ export default function GamePage() {
         
         if (!sessionResult.success) {
           setCreatingSession(false)
-          throw new Error(sessionResult.error || 'Failed to create session')
+          creatingSessionRef.current = false
+          const errorMsg = sessionResult.error || 'Failed to create session'
+          setSessionError(errorMsg)
+          throw new Error(errorMsg)
         }
         
         if (process.env.NODE_ENV === 'development') {
@@ -425,8 +432,10 @@ export default function GamePage() {
       } else {
         throw new Error(result.error || 'Failed to buy ticket')
       }
-    } catch (error: any) {
-      console.error('❌ [handleBuyTicket] Error:', error)
+    } catch (error: unknown) {
+      const err = error as Error & { message?: string }
+      console.error('❌ [handleBuyTicket] Error:', err)
+      setSessionError(err.message || 'An error occurred')
       setCreatingSession(false)
       creatingSessionRef.current = false // ✅ Reset the guard on error
     }
@@ -469,7 +478,7 @@ export default function GamePage() {
       if (sessionWallet?.revokeSession && hasSessionKey) {
         console.log('🧪 [TEST] Revoking existing session first...')
         try {
-          await revokeSession()
+          await sessionWallet.revokeSession()
           console.log('🧪 [TEST] ✅ Existing session revoked')
           // Wait for revocation to complete
           await new Promise(resolve => setTimeout(resolve, 2000))
@@ -520,13 +529,14 @@ export default function GamePage() {
         setSessionError(`❌ Failed: ${result.error}`)
         console.error('🧪 [TEST] ❌ FAILED:', result.error)
       }
-    } catch (error: any) {
-      console.error('🧪 [TEST] ❌ EXCEPTION:', error)
+    } catch (error: unknown) {
+      const err = error as Error & { message?: string; stack?: string }
+      console.error('🧪 [TEST] ❌ EXCEPTION:', err)
       console.error('🧪 [TEST] Error details:', {
-        message: error.message,
-        stack: error.stack,
+        message: err.message,
+        stack: err.stack,
       })
-      setSessionError(`❌ Error: ${error.message}`)
+      setSessionError(`❌ Error: ${err.message}`)
     } finally {
       setCreatingSession(false)
       console.log('🧪 [TEST] ========================================')
@@ -607,7 +617,7 @@ export default function GamePage() {
               <p className="text-slate-600 dark:text-slate-400">
                 Purchase a ticket to start your daily word puzzle challenge!
               </p>
-              <div className="flex flex-col items-center gap-4 w-full max-w-md">
+              <div className="flex flex-col items-center gap-4 w-full max-w-md mx-auto">
                 {/* Session Status Display */}
                 <div className="w-full space-y-2 p-4 bg-slate-100 dark:bg-slate-700 rounded-lg">
                   <div className="flex items-center justify-between text-sm">
@@ -624,7 +634,8 @@ export default function GamePage() {
                 </div>
 
                 {/* 🧪 TEST: Create Session Button */}
-                {!hasSessionKey && (
+                {/* Commented out for production - only show Buy Ticket and Start Game */}
+                {/* {!hasSessionKey && (
                   <Button
                     onClick={handleTestCreateSession}
                     disabled={creatingSession}
@@ -643,7 +654,7 @@ export default function GamePage() {
                       </>
                     )}
                   </Button>
-                )}
+                )} */}
 
                 {/* Status Messages */}
                 {sessionSuccess && (
@@ -653,14 +664,15 @@ export default function GamePage() {
                 )}
                 {sessionError && (
                   <div className="w-full p-3 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg">
-                    <p className="text-red-700 dark:text-red-300 text-sm">{sessionError}</p>
+                    <p className="text-red-700 dark:text-red-300 text-sm font-medium">❌ {sessionError}</p>
                   </div>
                 )}
 
                 {/* Divider */}
-                {!hasSessionKey && (
+                {/* Commented out for production */}
+                {/* {!hasSessionKey && (
                   <div className="w-full border-t border-slate-300 dark:border-slate-600 my-2"></div>
-                )}
+                )} */}
 
                 {/* Original Buy Ticket Button */}
                 <p className="text-sm text-slate-600 dark:text-slate-400">

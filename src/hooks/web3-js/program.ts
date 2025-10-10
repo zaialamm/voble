@@ -115,18 +115,20 @@ export const VAULT_ADDRESSES = {
 /**
  * Helper to check if an error is a program error
  */
-export function isProgramError(error: any): boolean {
-  return error?.code !== undefined && typeof error.code === 'number'
+export function isProgramError(error: unknown): boolean {
+  const err = error as { code?: number }
+  return err?.code !== undefined && typeof err.code === 'number'
 }
 
 /**
  * Helper to get program error message
  */
-export function getProgramErrorMessage(error: any): string | null {
+export function getProgramErrorMessage(error: unknown): string | null {
+  const err = error as { code?: number }
   if (!isProgramError(error)) return null
   
   // Map error codes to human-readable messages
-  switch (error.code) {
+  switch (err.code) {
     case PROGRAM_ERROR_CODES.INSUFFICIENT_FUNDS:
       return 'Insufficient funds for this operation'
     case PROGRAM_ERROR_CODES.GAME_ALREADY_COMPLETED:
@@ -134,7 +136,7 @@ export function getProgramErrorMessage(error: any): string | null {
     case PROGRAM_ERROR_CODES.INVALID_GUESS:
       return 'Invalid guess provided'
     default:
-      return `Program error: ${error.code}`
+      return `Program error: ${err.code}`
   }
 }
 

@@ -107,7 +107,7 @@ export async function buildTransaction(options: TransactionBuildOptions): Promis
  * Send transaction using Privy wallet (with popup)
  */
 export async function sendTransactionWithPrivy(options: PrivyTransactionOptions): Promise<TransactionResult> {
-  const { wallet, transaction, connection: conn = connection, options: sendOptions } = options
+  const { wallet, transaction, options: sendOptions } = options
 
   try {
     if (process.env.NODE_ENV === 'development') {

@@ -144,12 +144,12 @@ export function useERConnection() {
 }
 
 // Hook to get the appropriate connection for an instruction
-export function useConnectionForInstruction(instruction?: string) {
+export function useConnectionForInstruction() {
   const { erConnection, baseConnection, isERConnected, isBaseConnected } = useERConnection()
   
   // For now, always use base connection for safety
-  // TODO: Implement Magic Router logic
-  const shouldUseER = false // instruction && shouldUseER(instruction)
+  // TODO: Implement Magic Router logic with instruction parameter
+  const shouldUseER = false
   
   if (shouldUseER && isERConnected && erConnection) {
     return {

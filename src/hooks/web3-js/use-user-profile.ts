@@ -70,7 +70,8 @@ export function useUserProfile(walletAddress?: string): UserProfileResult {
 
       try {
         // Fetch the user profile account using Anchor
-        const profileAccount = await vocabeeProgram.account.userProfile.fetch(userProfilePDA)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const profileAccount = await (vocabeeProgram.account as any).userProfile.fetch(userProfilePDA)
 
         if (process.env.NODE_ENV === 'development') {
           console.log('✅ [useUserProfile] Profile fetched:', {
@@ -96,7 +97,12 @@ export function useUserProfile(walletAddress?: string): UserProfileResult {
           guessDistribution: Array.from(profileAccount.guessDistribution),
           lastPlayedPeriod: profileAccount.lastPlayedPeriod,
           hasPlayedThisPeriod: profileAccount.hasPlayedThisPeriod,
-          achievements: profileAccount.achievements.map((achievement: any) => ({
+          achievements: profileAccount.achievements.map((achievement: {
+            id: string
+            name: string
+            description: string
+            unlockedAt: number | bigint
+          }) => ({
             id: achievement.id,
             name: achievement.name,
             description: achievement.description,
@@ -110,8 +116,9 @@ export function useUserProfile(walletAddress?: string): UserProfileResult {
         }
 
         return profileData
-      } catch (err: any) {
-        if (err.message?.includes('Account does not exist')) {
+      } catch (err: unknown) {
+        const error = err as Error & { message?: string }
+        if (error.message?.includes('Account does not exist')) {
           if (process.env.NODE_ENV === 'development') {
             console.log('ℹ️ [useUserProfile] No profile found for this wallet')
           }
@@ -119,7 +126,7 @@ export function useUserProfile(walletAddress?: string): UserProfileResult {
         }
         
         console.error('❌ [useUserProfile] Error fetching profile:', err)
-        throw new Error(`Failed to fetch user profile: ${err.message}`)
+        throw new Error(`Failed to fetch user profile: ${error.message}`)
       }
     },
     enabled: !!targetAddress,
@@ -172,10 +179,12 @@ export function useProfileExists(walletAddress: string): {
       const [userProfilePDA] = getUserProfilePDA(playerPublicKey)
 
       try {
-        await vocabeeProgram.account.userProfile.fetch(userProfilePDA)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await (vocabeeProgram.account as any).userProfile.fetch(userProfilePDA)
         return true
-      } catch (err: any) {
-        if (err.message?.includes('Account does not exist')) {
+      } catch (err: unknown) {
+        const error = err as Error & { message?: string }
+        if (error.message?.includes('Account does not exist')) {
           return false
         }
         throw err

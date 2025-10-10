@@ -4,7 +4,6 @@ import { PublicKey } from '@solana/web3.js'
 
 import { 
   vocabeeProgram, 
-  VOBLE_PROGRAM_ID, 
   SYSTEM_PROGRAM_ID 
 } from './program'
 import { 
@@ -17,9 +16,7 @@ import {
   getPlatformVaultPDA
 } from './pdas'
 import { 
-  buildTransaction, 
-  sendTransaction, 
-  type TransactionResult 
+  buildTransaction
 } from './transaction-builder'
 import { handleTransactionError } from './utils'
 // ER Integration

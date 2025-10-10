@@ -281,7 +281,7 @@ export default function ProfilePage() {
               key={id}
               variant={activeTab === id ? 'default' : 'ghost'}
               size="sm"
-              onClick={() => setActiveTab(id as any)}
+              onClick={() => setActiveTab(id as 'overview' | 'achievements' | 'history')}
               className="px-6"
             >
               <Icon className="h-4 w-4 mr-2" />
@@ -453,11 +453,6 @@ export default function ProfilePage() {
                         <p className="text-sm text-muted-foreground">
                           {achievement.description}
                         </p>
-                        {!achievement.unlockedAt && (
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Progress: {achievement.progress}/{achievement.target}
-                          </p>
-                        )}
                       </div>
                     </div>
                   </div>
