@@ -148,7 +148,7 @@ export function InteractiveDemo() {
 
   const getKeyStyle = (letter: string) => {
     const state = keyboardState[letter] || 'empty'
-    const baseStyle = 'px-3 py-4 rounded font-bold text-sm transition-all duration-200 hover:scale-105 min-w-[2rem]'
+    const baseStyle = 'px-2 sm:px-3 py-3 sm:py-4 rounded font-bold text-xs sm:text-sm transition-all duration-200 hover:scale-105 min-w-[1.75rem] sm:min-w-[2rem]'
     
     switch (state) {
       case 'correct':
@@ -166,17 +166,17 @@ export function InteractiveDemo() {
     <Card className="border-2 border-primary/20 shadow-xl">
       <CardHeader className="text-center pb-4">
         <div className="flex items-center justify-center gap-2 mb-2">
-          <Sparkles className="h-5 w-5 text-primary" />
-          <CardTitle className="text-2xl">Try It Now!</CardTitle>
+          <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+          <CardTitle className="text-xl sm:text-2xl">Try It Now!</CardTitle>
         </div>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-xs sm:text-sm text-muted-foreground">
           No wallet needed - Get a feel for the game
         </p>
-        <Badge variant="secondary" className="mx-auto mt-2">
+        <Badge variant="secondary" className="mx-auto mt-2 text-xs">
           Demo: {MAX_GUESSES} guesses (real game has 7)
         </Badge>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3 sm:space-y-4">
         {/* Game Grid */}
         <div className="space-y-1">
           {grid.map((row, rowIndex) => (
@@ -184,7 +184,7 @@ export function InteractiveDemo() {
               {row.map((tile, colIndex) => (
                 <div
                   key={`${rowIndex}-${colIndex}`}
-                  className={`w-12 h-12 flex items-center justify-center text-lg font-bold border-2 rounded transition-all duration-300 ${getTileStyle(
+                  className={`w-9 h-9 sm:w-12 sm:h-12 flex items-center justify-center text-base sm:text-lg font-bold border-2 rounded transition-all duration-300 ${getTileStyle(
                     tile.status
                   )}`}
                 >
@@ -206,13 +206,13 @@ export function InteractiveDemo() {
         {!gameOver && (
           <div className="space-y-1">
             {KEYBOARD_ROWS.map((row, rowIndex) => (
-              <div key={rowIndex} className="flex justify-center gap-1">
+              <div key={rowIndex} className="flex justify-center gap-0.5 sm:gap-1">
                 {row.map((key) => (
                   <Button
                     key={key}
                     onClick={() => handleKeyPress(key)}
                     className={`
-                      ${key === 'ENTER' || key === 'BACKSPACE' ? 'px-4 min-w-[3.5rem]' : ''} 
+                      ${key === 'ENTER' || key === 'BACKSPACE' ? 'px-2 sm:px-4 min-w-[2.5rem] sm:min-w-[3.5rem] text-[10px] sm:text-xs' : ''} 
                       ${getKeyStyle(key)}
                     `}
                     disabled={gameOver}
@@ -258,18 +258,18 @@ export function InteractiveDemo() {
         )}
 
         {/* Legend */}
-        <div className="flex gap-4 justify-center text-xs pt-2 border-t">
+        <div className="flex flex-wrap gap-3 sm:gap-4 justify-center text-xs pt-2 border-t">
           <div className="flex items-center gap-1">
-            <div className="w-6 h-6 bg-[#14F195] rounded border-2 border-[#14F195]" />
-            <span className="text-muted-foreground">Correct</span>
+            <div className="w-5 h-5 sm:w-6 sm:h-6 bg-[#14F195] rounded border-2 border-[#14F195]" />
+            <span className="text-muted-foreground text-[10px] sm:text-xs">Correct</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-6 h-6 bg-[#9945FF] rounded border-2 border-[#9945FF]" />
-            <span className="text-muted-foreground">Wrong spot</span>
+            <div className="w-5 h-5 sm:w-6 sm:h-6 bg-[#9945FF] rounded border-2 border-[#9945FF]" />
+            <span className="text-muted-foreground text-[10px] sm:text-xs">Wrong spot</span>
           </div>
           <div className="flex items-center gap-1">
-            <div className="w-6 h-6 bg-gray-500 rounded border-2 border-gray-500" />
-            <span className="text-muted-foreground">Not in word</span>
+            <div className="w-5 h-5 sm:w-6 sm:h-6 bg-gray-500 rounded border-2 border-gray-500" />
+            <span className="text-muted-foreground text-[10px] sm:text-xs">Not in word</span>
           </div>
         </div>
       </CardContent>

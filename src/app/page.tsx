@@ -47,11 +47,11 @@ export default function Home() {
         
         <div className="max-w-6xl mx-auto">
           
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 tracking-tight text-slate-900 dark:text-white">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold mb-6 tracking-tight text-slate-900 dark:text-white">
             Turn Your Word Skills<br />Into Real Money
           </h1>
           
-          <p className="text-lg md:text-xl text-slate-600 dark:text-slate-400 mb-8 max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg md:text-xl text-slate-600 dark:text-slate-400 mb-8 max-w-2xl mx-auto">
            Every word you know has earning potential. Play for {TICKET_PRICE}, and let your skills pay the bills.
           </p>
 
@@ -76,22 +76,22 @@ export default function Home() {
           </div>
 
           {/* Live Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
-            <div className="text-center p-6 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-              <div className="text-3xl font-bold text-slate-900 dark:text-white">1.2K+</div>
-              <div className="text-sm text-slate-600 dark:text-slate-400 mt-1">Players</div>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 max-w-3xl mx-auto">
+            <div className="text-center p-4 sm:p-6 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+              <div className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">1.2K+</div>
+              <div className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">Players</div>
             </div>
-            <div className="text-center p-6 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-              <div className="text-3xl font-bold text-slate-900 dark:text-white">89</div>
-              <div className="text-sm text-slate-600 dark:text-slate-400 mt-1">SOL Pool</div>
+            <div className="text-center p-4 sm:p-6 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+              <div className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">89</div>
+              <div className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">SOL Pool</div>
             </div>
-            <div className="text-center p-6 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-              <div className="text-3xl font-bold text-slate-900 dark:text-white">5.8K</div>
-              <div className="text-sm text-slate-600 dark:text-slate-400 mt-1">Games</div>
+            <div className="text-center p-4 sm:p-6 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+              <div className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">5.8K</div>
+              <div className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">Games</div>
             </div>
-            <div className="text-center p-6 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-              <div className="text-3xl font-bold text-slate-900 dark:text-white">343</div>
-              <div className="text-sm text-slate-600 dark:text-slate-400 mt-1">SOL Paid</div>
+            <div className="text-center p-4 sm:p-6 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+              <div className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white">343</div>
+              <div className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1">SOL Paid</div>
             </div>
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-500 mt-4">*Demo data for illustration</p>
@@ -107,11 +107,11 @@ export default function Home() {
               Experience the gameplay without connecting your wallet.
             </p>
           </div>
-          <div className="grid md:grid-cols-2 gap-8 items-start">
-            <div className="order-2 md:order-1">
+          <div className="grid lg:grid-cols-2 gap-6 lg:gap-8 items-start">
+            <div className="order-2 lg:order-1">
               <InteractiveDemo />
             </div>
-            <div className="order-1 md:order-2">
+            <div className="order-1 lg:order-2">
               <LiveGameFeed />
             </div>
           </div>
@@ -130,7 +130,7 @@ export default function Home() {
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {/* Daily Prize */}
             <Card className="border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
               <CardContent className="p-6">
@@ -289,74 +289,74 @@ export default function Home() {
           </div>
 
           <Accordion type="single" collapsible className="w-full space-y-3">
-            <AccordionItem value="item-1" className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-6">
-              <AccordionTrigger className="text-base font-medium hover:no-underline text-slate-900 dark:text-white">
+            <AccordionItem value="item-1" className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-4 sm:px-6">
+              <AccordionTrigger className="text-sm sm:text-base font-medium hover:no-underline text-slate-900 dark:text-white">
                 How much does it cost to play?
               </AccordionTrigger>
-              <AccordionContent className="text-slate-600 dark:text-slate-400 text-sm">
+              <AccordionContent className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm">
                 Each game costs {TICKET_PRICE} (not final) to play. Your payment is automatically split across daily, weekly, and monthly prize pools. 
                 This means one payment gives you three chances to win.
               </AccordionContent>
             </AccordionItem>
 
-            <AccordionItem value="item-2" className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-6">
-              <AccordionTrigger className="text-base font-medium hover:no-underline text-slate-900 dark:text-white">
+            <AccordionItem value="item-2" className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-4 sm:px-6">
+              <AccordionTrigger className="text-sm sm:text-base font-medium hover:no-underline text-slate-900 dark:text-white">
                 How do I win prizes?
               </AccordionTrigger>
-              <AccordionContent className="text-slate-600 dark:text-slate-400 text-sm">
+              <AccordionContent className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm">
                 Your score is based on correct guesses, completion time, and efficiency. The top 3 players in each tournament period 
                 (daily, weekly, monthly) split the prize pool. First place gets the biggest share, but all top 3 winners earn SOL!
               </AccordionContent>
             </AccordionItem>
 
-            <AccordionItem value="item-3" className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-6">
-              <AccordionTrigger className="text-base font-medium hover:no-underline text-slate-900 dark:text-white">
+            <AccordionItem value="item-3" className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-4 sm:px-6">
+              <AccordionTrigger className="text-sm sm:text-base font-medium hover:no-underline text-slate-900 dark:text-white">
                 Is the game fair?
               </AccordionTrigger>
-              <AccordionContent className="text-slate-600 dark:text-slate-400 text-sm">
+              <AccordionContent className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm">
                 Yes! Each word is randomly selected using Ephemeral VRF (Verifiable Random Function) from Magicblocks. 
                 The selection process is verifiable and transparent—no one can predict or influence which word you will get. 
                 Every player gets a fair shot at winning.
               </AccordionContent>
             </AccordionItem>
 
-            <AccordionItem value="item-4" className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-6">
-              <AccordionTrigger className="text-base font-medium hover:no-underline text-slate-900 dark:text-white">
+            <AccordionItem value="item-4" className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-4 sm:px-6">
+              <AccordionTrigger className="text-sm sm:text-base font-medium hover:no-underline text-slate-900 dark:text-white">
                 Do I need a Solana wallet?
               </AccordionTrigger>
-              <AccordionContent className="text-slate-600 dark:text-slate-400 text-sm">
+              <AccordionContent className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm">
                 No wallet needed! Sign up with just your email or Google account. 
                 We handle all the crypto complexity behind the scenes—you just play and win. 
                 Your winnings are automatically secured in a wallet we create for you.
               </AccordionContent>
             </AccordionItem>
 
-            <AccordionItem value="item-5" className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-6">
-              <AccordionTrigger className="text-base font-medium hover:no-underline text-slate-900 dark:text-white">
+            <AccordionItem value="item-5" className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-4 sm:px-6">
+              <AccordionTrigger className="text-sm sm:text-base font-medium hover:no-underline text-slate-900 dark:text-white">
                 Can I play multiple games per day?
               </AccordionTrigger>
-              <AccordionContent className="text-slate-600 dark:text-slate-400 text-sm">
+              <AccordionContent className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm">
                 To keep competition fair for everyone, you can play one game per day. 
                 This gives all players an equal chance to compete. Make your daily game count—give it your best shot!
               </AccordionContent>
             </AccordionItem>
 
-            <AccordionItem value="item-6" className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-6">
-              <AccordionTrigger className="text-base font-medium hover:no-underline text-slate-900 dark:text-white">
+            <AccordionItem value="item-6" className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-4 sm:px-6">
+              <AccordionTrigger className="text-sm sm:text-base font-medium hover:no-underline text-slate-900 dark:text-white">
                 What if I don&apos;t win the top 3?
               </AccordionTrigger>
-              <AccordionContent className="text-slate-600 dark:text-slate-400 text-sm">
+              <AccordionContent className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm">
                 Every player who plays has a chance to win our weekly lucky draw! One random player is selected each week 
                 to win a special prize from our platform revenue. Plus, you can try again tomorrow&mdash;your 0.001 SOL helps 
                 grow the prize pools for the entire community.
               </AccordionContent>
             </AccordionItem>
 
-            <AccordionItem value="item-7" className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-6">
-              <AccordionTrigger className="text-base font-medium hover:no-underline text-slate-900 dark:text-white">
+            <AccordionItem value="item-7" className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-4 sm:px-6">
+              <AccordionTrigger className="text-sm sm:text-base font-medium hover:no-underline text-slate-900 dark:text-white">
                 Can we play Voble on Seeker / Solana Mobile?
               </AccordionTrigger>
-              <AccordionContent className="text-slate-600 dark:text-slate-400 text-sm">
+              <AccordionContent className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm">
                 Yes, it&apos;s coming soon! We&apos;re working on optimizing Voble for Solana Mobile and Seeker devices 
                 to give you the best mobile gaming experience.
               </AccordionContent>
@@ -388,7 +388,7 @@ export default function Home() {
               size="lg" 
               variant="outline" 
               className="border-white text-white hover:bg-white/10 px-8 py-6 text-base"
-              onClick={() => window.open('https://twitter.com/voble', '_blank')}
+              onClick={() => window.open('https://twitter.com/voblefun', '_blank')}
             >
               Follow Us
             </Button>
