@@ -3,6 +3,7 @@ import { useSessionWallet } from '@magicblock-labs/gum-react-sdk'
 import { useERConnection } from '@/components/mb-er/er-connection-provider'
 import { PROGRAM_IDS, ER_CONFIG } from './config'
 
+
 interface UnifiedSessionStatus {
   // Session Key Status (GUM)
   hasSessionKey: boolean
@@ -129,11 +130,52 @@ export function useUnifiedSession(): UnifiedSessionStatus {
         })
       }
       
-      // Force update the session token
-      if (session.sessionToken) {
-        setSessionTokenFromMethod(session.sessionToken)
+      // ✅ CRITICAL FIX: Wait for session token to be available in IndexedDB
+      // The GUM SDK may return success but the token isn't written to IndexedDB yet
+      if (!session.sessionToken) {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('⏳ [Unified Session] Session token not immediately available, polling IndexedDB...')
+        }
+        
+        // Poll for session token with timeout
+        const maxAttempts = 20 // 20 attempts
+        const delayMs = 500 // 500ms between attempts = 10 seconds total
+        
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+          await new Promise(resolve => setTimeout(resolve, delayMs))
+          
+          if (sessionWallet.getSessionToken) {
+            try {
+              const token = await sessionWallet.getSessionToken()
+              if (token) {
+                if (process.env.NODE_ENV === 'development') {
+                  console.log(`✅ [Unified Session] Session token found after ${attempt * delayMs}ms`)
+                }
+                setSessionTokenFromMethod(token)
+                return { success: true }
+              }
+            } catch (error) {
+              // Continue polling
+            }
+          }
+          
+          if (process.env.NODE_ENV === 'development' && attempt % 4 === 0) {
+            console.log(`⏳ [Unified Session] Still waiting for session token... (${attempt}/${maxAttempts})`)
+          }
+        }
+        
+        // Timeout - session token never appeared
+        if (process.env.NODE_ENV === 'development') {
+          console.error('❌ [Unified Session] Timeout waiting for session token')
+        }
+        return {
+          success: false,
+          error: 'Session created on-chain but token not available. Please refresh and try again.'
+        }
       }
       
+      // Session token is immediately available
+      setSessionTokenFromMethod(session.sessionToken)
       return { success: true }
       
     } catch (error: any) {

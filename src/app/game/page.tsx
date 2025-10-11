@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { 
@@ -56,7 +55,6 @@ const KEYBOARD_ROWS = [
 ]
 
 export default function GamePage() {
-  const router = useRouter()
   const { ready, authenticated, login, user } = usePrivy()
   const { wallets } = useConnectedStandardWallets() // External wallets only
   const wallet = wallets[0] // First external Solana wallet
@@ -587,10 +585,8 @@ export default function GamePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready, authenticated, activeWallet?.address])
 
-  // Redirect to create profile if user doesn't have one
-  // MUST be before early returns to follow Rules of Hooks
+  // Log profile check for debugging
   useEffect(() => {
-    // Only check after authentication is ready and profile data is loaded
     if (ready && authenticated && activeWallet && !isLoadingProfile) {
       if (process.env.NODE_ENV === 'development') {
         console.log('🔍 [Game Page] Profile check:', {
@@ -603,17 +599,17 @@ export default function GamePage() {
         })
       }
       
-      if (!profile) {
-        // User doesn't have a profile, redirect to create profile page
+      if (profile) {
         if (process.env.NODE_ENV === 'development') {
-          console.log('⚠️ [Game Page] No profile found, redirecting to create profile')
+          console.log('✅ [Game Page] Profile exists:', profile.username)
         }
-        router.push('/create-profile')
-      } else if (process.env.NODE_ENV === 'development') {
-        console.log('✅ [Game Page] Profile exists:', profile.username)
+      } else {
+        if (process.env.NODE_ENV === 'development') {
+          console.log('⚠️ [Game Page] No profile found - user needs to create one')
+        }
       }
     }
-  }, [ready, authenticated, activeWallet, profile, isLoadingProfile, router])
+  }, [ready, authenticated, activeWallet, profile, isLoadingProfile])
 
   // Log session status to console - MOVED BEFORE EARLY RETURNS
   useEffect(() => {
@@ -670,21 +666,54 @@ export default function GamePage() {
   }
 
   // Show create profile prompt if user doesn't have a profile
-  // This is a fallback in case the redirect hasn't happened yet
   if (!profile) {
     return (
-      <div className="container mx-auto py-8">
-        <Card className="text-center py-12">
-          <CardContent>
-            <UserCircle className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
-            <h2 className="text-2xl font-bold mb-2">Profile Required</h2>
-            <p className="text-muted-foreground mb-6">
-              You need to create a profile before you can play the game.
-            </p>
+      <div className="container mx-auto py-8 max-w-2xl">
+        <Card className="text-center py-12 border-2 border-blue-200 dark:border-blue-800">
+          <CardContent className="space-y-6">
+            <div className="flex justify-center">
+              <div className="rounded-full bg-blue-100 dark:bg-blue-900 p-6">
+                <UserCircle className="h-16 w-16 text-blue-600 dark:text-blue-400" />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <h2 className="text-3xl font-bold text-slate-900 dark:text-white">
+                Create Your Profile First
+              </h2>
+              <p className="text-lg text-muted-foreground">
+                You need to create a gaming profile before you can access the game.
+              </p>
+            </div>
+
+            <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-6 text-left max-w-md mx-auto">
+              <h3 className="font-semibold text-slate-900 dark:text-white mb-3">
+                Why create a profile?
+              </h3>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-600 dark:text-blue-400 mt-0.5">✓</span>
+                  <span>Track your game statistics and progress</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-600 dark:text-blue-400 mt-0.5">✓</span>
+                  <span>Compete on the leaderboard</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-600 dark:text-blue-400 mt-0.5">✓</span>
+                  <span>Earn achievements and rewards</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-600 dark:text-blue-400 mt-0.5">✓</span>
+                  <span>Enable gasless gaming with Ephemeral Rollups</span>
+                </li>
+              </ul>
+            </div>
+
             <Link href="/create-profile">
-              <Button size="lg">
+              <Button size="lg" className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-8">
                 <UserCircle className="h-5 w-5 mr-2" />
-                Create Profile
+                Create Your Profile Now
               </Button>
             </Link>
           </CardContent>

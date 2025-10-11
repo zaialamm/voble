@@ -1,6 +1,5 @@
 'use client'
 
-import { usePrivy } from "@privy-io/react-auth"  
 import Image from 'next/image'
 import { Card, CardContent} from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -18,8 +17,6 @@ import { LiveGameFeed } from '@/components/live-game-feed'
 import { InteractiveDemo } from '@/components/interactive-demo'
 
 export default function Home() {
-  const { ready } = usePrivy() 
-
   // Calculate countdown dates
   const now = new Date()
   const dailyEnd = new Date(now)
@@ -34,10 +31,6 @@ export default function Home() {
 
   // Ticket price 
   const TICKET_PRICE = '0.001 SOL'
-
-  if (!ready) {
-    return <div>Loading...</div>
-  }
 
   return (
     <div className="min-h-screen">
