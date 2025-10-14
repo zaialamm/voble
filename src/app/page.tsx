@@ -230,7 +230,7 @@ export default function Home() {
             <h2 className="text-2xl md:text-3xl font-bold mb-4 text-slate-900 dark:text-white">Our Partners</h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 items-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 items-center">
             {/* MagicBlock */}
             <div className="flex justify-center">
               <Image 
@@ -249,6 +249,17 @@ export default function Home() {
                 alt="Privy Logo" 
                 width={180} 
                 height={72}
+                className="object-contain filter brightness-0 dark:brightness-100 opacity-60"
+              />
+            </div>
+
+            {/* Triton */}
+            <div className="flex justify-center">
+              <Image 
+                src="/images/triton-logo.png" 
+                alt="Triton Logo" 
+                width={200} 
+                height={80}
                 className="object-contain filter brightness-0 dark:brightness-100 opacity-60"
               />
             </div>
@@ -350,8 +361,8 @@ export default function Home() {
                 Can we play Voble on Seeker / Solana Mobile?
               </AccordionTrigger>
               <AccordionContent className="text-slate-600 dark:text-slate-400 text-xs sm:text-sm">
-                Yes, it&apos;s coming soon! We&apos;re working on optimizing Voble for Solana Mobile and Seeker devices 
-                to give you the best mobile gaming experience.
+                Yes, it&apos;s coming soon! We&apos;re working on optimizing Voble for Solana Mobile (Seeker) device, 
+                including a mobile app for iOS and Android.
               </AccordionContent>
             </AccordionItem>
           </Accordion>
