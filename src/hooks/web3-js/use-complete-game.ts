@@ -85,11 +85,15 @@ export function useCompleteGame() {
       }
 
       // Create the complete game instruction using Anchor
+      // When using session keys, the signer should be the session key (ephemeral keypair)
+      // The session_auth_or macro will validate the session token
+      const actualSigner = sessionWallet?.publicKey || signerPublicKey
+      
       const accounts: any = {
         userProfile: userProfilePDA,
         session: sessionPDA,
         leaderboard: leaderboardPDA,
-        signer: signerPublicKey,
+        signer: actualSigner, // Use session key if available, otherwise main wallet
       }
       
       // Include session token if we have an active session
@@ -118,7 +122,7 @@ export function useCompleteGame() {
       // Build the transaction with compute budget
       const transaction = await buildTransaction({
         instructions: [completeGameInstruction],
-        feePayer: sessionWallet?.publicKey || signerPublicKey,
+        feePayer: actualSigner, // Use same signer as instruction for consistency
         computeUnitLimit: 400_000, // Higher compute for leaderboard updates
         computeUnitPrice: 1,
         addComputeBudget: true,

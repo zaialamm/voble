@@ -96,6 +96,10 @@ export function useSubmitGuess() {
       }
 
       // Create the submit guess instruction using Anchor
+      // When using session keys, the signer should be the session key (ephemeral keypair)
+      // The session_auth_or macro will validate the session token
+      const actualSigner = sessionWallet?.publicKey || signerPublicKey
+      
       const accounts: {
         userProfile: PublicKey
         session: PublicKey
@@ -104,7 +108,7 @@ export function useSubmitGuess() {
       } = {
         userProfile: userProfilePDA,
         session: sessionPDA,
-        signer: signerPublicKey,
+        signer: actualSigner, // Use session key if available, otherwise main wallet
       }
       
       // Include session token if we have an active session
@@ -147,7 +151,7 @@ export function useSubmitGuess() {
       // Build transaction
       const transaction = await buildTransaction({
         instructions: [submitGuessInstruction],
-        feePayer: sessionWallet?.publicKey || signerPublicKey,
+        feePayer: actualSigner, // Use same signer as instruction for consistency
         computeUnitLimit: 400_000,
         addComputeBudget: true,
       })
