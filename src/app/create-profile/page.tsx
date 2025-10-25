@@ -11,19 +11,16 @@ import { User, Loader2, CheckCircle, AlertCircle } from 'lucide-react'
 import { usePrivy } from '@privy-io/react-auth'
 import { useConnectedStandardWallets } from '@privy-io/react-auth/solana'
 import { useInitializeProfile } from '@/hooks/web3-js'
-import { useDelegateUserProfile } from '@/hooks/mb-er/use-delegate-user-profile'
 
 export default function CreateProfilePage() {
   const router = useRouter()
   const { ready, authenticated, login } = usePrivy()
   const { wallets } = useConnectedStandardWallets()
-  const { initializeProfileWithER, isLoading, error } = useInitializeProfile()
-  const { delegateUserProfile, isDelegating, error: delegateError } = useDelegateUserProfile()
+  const { initializeProfile, isLoading, error } = useInitializeProfile()
   
   const [username, setUsername] = useState('')
   const [validationError, setValidationError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
-  const [delegateSuccess, setDelegateSuccess] = useState(false)
 
   const wallet = wallets[0]
 
@@ -74,9 +71,9 @@ export default function CreateProfilePage() {
     }
 
     if (process.env.NODE_ENV === 'development') {
-      console.log('📝 [CreateProfile] Creating profile with ER enabled...')
+      console.log('📝 [CreateProfile] Creating profile...')
     }
-    const result = await initializeProfileWithER(username.trim())
+    const result = await initializeProfile(username.trim())
 
     if (result.success) {
       if (process.env.NODE_ENV === 'development') {
@@ -97,33 +94,6 @@ export default function CreateProfilePage() {
       }, 3000) // Increased from 2000 to 3000ms
     } else {
       console.error('❌ [CreateProfile] Profile creation failed:', result.error)
-    }
-  }
-
-  const handleDelegateExisting = async () => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('🚀 [CreateProfile] Delegating existing profile to ER...')
-    }
-    
-    const result = await delegateUserProfile()
-    
-    if (result.success) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('✅ [CreateProfile] Profile delegated successfully!', {
-          signature: result.signature,
-        })
-      }
-      setDelegateSuccess(true)
-      
-      // Redirect after a short delay
-      setTimeout(() => {
-        if (process.env.NODE_ENV === 'development') {
-          console.log('🔄 [CreateProfile] Redirecting to profile page...')
-        }
-        router.push('/profile')
-      }, 2000)
-    } else {
-      console.error('❌ [CreateProfile] Delegation failed:', result.error)
     }
   }
 
@@ -161,7 +131,7 @@ export default function CreateProfilePage() {
     )
   }
 
-  if (success || delegateSuccess) {
+  if (success) {
     return (
       <div className="container mx-auto py-8 max-w-md">
         <Card className="text-center py-12">
@@ -170,14 +140,9 @@ export default function CreateProfilePage() {
               <div className="rounded-full bg-green-100 dark:bg-green-900 p-4">
                 <CheckCircle className="h-12 w-12 text-green-600 dark:text-green-400" />
               </div>
-              <h2 className="text-2xl font-bold">
-                {delegateSuccess ? 'Profile Delegated!' : 'Gaming Profile Ready!'}
-              </h2>
+              <h2 className="text-2xl font-bold">Profile Created!</h2>
               <p className="text-muted-foreground">
-                {delegateSuccess 
-                  ? 'Your profile is now ER-enabled for gasless gaming!' 
-                  : 'Your ER-enabled profile is ready for gasless gaming!'
-                }
+                Your gaming profile is ready. Game sessions will be delegated to ER automatically when you play!
               </p>
             </div>
           </CardContent>
@@ -244,7 +209,7 @@ export default function CreateProfilePage() {
             {/* Info Alert */}
             <Alert>
               <AlertDescription className="text-sm">
-                Creating a profile requires a transaction fee of ~0.006 SOL to store your data on the Solana blockchain and enable gasless gaming.
+                Creating a profile requires a transaction fee of ~0.003 SOL to store your data on the Solana blockchain.
               </AlertDescription>
             </Alert>
 
@@ -278,53 +243,6 @@ export default function CreateProfilePage() {
               Cancel
             </Button>
           </form>
-
-          {/* Divider */}
-          <div className="relative my-6">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">
-                Already have a profile?
-              </span>
-            </div>
-          </div>
-
-          {/* Delegate Existing Profile Section */}
-          <div className="space-y-4">
-            <Alert>
-              <AlertDescription className="text-sm">
-                If you created a profile before ER was available, you can enable gasless gaming by delegating it to Ephemeral Rollups.
-              </AlertDescription>
-            </Alert>
-
-            {delegateError && (
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription>{delegateError}</AlertDescription>
-              </Alert>
-            )}
-
-            <Button
-              type="button"
-              variant="secondary"
-              className="w-full"
-              onClick={handleDelegateExisting}
-              disabled={isDelegating || isLoading}
-            >
-              {isDelegating ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Delegating Profile to ER...
-                </>
-              ) : (
-                <>
-                  ⚡ Enable ER for Existing Profile
-                </>
-              )}
-            </Button>
-          </div>
         </CardContent>
       </Card>
     </div>

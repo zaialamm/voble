@@ -17,8 +17,9 @@ default = []
 idl-build = ["anchor-lang/idl-build"]
 
 [dependencies]
-anchor-lang = "0.31.1"
-ephemeral-rollups-sdk = { version = "0.2.12", features = ["anchor"] }
-session-keys = { version = "2.0.8", features = ["no-entrypoint"] }
+anchor-lang = { version = "0.31.1", features = ["init-if-needed"] }
+ephemeral-rollups-sdk = { version = "0.3.6", features = ["anchor"] }
+
+
 
 

@@ -1,9 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 import { useConnectedStandardWallets } from '@privy-io/react-auth/solana'
-import { PublicKey } from '@solana/web3.js'
-
-import { vocabeeProgram } from './program'
+import { PublicKey, Connection } from '@solana/web3.js'
+import { Program, AnchorProvider } from '@coral-xyz/anchor' 
+import { vocabeeProgram, createReadOnlyProvider } from './program'
 import { getSessionPDA } from './pdas'
+import IDL from '@/idl/idl.json' 
 
 export type LetterResult = 'Correct' | 'Present' | 'Absent'
 
@@ -62,7 +63,7 @@ export function useFetchSession(periodId: string): FetchSessionResult {
       }
 
       // Derive the session PDA
-      const [sessionPDA] = getSessionPDA(playerPublicKey, trimmedPeriodId)
+      const [sessionPDA] = getSessionPDA(playerPublicKey)
 
       if (process.env.NODE_ENV === 'development') {
         console.log('🔑 [useFetchSession] Session PDA:', sessionPDA.toString())
@@ -70,7 +71,30 @@ export function useFetchSession(periodId: string): FetchSessionResult {
 
       try {
         // Fetch the session account using Anchor
-        const sessionAccount = await (vocabeeProgram.account as any).sessionAccount.fetch(sessionPDA)
+        const erConnection = new Connection('https://devnet.magicblock.app', 'confirmed')
+        const erProvider = new AnchorProvider(erConnection, createReadOnlyProvider().wallet, {
+          commitment: 'confirmed',
+        })
+        const erProgram = new Program(IDL as any, erProvider)
+        
+        let sessionAccount: any  // Declare variable
+        
+        try {
+          // First try ER (for active gameplay)
+          sessionAccount = await (erProgram.account as any).sessionAccount.fetch(sessionPDA)
+          if (process.env.NODE_ENV === 'development') {
+            console.log('✅ [useFetchSession] Session fetched from ER')
+          }
+        } catch (erError: any) {
+          // Fallback to base layer for completed/undelegated sessions
+          if (process.env.NODE_ENV === 'development') {
+            console.log('ℹ️ [useFetchSession] Not on ER, trying base layer...')
+          }
+          sessionAccount = await (vocabeeProgram.account as any).sessionAccount.fetch(sessionPDA)
+          if (process.env.NODE_ENV === 'development') {
+            console.log('✅ [useFetchSession] Session fetched from Base Layer')
+          }
+        }
 
         if (process.env.NODE_ENV === 'development') {
           console.log('✅ [useFetchSession] Session fetched:', {

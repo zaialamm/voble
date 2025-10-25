@@ -1,7 +1,7 @@
 /**
- * Initialize VocaBee Program
+ * Initialize Voble Program
  * 
- * This script initializes the global config and vaults for the VocaBee program.
+ * This script initializes the global config and vaults for the Voble program.
  * Run this ONCE after deploying the program to devnet/mainnet.
  * 
  * Usage:
@@ -10,7 +10,6 @@
 
 import * as anchor from "@coral-xyz/anchor";
 import { Program } from "@coral-xyz/anchor";
-import { Vocabee } from "../target/types/vocabee";
 import * as fs from "fs";
 import * as os from "os";
 
@@ -34,12 +33,12 @@ async function main() {
   anchor.setProvider(provider);
 
   // Load IDL and create program
-  const programId = new anchor.web3.PublicKey("AmDAGNow7v26x6g7XE8FYgboEezpzSdS1dW5ZR4DRrJk");
+  const programId = new anchor.web3.PublicKey("AC7J4h1rzxbm7Ey229X2rFxEse4CMJS5CkFpaTEyZMr");
   const idl = JSON.parse(fs.readFileSync("./target/idl/idl.json", "utf-8"));
   const program = new Program(idl, provider);
   const authority = provider.wallet.publicKey;
 
-  console.log("🚀 Initializing VocaBee Program...");
+  console.log("🚀 Initializing Voble Program...");
   console.log("📍 Program ID:", program.programId.toString());
   console.log("👤 Authority:", authority.toString());
   console.log("");
@@ -149,7 +148,7 @@ async function main() {
   }
 
   console.log("");
-  console.log("🎉 VocaBee Program Initialization Complete!");
+  console.log("🎉 Voble Program Initialization Complete!");
   console.log("");
   console.log("📝 Summary:");
   console.log("   Program ID:", program.programId.toString());

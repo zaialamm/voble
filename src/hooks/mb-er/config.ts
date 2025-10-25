@@ -31,7 +31,7 @@ export const ER_VALIDATORS = {
 
 // Program IDs (from your IDL)
 export const PROGRAM_IDS = {
-  VOBLE: new PublicKey('AmDAGNow7v26x6g7XE8FYgboEezpzSdS1dW5ZR4DRrJk'),
+  VOBLE: new PublicKey('86XhBCaTT5RdEeJKb6tHJ2tCoujhahsFFKpVkdHnaNvt'),
   DELEGATION: new PublicKey('DELeGGvXpWV2fqJUhqcF5ZSYMS4JTLjteaAMARRSaeSh'),
   MAGIC_CONTEXT: new PublicKey('MagicContext1111111111111111111111111111111'),
 } as const
@@ -65,7 +65,9 @@ export function getBaseEndpoint(): string {
 // Helper to determine if we should use ER for a specific instruction
 export function shouldUseER(instruction: string): boolean {
   const ER_INSTRUCTIONS = [
+    'delegate_session',
     'submit_guess',
+    'undelegate_session',
     'complete_voble_game',
   ]
   

@@ -8,7 +8,6 @@ import {
   buildTransaction
 } from './transaction-builder'
 import { handleTransactionError } from './utils'
-import { useSessionWallet } from '@magicblock-labs/gum-react-sdk'
 // ER Integration
 import { useERGameTransaction } from '@/hooks/mb-er'
 
@@ -24,7 +23,6 @@ export function useCompleteGame() {
   const { wallets } = useConnectedStandardWallets()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const sessionWallet = useSessionWallet()
   
   // ER Integration
   const { completeGame: completeGameER, isTransacting: isERTransacting } = useERGameTransaction()
@@ -39,12 +37,6 @@ export function useCompleteGame() {
     setError(null)
 
     try {
-      // ✅ SECURITY: Validate session key exists
-      if (!sessionWallet?.sessionToken) {
-        console.error('❌ [useCompleteGame] SECURITY: No session key found!')
-        throw new Error('Session key required. Please create a session key first.')
-      }
-      
       // Validate inputs
       if (!selectedWallet) {
         console.error('❌ [useCompleteGame] No wallet connected')
@@ -73,7 +65,7 @@ export function useCompleteGame() {
 
       // Derive required PDAs
       const [userProfilePDA] = getUserProfilePDA(signerPublicKey)
-      const [sessionPDA] = getSessionPDA(signerPublicKey, trimmedPeriodId)
+      const [sessionPDA] = getSessionPDA(signerPublicKey)
       const [leaderboardPDA] = getLeaderboardPDA(trimmedPeriodId, 'daily')
 
       if (process.env.NODE_ENV === 'development') {
@@ -85,56 +77,23 @@ export function useCompleteGame() {
       }
 
       // Create the complete game instruction using Anchor
-      // When using session keys, the signer should be the session key (ephemeral keypair)
-      // The session_auth_or macro will validate the session token
-      const actualSigner = sessionWallet?.publicKey || signerPublicKey
-      
-      const accounts: any = {
-        userProfile: userProfilePDA,
-        session: sessionPDA,
-        leaderboard: leaderboardPDA,
-        signer: actualSigner, // Use session key if available, otherwise main wallet
-      }
-      
-      // Include session token if we have an active session
-      if (sessionWallet?.sessionToken && sessionWallet?.publicKey) {
-        const { getSessionTokenPDA } = await import('./pdas')
-        const { VOBLE_PROGRAM_ID } = await import('./program')
-        
-        // Derive session token PDA
-        const [sessionTokenPDA] = getSessionTokenPDA(
-          signerPublicKey, // authority (main wallet)
-          VOBLE_PROGRAM_ID, // target program
-          sessionWallet.publicKey // session signer (ephemeral key)
-        )
-        
-        accounts.sessionToken = sessionTokenPDA
-        if (process.env.NODE_ENV === 'development') {
-          console.log('🔑 [useCompleteGame] Using session token:', sessionTokenPDA.toString())
-        }
-      }
-      
       const completeGameInstruction = await vocabeeProgram.methods
         .completeVobleGame(trimmedPeriodId)
-        .accounts(accounts)
+        .accounts({
+          userProfile: userProfilePDA,
+          session: sessionPDA,
+          leaderboard: leaderboardPDA,
+        })
         .instruction()
 
       // Build the transaction with compute budget
       const transaction = await buildTransaction({
         instructions: [completeGameInstruction],
-        feePayer: actualSigner, // Use same signer as instruction for consistency
+        feePayer: signerPublicKey, // Use same signer as instruction for consistency
         computeUnitLimit: 400_000, // Higher compute for leaderboard updates
         computeUnitPrice: 1,
         addComputeBudget: true,
       })
-
-      if (process.env.NODE_ENV === 'development') {
-        console.log('🔍 [useCompleteGame] Transaction details:', {
-          feePayer: transaction.feePayer?.toString(),
-          recentBlockhash: transaction.recentBlockhash,
-          instructionCount: transaction.instructions.length,
-        })
-      }
 
       // Send transaction via ER
       if (process.env.NODE_ENV === 'development') {

@@ -1,13 +1,13 @@
 // Domain-organized contexts
 pub mod admin;
-pub mod game;
-pub mod prize;
+pub mod gameplay;
 pub mod leaderboard;
-pub mod voble;
+pub mod prize;
+pub mod profile;
 
 // Re-export all public types
 pub use admin::*;
-pub use game::*;
-pub use prize::*;
+pub use gameplay::*;
 pub use leaderboard::*;
-pub use voble::*;
+pub use prize::*;
+pub use profile::*;

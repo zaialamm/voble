@@ -32,7 +32,7 @@ async function main() {
   anchor.setProvider(provider);
 
   // Load IDL and create program
-  const programId = new anchor.web3.PublicKey("AmDAGNow7v26x6g7XE8FYgboEezpzSdS1dW5ZR4DRrJk");
+  const programId = new anchor.web3.PublicKey("86XhBCaTT5RdEeJKb6tHJ2tCoujhahsFFKpVkdHnaNvt");
   const idl = JSON.parse(fs.readFileSync("./target/idl/idl.json", "utf-8"));
   const program = new Program(idl, provider);
   const authority = provider.wallet.publicKey;

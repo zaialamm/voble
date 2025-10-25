@@ -8,5 +8,4 @@
 export * from './er-connection-provider'
 export * from './er-status-indicator'
 
-// Session management (✅ Updated to use useUnifiedSession)
-export * from './session-status'
+// Session management removed (session keys no longer used)

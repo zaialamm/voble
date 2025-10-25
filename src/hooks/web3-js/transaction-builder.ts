@@ -18,7 +18,7 @@ export interface TransactionBuildOptions {
   /** Instructions to include in the transaction */
   instructions: TransactionInstruction[]
   /** Fee payer public key */
-  feePayer: PublicKey
+  feePayer?: PublicKey
   /** Connection to use (defaults to singleton) */
   connection?: Connection
   /** Compute unit limit (defaults to 400,000) */
@@ -96,7 +96,9 @@ export async function buildTransaction(options: TransactionBuildOptions): Promis
   transaction.add(...instructions)
 
   // Set fee payer and recent blockhash
-  transaction.feePayer = feePayer
+  if (feePayer) {
+    transaction.feePayer = feePayer  
+  }
   const { blockhash } = await conn.getLatestBlockhash('confirmed')
   transaction.recentBlockhash = blockhash
 

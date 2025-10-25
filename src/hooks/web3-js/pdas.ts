@@ -1,8 +1,8 @@
 import { PublicKey } from '@solana/web3.js'
 import { VOBLE_PROGRAM_ID } from './program'
 
-// Session Keys program ID
-export const SESSION_KEYS_PROGRAM_ID = new PublicKey('KeyspM2ssCJbqUhQ4k7sveSiY4WjnYsrXkC8oDbwde5')
+// MagicBlock Delegation program ID
+export const DELEGATION_PROGRAM_ID = new PublicKey('DELeGGvXpWV2fqJUhqcF5ZSYMS4JTLjteaAMARRSaeSh')
 
 /**
  * PDA seed constants (matching the smart contract)
@@ -10,7 +10,6 @@ export const SESSION_KEYS_PROGRAM_ID = new PublicKey('KeyspM2ssCJbqUhQ4k7sveSiY4
 export const PDA_SEEDS = {
   USER_PROFILE: 'user_profile',
   SESSION: 'session',
-  SESSION_TOKEN: 'session_token',
   GLOBAL_CONFIG: 'global_config_v2',
   DAILY_PRIZE_VAULT: 'daily_prize_vault',
   WEEKLY_PRIZE_VAULT: 'weekly_prize_vault',
@@ -42,36 +41,16 @@ export function getUserProfilePDA(playerAddress: PublicKey): [PublicKey, number]
 /**
  * Derive session PDA
  */
-export function getSessionPDA(playerAddress: PublicKey, periodId: string): [PublicKey, number] {
+export function getSessionPDA(playerAddress: PublicKey): [PublicKey, number] {
   return PublicKey.findProgramAddressSync(
     [
       Buffer.from(PDA_SEEDS.SESSION, 'utf8'),
       playerAddress.toBuffer(),
-      Buffer.from(periodId, 'utf8'), // Explicit UTF-8 encoding for consistency
     ],
     VOBLE_PROGRAM_ID
   )
 }
 
-/**
- * Derive session token PDA (for session keys)
- * Seeds: ["session_token", authority, target_program, session_signer]
- */
-export function getSessionTokenPDA(
-  authority: PublicKey,
-  targetProgram: PublicKey,
-  sessionSigner: PublicKey
-): [PublicKey, number] {
-  return PublicKey.findProgramAddressSync(
-    [
-      Buffer.from(PDA_SEEDS.SESSION_TOKEN, 'utf8'),
-      authority.toBuffer(),
-      targetProgram.toBuffer(),
-      sessionSigner.toBuffer(),
-    ],
-    SESSION_KEYS_PROGRAM_ID
-  )
-}
 
 /**
  * Derive global config PDA
@@ -288,4 +267,47 @@ export function getCurrentPeriodIds(): {
     weekly: getCurrentWeekPeriodId(),
     monthly: getCurrentMonthPeriodId(),
   }
+}
+
+/**
+ * Derive delegation buffer PDA
+ * Seeds: ["delegation_buffer", pda, owner_program]
+ */
+export function getDelegationBufferPDA(pda: PublicKey, ownerProgram: PublicKey): [PublicKey, number] {
+  return PublicKey.findProgramAddressSync(
+    [
+      Buffer.from('delegation_buffer', 'utf8'),
+      pda.toBuffer(),
+      ownerProgram.toBuffer(),
+    ],
+    DELEGATION_PROGRAM_ID
+  )
+}
+
+/**
+ * Derive delegation record PDA
+ * Seeds: ["delegation_record", pda]
+ */
+export function getDelegationRecordPDA(pda: PublicKey): [PublicKey, number] {
+  return PublicKey.findProgramAddressSync(
+    [
+      Buffer.from('delegation_record', 'utf8'),
+      pda.toBuffer(),
+    ],
+    DELEGATION_PROGRAM_ID
+  )
+}
+
+/**
+ * Derive delegation metadata PDA
+ * Seeds: ["delegation_metadata", pda]
+ */
+export function getDelegationMetadataPDA(pda: PublicKey): [PublicKey, number] {
+  return PublicKey.findProgramAddressSync(
+    [
+      Buffer.from('delegation_metadata', 'utf8'),
+      pda.toBuffer(),
+    ],
+    DELEGATION_PROGRAM_ID
+  )
 }

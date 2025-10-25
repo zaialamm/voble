@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { 
@@ -17,16 +17,19 @@ import { usePrivy } from "@privy-io/react-auth"
 import { useConnectedStandardWallets } from "@privy-io/react-auth/solana"
 import { 
   useBuyTicket,
+  useDelegateSession,
   useSubmitGuess,
   useCompleteGame,
   useFetchSession,
   useUserProfile
 } from '@/hooks/web3-js'
-import { useSessionWallet } from '@magicblock-labs/gum-react-sdk'
+import { useInitializeSession } from '@/hooks/web3-js/use-initialize-session'
+import { useCheckSession } from '@/hooks/web3-js/use-check-session'
 import { PrizeVaultsDisplay } from '@/components/prize-vaults-display'
 import Link from 'next/link'
-// ER Integration
-import { useUnifiedSession } from '@/hooks/mb-er'
+import { Connection, PublicKey } from '@solana/web3.js'
+import { getSessionPDA } from '@/hooks/web3-js/pdas'
+import { useUndelegateSession } from '@/hooks/web3-js/use-undelegate-session'
 
 // Game state types
 type TileState = 'empty' | 'filled' | 'correct' | 'present' | 'absent'
@@ -53,6 +56,8 @@ const KEYBOARD_ROWS = [
   ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
   ['ENTER', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'BACKSPACE']
 ]
+
+const ticketPrice = 0.001
 
 export default function GamePage() {
   const { ready, authenticated, login, user } = usePrivy()
@@ -87,9 +92,13 @@ export default function GamePage() {
   const periodId = new Date().toISOString().split('T')[0]
   
   const { buyTicket, isLoading: isBuyingTicket, error: buyTicketError } = useBuyTicket()
+  const { delegateSession, isLoading: isDelegating } = useDelegateSession()
   const { submitGuess: submitGuessToBlockchain } = useSubmitGuess()
   const { completeGame } = useCompleteGame()
+  const { undelegateSession, isLoading: isUndelegating } = useUndelegateSession()  
   const { session, refetch: refetchSession } = useFetchSession(periodId)
+  const { initializeSession, isLoading: isInitializing } = useInitializeSession()
+  const { data: sessionExists, refetch: refetchSessionExists } = useCheckSession(activeWallet?.address)
   // Use activeWallet address to support both external and embedded wallets
   const { profile, isLoading: isLoadingProfile, refetch: refetchProfile } = useUserProfile(activeWallet?.address)
   
@@ -107,28 +116,14 @@ export default function GamePage() {
         isSolved: session?.isSolved,
         score: session?.score,
         shouldShowBuyTicket: !session || session.periodId !== periodId || session.completed || (session.guessesUsed >= 7),
-        shouldShowGame: session && session.periodId === periodId && !session.completed && session.guessesUsed < 7,
+        shouldShowGame: session && session.periodId === periodId && !session.completed && session.guessesUsed < 7 && isDelegated,
       })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.periodId, session?.completed, session?.isSolved, session?.guessesUsed]) // Only log when these specific fields change - intentionally limited deps
   
-  // ER Integration - Unified Session Management
-  const sessionWallet = useSessionWallet()
-  const {
-    hasSessionKey,
-    canPlayGasless,
-    createSession,
-    statusMessage,
-    statusType
-  } = useUnifiedSession()
   
-  const [creatingSession, setCreatingSession] = useState(false)
-  const creatingSessionRef = useRef(false) // ✅ FIX: Prevent double-calling createSession
-  const [sessionError, setSessionError] = useState<string | null>(null)
-  const [sessionSuccess, setSessionSuccess] = useState<string | null>(null)
-  
-  // Session status now handled by useUnifiedSession hook
+
   const [gameState, setGameState] = useState<GameState>({
     grid: Array(7).fill(null).map(() => 
       Array(6).fill(null).map(() => ({ letter: '', state: 'empty' }))
@@ -144,6 +139,7 @@ export default function GamePage() {
 
   const [keyboardState, setKeyboardState] = useState<Record<string, TileState>>({})
   const [startTime, setStartTime] = useState<number>(Date.now())
+  const [isDelegated, setIsDelegated] = useState(false) 
 
   // Function to update grid from blockchain session data
   const updateGridFromSession = () => {
@@ -174,24 +170,23 @@ export default function GamePage() {
       letters.forEach((letter: string, colIndex: number) => {
         const result = guessData.result[colIndex]
         let state: TileState = 'absent'
-        
-        // LetterResult is an enum: 0 = Correct, 1 = Present, 2 = Absent
-        // Result comes as string from the array
-        if (result === '0') { // LetterResult.Correct
+
+        // LetterResult comes as string: 'Correct', 'Present', or 'Absent'
+        if (result === 'Correct') {
           state = 'correct'
           newKeyboardState[letter] = 'correct'
-        } else if (result === '1') { // LetterResult.Present
+        } else if (result === 'Present') {
           state = 'present'
           if (newKeyboardState[letter] !== 'correct') {
             newKeyboardState[letter] = 'present'
           }
-        } else { // LetterResult.Absent
+        } else { // 'Absent'
           state = 'absent'
           if (!newKeyboardState[letter]) {
             newKeyboardState[letter] = 'absent'
           }
         }
-        
+                  
         newGrid[rowIndex][colIndex] = { letter, state }
       })
     })
@@ -242,11 +237,11 @@ export default function GamePage() {
   const getTileStyle = (state: TileState) => {
     switch (state) {
       case 'correct':
-        return 'bg-blue-600 border-blue-600 text-white font-bold shadow-sm'
+        return 'bg-[#14F195] border-[#14F195] text-white font-bold shadow-lg' 
       case 'present':
-        return 'bg-orange-500 border-orange-500 text-white font-bold shadow-sm'
+        return 'bg-[#9945FF] border-[#9945FF] text-white font-bold shadow-lg'  
       case 'absent':
-        return 'bg-slate-400 dark:bg-slate-600 border-slate-400 dark:border-slate-600 text-white font-bold'
+        return 'bg-gray-500 border-gray-500 text-white font-bold'
       case 'filled':
         return 'bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white font-bold border-2 scale-105'
       default:
@@ -260,26 +255,25 @@ export default function GamePage() {
     
     switch (state) {
       case 'correct':
-        return `${baseStyle} bg-blue-600 text-white shadow-sm`
+        return `${baseStyle} bg-[#14F195] text-white shadow-lg`
       case 'present':
-        return `${baseStyle} bg-orange-500 text-white shadow-sm`
+        return `${baseStyle} bg-[#9945FF] text-white shadow-lg` 
       case 'absent':
-        return `${baseStyle} bg-slate-400 dark:bg-slate-600 text-white`
+        return `${baseStyle} bg-gray-500 text-white` 
       default:
         return `${baseStyle} bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-white hover:bg-slate-300 dark:hover:bg-slate-600 border border-slate-300 dark:border-slate-600`
     }
   }
 
-  // ✅ SECURITY: Validate ALL THREE requirements before allowing gameplay
-  // 1. Has session key (for gasless transactions)
-  // 2. Has valid ticket (paid and on-chain)
-  // 3. Session exists on-chain for current period
-  const canPlayGame = hasSessionKey && session && session.periodId === periodId && !session.completed && session.guessesUsed < 7
+  // Validate requirements before allowing gameplay:
+  // 1. Has valid ticket (paid and on-chain)
+  // 2. Session exists on-chain for current period
+  const canPlayGame = session && session.periodId === periodId && !session.completed && session.guessesUsed < 7
 
   const handleKeyPress = (key: string) => {
-    // ✅ SECURITY: Block input if no session key or ticket
+    // Block input if no valid ticket
     if (!canPlayGame) {
-      console.warn('⚠️ Cannot play: Missing session key or valid ticket')
+      console.warn('⚠️ Cannot play: Missing valid ticket')
       return
     }
     
@@ -326,7 +320,7 @@ export default function GamePage() {
     
     if (process.env.NODE_ENV === 'development') {
       console.log('🎯 Submitting guess to blockchain:', currentGuess)
-      console.log('🔐 Security checks passed: hasSessionKey=', hasSessionKey, ', hasTicket=', !!session)
+      console.log('🔐 Security checks passed: hasTicket=', !!session)
     }
     setGameState(prev => ({ ...prev, gameStatus: 'loading' }))
 
@@ -339,23 +333,34 @@ export default function GamePage() {
           console.log('✅ Guess submitted successfully!', result.signature)
         }
         
-        // Wait for blockchain to process
-        await new Promise(resolve => setTimeout(resolve, 1500))
+      // Refetch session to get updated guesses and results
+      await refetchSession()
+
+      // Update UI based on blockchain data (use session from hook)
+      if (session) {
+        // Check the last guess result directly from session data
+        const lastGuessIndex = session.guessesUsed - 1
+        const lastGuess = session.guesses[lastGuessIndex]
+        const allCorrect = lastGuess?.result?.every((r: string) => r === 'Correct')
         
-        // Refetch session to get updated guesses and results
-        await refetchSession()
-        
-        // Update UI based on blockchain data
-        if (session) {
-          updateGridFromSession()
-          
-          // Check if game ended
-          if (session.isSolved || session.guessesUsed >= 7) {
-            await handleCompleteGame()
-          } else {
-            setGameState(prev => ({ ...prev, gameStatus: 'playing' }))
-          }
+        if (process.env.NODE_ENV === 'development') {
+          console.log('🔍 Checking game end:', {
+            lastGuessIndex,
+            allCorrect,
+            isSolved: session.isSolved,
+            guessesUsed: session.guessesUsed
+          })
         }
+        
+        updateGridFromSession()
+        
+        // Check if game ended
+        if (allCorrect || session.isSolved || session.guessesUsed >= 7) {
+          await handleCompleteGame()
+        } else {
+          setGameState(prev => ({ ...prev, gameStatus: 'playing' }))
+        }
+      }
       } else {
         console.error('❌ Failed to submit guess:', result.error)
         setGameState(prev => ({ ...prev, gameStatus: 'playing' }))
@@ -366,104 +371,79 @@ export default function GamePage() {
     }
   }
 
-  // Score calculation handled by smart contract
-  // const calculateScore = (guessCount: number, timeElapsed: number) => {
-  //   const baseScore = 1000
-  //   const guessBonus = Math.max(0, (8 - guessCount) * 100)
-  //   const timeBonus = Math.max(0, (300 - timeElapsed) * 2)
-  //   return baseScore + guessBonus + timeBonus
-  // }
-
+  const handleInitializeSession = async () => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🎮 Initializing session...')
+    }
+  
+  const result = await initializeSession()
+  
+    if (result.success) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('✅ Session initialized!', result.signature)
+      }
+    
+    // Refetch to update UI
+    await refetchSessionExists()
+    
+    alert('Session created! You can now buy a ticket to play.')
+    } else {
+      console.error('❌ Failed to initialize session:', result.error)
+      alert(`Error: ${result.error}`)
+    }
+  }
 
   const handleBuyTicket = async () => {
     if (process.env.NODE_ENV === 'development') {
       console.log('🎫 [handleBuyTicket] Starting ticket purchase...')
     }
+  
+  try {
+
+    // Buy ticket AND delegate in ONE transaction!
+    console.log('🎫 Step 1: Buying ticket and delegating session...')
+    const result = await buyTicket(periodId)
     
-    // Clear previous errors
-    setSessionError(null)
-    
-    try {
-      // Step 1: Ensure session key exists FIRST (one wallet popup)
-      if (!hasSessionKey) {
-        // ✅ FIX: Prevent double-calling createSession (React strict mode issue)
-        if (creatingSessionRef.current) {
-          if (process.env.NODE_ENV === 'development') {
-            console.log('⚠️ [handleBuyTicket] Session creation already in progress, skipping...')
-          }
-          return
-        }
-        
-        if (process.env.NODE_ENV === 'development') {
-          console.log('🔑 [handleBuyTicket] Creating session key first...')
-        }
-        creatingSessionRef.current = true
-        setCreatingSession(true)
-        
-        const sessionResult = await createSession()
-        
-        if (!sessionResult.success) {
-          setCreatingSession(false)
-          creatingSessionRef.current = false
-          const errorMsg = sessionResult.error || 'Failed to create session'
-          setSessionError(errorMsg)
-          throw new Error(errorMsg)
-        }
-        
-        if (process.env.NODE_ENV === 'development') {
-          console.log('✅ [handleBuyTicket] Session created successfully!')
-        }
-        
-        // Session is now created and stored in IndexedDB
-        // The createSession() already handles the full flow including IndexedDB write
-        setCreatingSession(false)
-        creatingSessionRef.current = false
-      }
-      
-      // Step 2: Buy ticket (second wallet popup - uses main wallet, goes to base layer)
-      if (process.env.NODE_ENV === 'development') {
-        console.log('🎫 [handleBuyTicket] Purchasing ticket...')
-      }
-      const result = await buyTicket(periodId)
-      
-      if (!result.success) {
-        throw new Error(result.error || 'Failed to buy ticket')
-      }
-      
-      if (process.env.NODE_ENV === 'development') {
-        console.log('✅ [handleBuyTicket] Ticket purchased successfully!')
-      }
-      
-      // Refetch session to get the new game session from blockchain
-      await refetchSession()
-      
-      // Reset game state for new session
-      setGameState({
-        grid: Array(7).fill(null).map(() => 
-          Array(6).fill(null).map(() => ({ letter: '', state: 'empty' }))
-        ),
-        currentRow: 0,
-        currentCol: 0,
-        gameStatus: 'playing',
-        targetWord: '', // Will come from blockchain
-        guesses: [],
-        score: 0,
-        timeElapsed: 0
-      })
-      setKeyboardState({})
-      setStartTime(Date.now()) // Reset timer
-      
-      if (process.env.NODE_ENV === 'development') {
-        console.log('🎮 [handleBuyTicket] Ready to play with gasless transactions!')
-      }
-    } catch (error: unknown) {
-      const err = error as Error & { message?: string }
-      console.error('❌ [handleBuyTicket] Error:', err)
-      setSessionError(err.message || 'An error occurred')
-      setCreatingSession(false)
-      creatingSessionRef.current = false // ✅ Reset the guard on error
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to buy ticket')
     }
+    
+    console.log('✅ Ticket purchased and session delegated!')
+
+    // Wait for ER to sync the account
+    console.log('⏳ Syncing account to ER...')
+    await new Promise(resolve => setTimeout(resolve, 3000)) 
+
+    console.log('✅ Account synced to ER!')
+    
+    // Refetch session to get updated data
+    await refetchSession()   
+    
+    // Reset game state for new session
+    setGameState({
+      grid: Array(7).fill(null).map(() => 
+        Array(6).fill(null).map(() => ({ letter: '', state: 'empty' }))
+      ),
+      currentRow: 0,
+      currentCol: 0,
+      gameStatus: 'playing',
+      targetWord: '',
+      guesses: [],
+      score: 0,
+      timeElapsed: 0
+    })
+    setKeyboardState({})
+    setStartTime(Date.now())
+    
+    console.log('🎮 Ready to play on ER!')
+    
+  } catch (error: unknown) {
+    const err = error as Error & { message?: string }
+    console.error('❌ [handleBuyTicket] Error:', err)
+    setIsDelegated(false)
+    alert(`Error: ${err.message}`)
   }
+}
   
   const handleCompleteGame = async () => {
     if (process.env.NODE_ENV === 'development') {
@@ -475,115 +455,38 @@ export default function GamePage() {
       if (process.env.NODE_ENV === 'development') {
         console.log('✅ Game completed!', result.signature)
       }
+
+      // Undelegate session from ER
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🔄 Undelegating session...')
+      }
+
+      await undelegateSession()  // ← ADD THIS
+      if (process.env.NODE_ENV === 'development') {
+        console.log('✅ Session undelegated!')
+      }
+      
+      // Wait for session to update
+      await new Promise(resolve => setTimeout(resolve, 2000))
       await refetchSession()
       
-      setGameState(prev => ({
-        ...prev,
-        gameStatus: session?.isSolved ? 'won' : 'lost',
-        score: session?.score || 0
-      }))
+      // Wait for React state to update
+      await new Promise(resolve => setTimeout(resolve, 100))
+      
+      // Now use the updated session data
+      if (session) {
+        setGameState(prev => ({
+          ...prev,
+          gameStatus: session.isSolved ? 'won' : 'lost',
+          score: session.score || 0,
+          targetWord: session.targetWord || 'UNKNOWN', // ← Add target word!
+          timeElapsed: session.timeMs || 0 // ← Add time!
+        }))
+      }
     } else {
       console.error('❌ Failed to complete game:', result.error)
     }
   }
-
-  // 🧪 TEST: Isolated session creation handler
-  const handleTestCreateSession = async () => {
-    console.log('🧪 [TEST] ========================================')
-    console.log('🧪 [TEST] Starting isolated session creation test...')
-    console.log('🧪 [TEST] ========================================')
-    
-    setSessionError(null)
-    setSessionSuccess(null)
-    setCreatingSession(true)
-    
-    try {
-      // ✅ First, try to revoke any existing session to avoid "already processed" errors
-      if (sessionWallet?.revokeSession && hasSessionKey) {
-        console.log('🧪 [TEST] Revoking existing session first...')
-        try {
-          await sessionWallet.revokeSession()
-          console.log('🧪 [TEST] ✅ Existing session revoked')
-          // Wait for revocation to complete
-          await new Promise(resolve => setTimeout(resolve, 2000))
-        } catch (revokeError) {
-          console.warn('🧪 [TEST] ⚠️ Could not revoke existing session:', revokeError)
-        }
-      }
-      
-      console.log('🧪 [TEST] Current session wallet state:', {
-        hasSessionWallet: !!sessionWallet,
-        publicKey: sessionWallet?.publicKey?.toString(),
-        hasSessionToken: !!sessionWallet?.sessionToken,
-        hasGetSessionTokenMethod: !!sessionWallet?.getSessionToken,
-      })
-      
-      console.log('🧪 [TEST] Calling createSession()...')
-      const startTime = Date.now()
-      const result = await createSession()
-      const elapsed = ((Date.now() - startTime) / 1000).toFixed(1)
-      
-      console.log('🧪 [TEST] createSession() returned after', elapsed, 'seconds:', result)
-      
-      if (result.success) {
-        console.log('🧪 [TEST] ✅ SUCCESS - Session creation returned success')
-        console.log('🧪 [TEST] Now checking if token is available in IndexedDB...')
-        
-        // Wait a bit and check
-        await new Promise(resolve => setTimeout(resolve, 3000))
-        
-        if (sessionWallet?.getSessionToken) {
-          try {
-            const token = await sessionWallet.getSessionToken()
-            console.log('🧪 [TEST] Token from IndexedDB:', token)
-            
-            if (token) {
-              setSessionSuccess(`✅ Session created successfully! Token: ${token.substring(0, 30)}...`)
-              console.log('🧪 [TEST] ✅ Token confirmed in IndexedDB!')
-            } else {
-              setSessionSuccess('⚠️ Session created but token not in IndexedDB yet. Please refresh page.')
-              console.warn('🧪 [TEST] ⚠️ Token not found in IndexedDB')
-            }
-          } catch (error) {
-            console.error('🧪 [TEST] Error fetching token:', error)
-            setSessionSuccess('⚠️ Session created but error fetching token')
-          }
-        }
-      } else {
-        setSessionError(`❌ Failed: ${result.error}`)
-        console.error('🧪 [TEST] ❌ FAILED:', result.error)
-      }
-    } catch (error: unknown) {
-      const err = error as Error & { message?: string; stack?: string }
-      console.error('🧪 [TEST] ❌ EXCEPTION:', err)
-      console.error('🧪 [TEST] Error details:', {
-        message: err.message,
-        stack: err.stack,
-      })
-      setSessionError(`❌ Error: ${err.message}`)
-    } finally {
-      setCreatingSession(false)
-      console.log('🧪 [TEST] ========================================')
-      console.log('🧪 [TEST] Test completed')
-      console.log('🧪 [TEST] ========================================')
-    }
-  }
-
-  // Refetch profile when page loads to ensure fresh data
-  useEffect(() => {
-    if (ready && authenticated && activeWallet) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('🔄 [Game Page] Refetching profile to ensure fresh data', {
-          walletAddress: activeWallet?.address,
-          isLoadingProfile,
-          hasProfile: !!profile,
-        })
-      }
-      refetchProfile()
-    }
-    // Only run on mount or when authentication changes
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ready, authenticated, activeWallet?.address])
 
   // Log profile check for debugging
   useEffect(() => {
@@ -611,19 +514,7 @@ export default function GamePage() {
     }
   }, [ready, authenticated, activeWallet, profile, isLoadingProfile])
 
-  // Log session status to console - MOVED BEFORE EARLY RETURNS
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('🔑 [Game Page] Session Status:', {
-        hasSessionKey,
-        canPlayGasless,
-        statusMessage,
-        statusType,
-        sessionWalletAddress: sessionWallet?.publicKey?.toBase58(),
-        hasSessionToken: !!sessionWallet?.sessionToken,
-      })
-    }
-  }, [hasSessionKey, canPlayGasless, statusMessage, statusType, sessionWallet?.publicKey, sessionWallet?.sessionToken])
+  // Session keys removed - transactions now use direct wallet signing
 
   // Add BEFORE the authentication check
   // Show loading while Privy is initializing or checking profile
@@ -728,10 +619,53 @@ export default function GamePage() {
       {/* Prize Vaults Display */}
       <PrizeVaultsDisplay />
 
+      {/* Session Creation (First Time Only) */}
+      {!sessionExists && (
+        <Card className="border-yellow-200 dark:border-yellow-700 bg-yellow-50 dark:bg-yellow-900/20">
+          <CardHeader>
+            <CardTitle className="text-yellow-800 dark:text-yellow-200">
+              🎮 First Time Setup
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-yellow-700 dark:text-yellow-300">
+              Before you can play, you need to create a session account (one-time setup).
+            </p>
+            <p className="text-xs text-yellow-600 dark:text-yellow-400">
+              Cost: ~0.002 SOL (rent, reclaimable)
+            </p>
+            <Button
+              onClick={handleInitializeSession}
+              disabled={isInitializing}
+              className="w-full"
+            >
+              {isInitializing ? 'Creating Session...' : 'Create Session Account'}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Buy Ticket Button (Only show if session exists) */}
+      {sessionExists && !session && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Buy Ticket to Play</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Button
+              onClick={handleBuyTicket}
+              disabled={isBuyingTicket}
+              className="w-full"
+            >
+              {isBuyingTicket ? 'Buying Ticket...' : `Buy Ticket (${ticketPrice} SOL)`}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Buy Ticket Section */}
-      {/* ✅ SECURITY: Show if ANY of the 3 requirements are missing */}
-      {/* Show when: no session key OR no valid ticket OR session not on-chain */}
-      {(!hasSessionKey || !session || session.periodId !== periodId || session.completed || session.guessesUsed >= 7) && (
+      {/* Show when: no valid ticket OR session not on-chain */}
+      {(!session || session.periodId !== periodId || session.completed || session.guessesUsed >= 7) && (
         <Card className="mb-6 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
           <CardContent className="pt-6">
             <div className="text-center space-y-4">
@@ -741,55 +675,6 @@ export default function GamePage() {
               </div>
 
               <div className="flex flex-col items-center gap-4 w-full max-w-md mx-auto">
-                {/* Session Status Display */}
-                {sessionWallet?.publicKey && (
-                  <div className="w-full space-y-2 p-3 bg-slate-100 dark:bg-slate-700 rounded-lg">
-                    <div className="text-xs text-slate-500 dark:text-slate-400 break-all">
-                      Session Key: {sessionWallet.publicKey.toString().substring(0, 30)}...
-                    </div>
-                  </div>
-                )}
-
-                {/* 🧪 TEST: Create Session Button */}
-                {/* Commented out for production - only show Buy Ticket and Start Game */}
-                {/* {!hasSessionKey && (
-                  <Button
-                    onClick={handleTestCreateSession}
-                    disabled={creatingSession}
-                    size="lg"
-                    variant="outline"
-                    className="w-full border-purple-600 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-950"
-                  >
-                    {creatingSession ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600 mr-2"></div>
-                        Creating Session...
-                      </>
-                    ) : (
-                      <>
-                        🔑 Test: Create Session Only
-                      </>
-                    )}
-                  </Button>
-                )} */}
-
-                {/* Status Messages */}
-                {sessionSuccess && (
-                  <div className="w-full p-3 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
-                    <p className="text-green-700 dark:text-green-300 text-sm">{sessionSuccess}</p>
-                  </div>
-                )}
-                {sessionError && (
-                  <div className="w-full p-3 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded-lg">
-                    <p className="text-red-700 dark:text-red-300 text-sm font-medium">❌ {sessionError}</p>
-                  </div>
-                )}
-
-                {/* Divider */}
-                {/* Commented out for production */}
-                {/* {!hasSessionKey && (
-                  <div className="w-full border-t border-slate-300 dark:border-slate-600 my-2"></div>
-                )} */}
 
                 {/* Original Buy Ticket Button */}
                 <div className="w-full space-y-3">
@@ -798,27 +683,27 @@ export default function GamePage() {
                   </p>
                   <Button
                     onClick={handleBuyTicket}
-                    disabled={isBuyingTicket || creatingSession}
+                    disabled={isBuyingTicket || isDelegating}
                     size="lg"
                     className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium"
                   >
-                    {(isBuyingTicket || creatingSession) ? (
+                    {isBuyingTicket ? (
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        {creatingSession ? 'Creating Session...' : 'Processing...'}
+                        Buying Ticket...
+                      </>
+                    ) : isDelegating ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Delegating to ER...
                       </>
                     ) : (
                       <>
                         <Ticket className="h-5 w-5 mr-2" />
-                        {hasSessionKey ? 'Buy Ticket & Start Game' : 'Create Session & Buy Ticket'}
+                        Buy Ticket & Start Game
                       </>
                     )}
                   </Button>
-                  {!hasSessionKey && (
-                    <p className="text-xs text-slate-500 dark:text-slate-400 text-center">
-                      This will create your session key first, then purchase your ticket.
-                    </p>
-                  )}
                 </div>
                 {buyTicketError && (
                   <p className="text-red-500 text-sm mt-2">
@@ -845,19 +730,15 @@ export default function GamePage() {
               <p className="text-slate-600 dark:text-slate-400">Guess the 6-letter word!</p>
               <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
                 <p className="text-xs text-green-600 dark:text-green-400">
-                  ✅ Session Key
-                </p>
-                <span className="text-slate-400">•</span>
-                <p className="text-xs text-green-600 dark:text-green-400">
                   ✅ Ticket Paid
                 </p>
                 <span className="text-slate-400">•</span>
                 <p className="text-xs text-green-600 dark:text-green-400">
-                  ✅ On-Chain
+                  ✅ On-Chain Session
                 </p>
               </div>
               <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                🔒 All requirements met - Secure gameplay enabled!
+                🎮 Ready to play!
               </p>
             </div>
           </div>
@@ -989,11 +870,21 @@ export default function GamePage() {
                 </div>
               )}
 
-              <div className="flex gap-2 justify-center">
-                <Button variant="outline">
-                  View Leaderboard
-                </Button>
-              </div>
+                <div className="flex gap-2 justify-center">
+                  <Button 
+                    variant="outline"
+                    onClick={() => {
+                      const text = gameState.gameStatus === 'won' 
+                        ? `🎉 I just solved today's Voble in ${gameState.guesses.length}/7 guesses and scored ${gameState.score.toLocaleString()} points! Can you beat my score? 🎮`
+                        : `😔 I couldn't solve today's Voble. The word was ${gameState.targetWord}. Can you do better? 🎮`
+                      const url = 'https://voble.fun' 
+                      const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`
+                      window.open(twitterUrl, '_blank')
+                    }}
+                  >
+                    Share on 𝕏
+                  </Button>
+                </div>
             </CardContent>
           </Card>
         </div>

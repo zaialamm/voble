@@ -1,5 +1,5 @@
 {
-  "address": "AmDAGNow7v26x6g7XE8FYgboEezpzSdS1dW5ZR4DRrJk",
+  "address": "AC7J4h1rzxbm7Ey229X2rFxEse4CMJS5CkFpaTEyZMr",
   "metadata": {
     "name": "voble",
     "version": "0.1.0",
@@ -24,13 +24,12 @@
       ],
       "accounts": [
         {
-          "name": "player",
+          "name": "payer",
           "writable": true,
           "signer": true
         },
         {
           "name": "user_profile",
-          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -52,7 +51,7 @@
               },
               {
                 "kind": "account",
-                "path": "player"
+                "path": "payer"
               }
             ]
           }
@@ -76,11 +75,7 @@
               },
               {
                 "kind": "account",
-                "path": "player"
-              },
-              {
-                "kind": "arg",
-                "path": "period_id"
+                "path": "payer"
               }
             ]
           }
@@ -567,16 +562,16 @@
       "args": []
     },
     {
-      "name": "commit_user_profile",
+      "name": "complete_voble_game",
       "discriminator": [
-        101,
-        76,
-        219,
-        215,
-        161,
-        51,
-        237,
-        32
+        9,
+        240,
+        54,
+        167,
+        213,
+        152,
+        147,
+        162
       ],
       "accounts": [
         {
@@ -608,66 +603,8 @@
               },
               {
                 "kind": "account",
-                "path": "payer"
-              }
-            ]
-          }
-        },
-        {
-          "name": "player",
-          "relations": [
-            "user_profile"
-          ]
-        },
-        {
-          "name": "delegation_program",
-          "address": "DELeGGvXpWV2fqJUhqcF5ZSYMS4JTLjteaAMARRSaeSh"
-        },
-        {
-          "name": "magic_context",
-          "address": "MagicContext1111111111111111111111111111111"
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "complete_voble_game",
-      "discriminator": [
-        9,
-        240,
-        54,
-        167,
-        213,
-        152,
-        147,
-        162
-      ],
-      "accounts": [
-        {
-          "name": "user_profile",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  117,
-                  115,
-                  101,
-                  114,
-                  95,
-                  112,
-                  114,
-                  111,
-                  102,
-                  105,
-                  108,
-                  101
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "signer"
+                "path": "session.player",
+                "account": "SessionAccount"
               }
             ]
           }
@@ -691,20 +628,14 @@
               },
               {
                 "kind": "account",
-                "path": "signer"
-              },
-              {
-                "kind": "arg",
-                "path": "period_id"
+                "path": "session.player",
+                "account": "SessionAccount"
               }
             ]
           }
         },
         {
           "name": "leaderboard",
-          "docs": [
-            "Leaderboard for auto-update after game completion"
-          ],
           "writable": true,
           "pda": {
             "seeds": [
@@ -742,13 +673,13 @@
           }
         },
         {
-          "name": "session_token",
-          "optional": true
+          "name": "magic_program",
+          "address": "Magic11111111111111111111111111111111111111"
         },
         {
-          "name": "signer",
+          "name": "magic_context",
           "writable": true,
-          "signer": true
+          "address": "MagicContext1111111111111111111111111111111"
         }
       ],
       "args": [
@@ -1212,16 +1143,19 @@
       ]
     },
     {
-      "name": "delegate_user_profile",
+      "name": "delegate_session",
+      "docs": [
+        "Delegate session to Ephemeral Rollup"
+      ],
       "discriminator": [
-        205,
-        1,
-        92,
-        198,
-        12,
-        90,
-        20,
-        133
+        82,
+        83,
+        119,
+        119,
+        196,
+        219,
+        5,
+        197
       ],
       "accounts": [
         {
@@ -1230,7 +1164,11 @@
           "signer": true
         },
         {
-          "name": "buffer_user_profile",
+          "name": "validator",
+          "optional": true
+        },
+        {
+          "name": "buffer_pda",
           "writable": true,
           "pda": {
             "seeds": [
@@ -1247,50 +1185,50 @@
               },
               {
                 "kind": "account",
-                "path": "user_profile"
+                "path": "pda"
               }
             ],
             "program": {
               "kind": "const",
               "value": [
-                145,
-                12,
-                124,
-                172,
-                40,
-                48,
-                42,
-                251,
-                184,
-                118,
-                245,
+                2,
+                90,
+                201,
+                168,
+                106,
+                104,
+                94,
+                3,
+                104,
+                240,
+                153,
+                170,
+                134,
+                166,
                 138,
-                72,
-                142,
-                255,
-                152,
-                155,
-                72,
-                108,
-                129,
-                220,
-                131,
-                164,
-                0,
-                235,
-                85,
-                37,
-                139,
-                138,
-                62,
+                161,
+                175,
+                208,
+                78,
+                46,
+                43,
+                195,
+                25,
+                16,
+                200,
                 213,
-                73
+                38,
+                237,
+                81,
+                218,
+                129,
+                201
               ]
             }
           }
         },
         {
-          "name": "delegation_record_user_profile",
+          "name": "delegation_record_pda",
           "writable": true,
           "pda": {
             "seeds": [
@@ -1311,7 +1249,7 @@
               },
               {
                 "kind": "account",
-                "path": "user_profile"
+                "path": "pda"
               }
             ],
             "program": {
@@ -1321,7 +1259,7 @@
           }
         },
         {
-          "name": "delegation_metadata_user_profile",
+          "name": "delegation_metadata_pda",
           "writable": true,
           "pda": {
             "seeds": [
@@ -1351,7 +1289,7 @@
               },
               {
                 "kind": "account",
-                "path": "user_profile"
+                "path": "pda"
               }
             ],
             "program": {
@@ -1361,51 +1299,12 @@
           }
         },
         {
-          "name": "user_profile",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  117,
-                  115,
-                  101,
-                  114,
-                  95,
-                  112,
-                  114,
-                  111,
-                  102,
-                  105,
-                  108,
-                  101
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "payer"
-              }
-            ]
-          }
-        },
-        {
-          "name": "player",
-          "relations": [
-            "user_profile"
-          ]
-        },
-        {
-          "name": "delegation_buffer",
+          "name": "pda",
           "writable": true
         },
         {
-          "name": "delegation_record",
-          "writable": true
-        },
-        {
-          "name": "delegation_metadata",
-          "writable": true
+          "name": "owner_program",
+          "address": "AC7J4h1rzxbm7Ey229X2rFxEse4CMJS5CkFpaTEyZMr"
         },
         {
           "name": "delegation_program",
@@ -1414,17 +1313,9 @@
         {
           "name": "system_program",
           "address": "11111111111111111111111111111111"
-        },
-        {
-          "name": "owner_program"
         }
       ],
-      "args": [
-        {
-          "name": "commit_frequency_ms",
-          "type": "u32"
-        }
-      ]
+      "args": []
     },
     {
       "name": "finalize_daily",
@@ -1583,150 +1474,6 @@
         {
           "name": "period_id",
           "type": "string"
-        }
-      ]
-    },
-    {
-      "name": "finalize_daily_with_winners",
-      "discriminator": [
-        115,
-        219,
-        214,
-        198,
-        251,
-        178,
-        103,
-        197
-      ],
-      "accounts": [
-        {
-          "name": "global_config",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  103,
-                  108,
-                  111,
-                  98,
-                  97,
-                  108,
-                  95,
-                  99,
-                  111,
-                  110,
-                  102,
-                  105,
-                  103,
-                  95,
-                  118,
-                  50
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "name": "authority",
-          "writable": true,
-          "signer": true
-        },
-        {
-          "name": "period_state",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  100,
-                  97,
-                  105,
-                  108,
-                  121,
-                  95,
-                  112,
-                  101,
-                  114,
-                  105,
-                  111,
-                  100
-                ]
-              },
-              {
-                "kind": "arg",
-                "path": "period_id"
-              }
-            ]
-          }
-        },
-        {
-          "name": "daily_prize_vault",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  100,
-                  97,
-                  105,
-                  108,
-                  121,
-                  95,
-                  112,
-                  114,
-                  105,
-                  122,
-                  101,
-                  95,
-                  118,
-                  97,
-                  117,
-                  108,
-                  116
-                ]
-              }
-            ]
-          }
-        },
-        {
-          "name": "first_place_entitlement",
-          "writable": true
-        },
-        {
-          "name": "second_place_entitlement",
-          "writable": true
-        },
-        {
-          "name": "third_place_entitlement",
-          "writable": true
-        },
-        {
-          "name": "system_program",
-          "address": "11111111111111111111111111111111"
-        }
-      ],
-      "args": [
-        {
-          "name": "period_id",
-          "type": "string"
-        },
-        {
-          "name": "winners",
-          "type": {
-            "vec": "pubkey"
-          }
-        },
-        {
-          "name": "scores",
-          "type": {
-            "vec": {
-              "defined": {
-                "name": "LeaderboardScore"
-              }
-            }
-          }
         }
       ]
     },
@@ -2125,121 +1872,6 @@
       ]
     },
     {
-      "name": "get_leaderboard",
-      "discriminator": [
-        120,
-        151,
-        17,
-        201,
-        227,
-        143,
-        94,
-        32
-      ],
-      "accounts": [
-        {
-          "name": "leaderboard",
-          "writable": true
-        },
-        {
-          "name": "user_profile",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  117,
-                  115,
-                  101,
-                  114,
-                  95,
-                  112,
-                  114,
-                  111,
-                  102,
-                  105,
-                  108,
-                  101
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "player"
-              }
-            ]
-          }
-        },
-        {
-          "name": "player",
-          "relations": [
-            "user_profile"
-          ]
-        }
-      ],
-      "args": [
-        {
-          "name": "period_id",
-          "type": "string"
-        },
-        {
-          "name": "period_type",
-          "type": "u8"
-        }
-      ]
-    },
-    {
-      "name": "get_voble_stats",
-      "discriminator": [
-        8,
-        6,
-        165,
-        77,
-        147,
-        78,
-        161,
-        127
-      ],
-      "accounts": [
-        {
-          "name": "user_profile",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  117,
-                  115,
-                  101,
-                  114,
-                  95,
-                  112,
-                  114,
-                  111,
-                  102,
-                  105,
-                  108,
-                  101
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "player"
-              }
-            ]
-          }
-        },
-        {
-          "name": "player",
-          "signer": true,
-          "relations": [
-            "user_profile"
-          ]
-        }
-      ],
-      "args": []
-    },
-    {
       "name": "initialize_global_config",
       "discriminator": [
         113,
@@ -2388,6 +2020,58 @@
           "type": "u8"
         }
       ]
+    },
+    {
+      "name": "initialize_session",
+      "docs": [
+        "Initialize session account (one-time setup)"
+      ],
+      "discriminator": [
+        69,
+        130,
+        92,
+        236,
+        107,
+        231,
+        159,
+        129
+      ],
+      "accounts": [
+        {
+          "name": "payer",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "session",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  115,
+                  115,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "payer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": []
     },
     {
       "name": "initialize_user_profile",
@@ -2740,35 +2424,6 @@
       ],
       "accounts": [
         {
-          "name": "user_profile",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  117,
-                  115,
-                  101,
-                  114,
-                  95,
-                  112,
-                  114,
-                  111,
-                  102,
-                  105,
-                  108,
-                  101
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "signer"
-              }
-            ]
-          }
-        },
-        {
           "name": "session",
           "writable": true,
           "pda": {
@@ -2787,23 +2442,11 @@
               },
               {
                 "kind": "account",
-                "path": "signer"
-              },
-              {
-                "kind": "arg",
-                "path": "period_id"
+                "path": "session.player",
+                "account": "SessionAccount"
               }
             ]
           }
-        },
-        {
-          "name": "session_token",
-          "optional": true
-        },
-        {
-          "name": "signer",
-          "writable": true,
-          "signer": true
         }
       ],
       "args": [
@@ -2818,16 +2461,19 @@
       ]
     },
     {
-      "name": "undelegate_user_profile",
+      "name": "undelegate_session",
+      "docs": [
+        "Undelegate session from Ephemeral Rollup"
+      ],
       "discriminator": [
-        196,
-        202,
-        192,
-        177,
-        54,
-        134,
-        176,
-        173
+        110,
+        234,
+        80,
+        245,
+        77,
+        79,
+        58,
+        116
       ],
       "accounts": [
         {
@@ -2836,129 +2482,20 @@
           "signer": true
         },
         {
-          "name": "user_profile",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  117,
-                  115,
-                  101,
-                  114,
-                  95,
-                  112,
-                  114,
-                  111,
-                  102,
-                  105,
-                  108,
-                  101
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "payer"
-              }
-            ]
-          }
-        },
-        {
-          "name": "player",
-          "relations": [
-            "user_profile"
-          ]
-        },
-        {
-          "name": "delegation_program",
-          "address": "DELeGGvXpWV2fqJUhqcF5ZSYMS4JTLjteaAMARRSaeSh"
-        },
-        {
-          "name": "magic_context",
-          "address": "MagicContext1111111111111111111111111111111"
-        },
-        {
-          "name": "system_program",
-          "address": "11111111111111111111111111111111"
-        }
-      ],
-      "args": []
-    },
-    {
-      "name": "update_leaderboard",
-      "discriminator": [
-        72,
-        95,
-        102,
-        32,
-        118,
-        158,
-        247,
-        34
-      ],
-      "accounts": [
-        {
-          "name": "leaderboard",
+          "name": "session",
           "writable": true
         },
         {
-          "name": "user_profile",
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  117,
-                  115,
-                  101,
-                  114,
-                  95,
-                  112,
-                  114,
-                  111,
-                  102,
-                  105,
-                  108,
-                  101
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "player"
-              }
-            ]
-          }
+          "name": "magic_program",
+          "address": "Magic11111111111111111111111111111111111111"
         },
         {
-          "name": "player",
-          "relations": [
-            "user_profile"
-          ]
+          "name": "magic_context",
+          "writable": true,
+          "address": "MagicContext1111111111111111111111111111111"
         }
       ],
-      "args": [
-        {
-          "name": "period_id",
-          "type": "string"
-        },
-        {
-          "name": "period_type",
-          "type": "u8"
-        },
-        {
-          "name": "score",
-          "type": "u32"
-        },
-        {
-          "name": "guesses_used",
-          "type": "u8"
-        },
-        {
-          "name": "time_ms",
-          "type": "u64"
-        }
-      ]
+      "args": []
     },
     {
       "name": "withdraw_platform_revenue",
@@ -3106,19 +2643,6 @@
         163,
         80,
         69
-      ]
-    },
-    {
-      "name": "SessionToken",
-      "discriminator": [
-        233,
-        4,
-        115,
-        14,
-        46,
-        21,
-        1,
-        15
       ]
     },
     {
@@ -3647,6 +3171,26 @@
       "code": 6023,
       "name": "WordNotSet",
       "msg": "Target word not set - VRF callback pending"
+    },
+    {
+      "code": 6024,
+      "name": "InvalidUsername",
+      "msg": "Invalid username format or length"
+    },
+    {
+      "code": 6025,
+      "name": "InvalidGuessLength",
+      "msg": "Invalid guess length (must be 6 characters)"
+    },
+    {
+      "code": 6026,
+      "name": "InvalidGuess",
+      "msg": "Invalid guess format (must contain only letters)"
+    },
+    {
+      "code": 6027,
+      "name": "AlreadyPlayedThisPeriod",
+      "msg": "Player has already played this period"
     }
   ],
   "types": [
@@ -4016,26 +3560,6 @@
           {
             "name": "created_at",
             "type": "i64"
-          }
-        ]
-      }
-    },
-    {
-      "name": "LeaderboardScore",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "correct_count",
-            "type": "u8"
-          },
-          {
-            "name": "time_ms",
-            "type": "u64"
-          },
-          {
-            "name": "guesses_used",
-            "type": "u8"
           }
         ]
       }
@@ -4552,30 +4076,6 @@
           {
             "name": "score",
             "type": "u32"
-          }
-        ]
-      }
-    },
-    {
-      "name": "SessionToken",
-      "type": {
-        "kind": "struct",
-        "fields": [
-          {
-            "name": "authority",
-            "type": "pubkey"
-          },
-          {
-            "name": "target_program",
-            "type": "pubkey"
-          },
-          {
-            "name": "session_signer",
-            "type": "pubkey"
-          },
-          {
-            "name": "valid_until",
-            "type": "i64"
           }
         ]
       }

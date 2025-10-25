@@ -4,7 +4,8 @@ import { PublicKey } from '@solana/web3.js'
 
 import { 
   vocabeeProgram, 
-  SYSTEM_PROGRAM_ID 
+  SYSTEM_PROGRAM_ID,
+  VOBLE_PROGRAM_ID
 } from './program'
 import { 
   getUserProfilePDA, 
@@ -21,6 +22,8 @@ import {
 import { handleTransactionError } from './utils'
 // ER Integration
 import { useERGameTransaction } from '@/hooks/mb-er'
+// ER Validator public key (Asia region)
+const ER_VALIDATOR = new PublicKey('MAS1Dt9qreoRMQ14YQuhg8UTZMMzDdKhmkZMECCzk57')
 
 export interface BuyTicketResult {
   success: boolean
@@ -75,12 +78,13 @@ export function useBuyTicket() {
 
       // Derive all required PDAs
       const [userProfilePDA] = getUserProfilePDA(playerPublicKey)
-      const [sessionPDA] = getSessionPDA(playerPublicKey, trimmedPeriodId)
+      const [sessionPDA] = getSessionPDA(playerPublicKey)
       const [globalConfigPDA] = getGlobalConfigPDA()
       const [dailyPrizeVaultPDA] = getDailyPrizeVaultPDA()
       const [weeklyPrizeVaultPDA] = getWeeklyPrizeVaultPDA()
       const [monthlyPrizeVaultPDA] = getMonthlyPrizeVaultPDA()
       const [platformVaultPDA] = getPlatformVaultPDA()
+
 
       if (process.env.NODE_ENV === 'development') {
         console.log('🔑 [useBuyTicket] Derived PDAs:', {
@@ -90,7 +94,7 @@ export function useBuyTicket() {
           dailyVault: dailyPrizeVaultPDA.toString(),
           weeklyVault: weeklyPrizeVaultPDA.toString(),
           monthlyVault: monthlyPrizeVaultPDA.toString(),
-          platformVault: platformVaultPDA.toString(),
+          platformVault: platformVaultPDA.toString()
         })
       }
 
@@ -98,38 +102,56 @@ export function useBuyTicket() {
       const buyTicketInstruction = await vocabeeProgram.methods
         .buyTicketAndStartGame(trimmedPeriodId)
         .accounts({
-          player: playerPublicKey,
-          userProfile: userProfilePDA,
+          payer: playerPublicKey,
           session: sessionPDA,
+          userProfile: userProfilePDA,
           globalConfig: globalConfigPDA,
           dailyPrizeVault: dailyPrizeVaultPDA,
           weeklyPrizeVault: weeklyPrizeVaultPDA,
           monthlyPrizeVault: monthlyPrizeVaultPDA,
           platformVault: platformVaultPDA,
-          systemProgram: SYSTEM_PROGRAM_ID,
+          systemProgram: SYSTEM_PROGRAM_ID
         })
         .instruction()
       
       if (process.env.NODE_ENV === 'development') {
-        console.log('✅ [useBuyTicket] Instruction created:', {
+        console.log('✅ [useBuyTicket] Buy ticket instruction created:', {
           programId: buyTicketInstruction.programId.toString(),
           accounts: buyTicketInstruction.keys.length,
           dataLength: buyTicketInstruction.data.length,
         })
       }
 
-      // Build the transaction with compute budget
+      // Create delegate session instruction to batch with buy ticket
       if (process.env.NODE_ENV === 'development') {
-        console.log('🔨 [useBuyTicket] Building transaction...')
+        console.log('🔨 [useBuyTicket] Creating delegate instruction...')
+      }
+      
+      const delegateInstruction = await vocabeeProgram.methods
+        .delegateSession()
+        .accounts({
+          payer: playerPublicKey,
+          validator: ER_VALIDATOR,
+          pda: sessionPDA,
+        })
+        .instruction()
+      
+      if (process.env.NODE_ENV === 'development') {
+        console.log('✅ [useBuyTicket] Delegate instruction created')
+      }
+
+      // Build the transaction with BOTH instructions (buy + delegate)
+      if (process.env.NODE_ENV === 'development') {
+        console.log('🔨 [useBuyTicket] Building transaction with buy + delegate...')
       }
       const transaction = await buildTransaction({
-        instructions: [buyTicketInstruction],
+        instructions: [buyTicketInstruction, delegateInstruction],  // Both instructions!
         feePayer: playerPublicKey,
-        computeUnitLimit: 400_000,
+        computeUnitLimit: 400_000, // Increased for both instructions
         addComputeBudget: true,
       })
       if (process.env.NODE_ENV === 'development') {
-        console.log('✅ [useBuyTicket] Transaction built')
+        console.log('✅ [useBuyTicket] Transaction built with 2 instructions')
       }
 
       // Use ER transaction system (will route to base layer for ticket purchases)

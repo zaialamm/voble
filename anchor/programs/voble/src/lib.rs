@@ -1,28 +1,35 @@
 use anchor_lang::prelude::*;
+use anchor_lang::InstructionData;
 use ephemeral_rollups_sdk::anchor::ephemeral;
 
+pub mod constants;
 pub mod contexts;
-pub mod instructions;
-pub mod state;
 pub mod errors;
 pub mod events;
+pub mod instructions;
+pub mod state;
+pub mod utils;
 
 use contexts::*;
-use contexts::voble::{BuyTicketAndStartGame, SubmitGuess, CompleteGame};
-// Import instruction functions explicitly to avoid ambiguity
-use instructions::admin;
-use instructions::game::{self, voble as voble_game};
-use instructions::prize;
-use instructions::leaderboard;
+pub use constants::*;
 pub use events::*;
+pub use state::*;
 
-declare_id!("AmDAGNow7v26x6g7XE8FYgboEezpzSdS1dW5ZR4DRrJk");
+// Import instruction modules
+use instructions::admin;
+use instructions::game;
+use instructions::leaderboard;
+use instructions::prize;
+use instructions::profile;
+
+
+declare_id!("AC7J4h1rzxbm7Ey229X2rFxEse4CMJS5CkFpaTEyZMr");
 
 #[ephemeral]
 #[program]
 pub mod voble {
     use super::*;
-    use crate::contexts::leaderboard::{InitializePeriodLeaderboard, UpdateLeaderboard, FinalizeLeaderboard};
+    use crate::contexts::leaderboard::{FinalizeLeaderboard, InitializePeriodLeaderboard};
 
     // Admin instructions
     pub fn initialize_global_config(
@@ -44,7 +51,6 @@ pub mod voble {
             winner_splits,
         )
     }
-
 
     pub fn set_config(
         ctx: Context<SetConfig>,
@@ -70,29 +76,13 @@ pub mod voble {
         ctx: Context<InitializeUserProfile>,
         username: String,
     ) -> Result<()> {
-        game::profile::initialize_user_profile(ctx, username)
-    }
-
-    // Delegation instructions for Ephemeral Rollups
-    pub fn delegate_user_profile(
-        ctx: Context<DelegateUserProfile>,
-        commit_frequency_ms: u32,
-    ) -> Result<()> {
-        game::profile::delegate_user_profile(ctx, commit_frequency_ms)
-    }
-
-    pub fn undelegate_user_profile(ctx: Context<UndelegateUserProfile>) -> Result<()> {
-        game::profile::undelegate_user_profile(ctx)
-    }
-
-    pub fn commit_user_profile(ctx: Context<CommitUserProfile>) -> Result<()> {
-        game::profile::commit_user_profile(ctx)
+        profile::initialize_user_profile(ctx, username)
     }
 
     // Prize instructions
     // Note: finalize_period_with_leaderboard removed due to Anchor limitation with runtime match in seeds
     // Use finalize_daily, finalize_weekly, finalize_monthly instead
-    
+
     pub fn finalize_daily(ctx: Context<FinalizeDaily>, period_id: String) -> Result<()> {
         prize::finalize_daily(ctx, period_id)
     }
@@ -144,16 +134,6 @@ pub mod voble {
         prize::create_monthly_winner_entitlement(ctx, period_id, rank, amount)
     }
 
-    // Enhanced prize instructions with automatic winner determination
-    pub fn finalize_daily_with_winners(
-        ctx: Context<FinalizeDailyWithWinners>,
-        period_id: String,
-        winners: Vec<Pubkey>,
-        scores: Vec<prize::LeaderboardScore>,
-    ) -> Result<()> {
-        prize::finalize_daily_with_winners(ctx, period_id, winners, scores)
-    }
-
     // Leaderboard functions
     pub fn initialize_period_leaderboard(
         ctx: Context<InitializePeriodLeaderboard>,
@@ -161,17 +141,6 @@ pub mod voble {
         period_type: u8,
     ) -> Result<()> {
         leaderboard::initialize_period_leaderboard(ctx, period_id, period_type)
-    }
-
-    pub fn update_leaderboard(
-        ctx: Context<UpdateLeaderboard>,
-        period_id: String,
-        period_type: u8,
-        score: u32,
-        guesses_used: u8,
-        time_ms: u64,
-    ) -> Result<()> {
-        leaderboard::update_leaderboard(ctx, period_id, period_type, score, guesses_used, time_ms)
     }
 
     pub fn finalize_leaderboard(
@@ -182,41 +151,36 @@ pub mod voble {
         leaderboard::finalize_leaderboard(ctx, period_id, period_type)
     }
 
-    pub fn get_leaderboard(
-        ctx: Context<UpdateLeaderboard>,
-        period_id: String,
-        period_type: u8,
-    ) -> Result<()> {
-        leaderboard::get_leaderboard(ctx, period_id, period_type)
+    // Voble game functions
+
+    /// Initialize session account (one-time setup)
+    pub fn initialize_session(ctx: Context<InitializeSession>) -> Result<()> {
+        game::initialize_session(ctx)
     }
 
-    // Voble game functions
-    
     /// Buy ticket and start game in one transaction (RECOMMENDED)
     pub fn buy_ticket_and_start_game(
         ctx: Context<BuyTicketAndStartGame>,
         period_id: String,
     ) -> Result<()> {
-        voble_game::buy_ticket_and_start_game(ctx, period_id)
+        game::buy_ticket_and_start_game(ctx, period_id)
     }
 
-    pub fn submit_guess(
-        ctx: Context<SubmitGuess>,
-        period_id: String,
-        guess: String,
-    ) -> Result<()> {
-        voble_game::submit_guess(ctx, period_id, guess)
+    /// Delegate session to Ephemeral Rollup
+    pub fn delegate_session(ctx: Context<DelegateSession>) -> Result<()> {
+        game::delegate_session(ctx)
     }
 
-    pub fn complete_voble_game(
-        ctx: Context<CompleteGame>,
-        period_id: String,
-    ) -> Result<()> {
-        voble_game::complete_voble_game(ctx, period_id)
+    /// Undelegate session from Ephemeral Rollup  
+    pub fn undelegate_session(ctx: Context<UndelegateSession>) -> Result<()> {
+        game::undelegate_session(ctx)
     }
 
-    pub fn get_voble_stats(ctx: Context<UpdateUserProfile>) -> Result<()> {
-        voble_game::get_voble_stats(ctx)
+    pub fn submit_guess(ctx: Context<SubmitGuess>, period_id: String, guess: String) -> Result<()> {
+        game::submit_guess(ctx, period_id, guess)
+    }
+
+    pub fn complete_voble_game(ctx: Context<CompleteGame>, period_id: String) -> Result<()> {
+        game::complete_voble_game(ctx, period_id)
     }
 }
-

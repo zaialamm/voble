@@ -6,7 +6,7 @@ resolution = true
 skip-lint = false
 
 [programs.devnet]
-vocabee = "AmDAGNow7v26x6g7XE8FYgboEezpzSdS1dW5ZR4DRrJk"
+voble = "AC7J4h1rzxbm7Ey229X2rFxEse4CMJS5CkFpaTEyZMr"
 
 [registry]
 url = "https://api.apr.dev"
@@ -16,8 +16,8 @@ cluster = "devnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
-test = "npx ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.test.ts"
 initialize-devnet = "npx ts-node scripts/initialize-program.ts"
+test = "npx ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.test.ts"
 
 [test]
 startup_wait = 5000

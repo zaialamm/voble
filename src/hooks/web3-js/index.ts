@@ -16,7 +16,7 @@ export { useInitializeProfile } from './use-initialize-profile'
 export { useBuyTicket } from './use-buy-ticket'
 export { useSubmitGuess } from './use-submit-guess'
 export { useCompleteGame } from './use-complete-game'
-// Session management now handled by MagicBlock SDK via SessionProvider
+export { useDelegateSession } from './use-delegate-session'
 
 // Data fetching hooks (read operations)
 export { useFetchSession } from './use-fetch-session'
@@ -39,6 +39,11 @@ export type {
 export type { 
   BuyTicketResult
 } from './use-buy-ticket'
+
+export type {
+  DelegateSessionResult 
+} from './use-delegate-session'
+
 
 export type { 
   SubmitGuessResult,

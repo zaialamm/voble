@@ -1,4 +1,5 @@
 use anchor_lang::prelude::*;
+use crate::constants::*;
 use crate::state::*;
 
 /// Initialize period leaderboard
@@ -10,7 +11,7 @@ pub struct InitializePeriodLeaderboard<'info> {
         payer = authority,
         space = 8 + PeriodLeaderboard::INIT_SPACE,
         seeds = [
-            b"leaderboard",
+            SEED_LEADERBOARD,
             period_id.as_bytes(),
             &[period_type]
         ],
@@ -19,7 +20,7 @@ pub struct InitializePeriodLeaderboard<'info> {
     pub leaderboard: Account<'info, PeriodLeaderboard>,
     
     #[account(
-        seeds = [b"global_config_v2"],
+        seeds = [SEED_GLOBAL_CONFIG],
         bump,
         has_one = authority
     )]
@@ -38,7 +39,7 @@ pub struct UpdateLeaderboard<'info> {
     #[account(
         mut,
         seeds = [
-            b"leaderboard",
+            SEED_LEADERBOARD,
             period_id.as_bytes(),
             &[period_type]
         ],
@@ -47,7 +48,7 @@ pub struct UpdateLeaderboard<'info> {
     pub leaderboard: Account<'info, PeriodLeaderboard>,
     
     #[account(
-        seeds = [b"user_profile", player.key().as_ref()],
+        seeds = [SEED_USER_PROFILE, player.key().as_ref()],
         bump,
         has_one = player
     )]
@@ -64,7 +65,7 @@ pub struct FinalizeLeaderboard<'info> {
     #[account(
         mut,
         seeds = [
-            b"leaderboard",
+            SEED_LEADERBOARD,
             period_id.as_bytes(),
             &[period_type]
         ],
@@ -73,7 +74,7 @@ pub struct FinalizeLeaderboard<'info> {
     pub leaderboard: Account<'info, PeriodLeaderboard>,
     
     #[account(
-        seeds = [b"global_config_v2"],
+        seeds = [SEED_GLOBAL_CONFIG],
         bump,
         has_one = authority
     )]

@@ -3,8 +3,6 @@
 import { PrivyProvider } from "@privy-io/react-auth";
 import { toSolanaWalletConnectors } from "@privy-io/react-auth/solana";
 import { ReactQueryProvider } from '@/components/react-query-provider';
-import { ConnectionProvider } from '@/components/connection-provider';
-import { SessionProvider } from '@/components/session-provider';
 import { ERConnectionProvider } from '@/components/mb-er/er-connection-provider';
 
 export default function Providers({ children }: { children: React.ReactNode }) {
@@ -27,13 +25,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       }}
     >
       <ReactQueryProvider>
-        <ConnectionProvider>
           <ERConnectionProvider>
-            <SessionProvider>
               {children}
-            </SessionProvider>
           </ERConnectionProvider>
-        </ConnectionProvider>
       </ReactQueryProvider>
     </PrivyProvider> 
   );

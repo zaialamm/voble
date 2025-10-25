@@ -1,7 +1,7 @@
 {
-  "name": "vocabee-tests",
+  "name": "voble-test",
   "version": "1.0.0",
-  "description": "VocaBee Smart Contract Tests",
+  "description": "Voble test",
   "scripts": {
     "test": "anchor test",
     "test:unit": "mocha -t 1000000 tests/**/*.test.ts"

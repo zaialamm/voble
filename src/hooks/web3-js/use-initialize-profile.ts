@@ -30,9 +30,9 @@ export function useInitializeProfile() {
 
   const selectedWallet = wallets[0]
 
-  const initializeProfile = async (username: string, withER: boolean = false): Promise<InitializeProfileResult> => {
+  const initializeProfile = async (username: string): Promise<InitializeProfileResult> => {
     if (process.env.NODE_ENV === 'development') {
-      console.log('🚀 [useInitializeProfile] Starting profile creation for:', username, withER ? '(with ER)' : '(basic)')
+      console.log('🚀 [useInitializeProfile] Starting profile creation for:', username)
     }
     setIsLoading(true)
     setError(null)
@@ -71,11 +71,9 @@ export function useInitializeProfile() {
         })
       }
 
-      // ============================================
-      // STEP 1: Create Profile
-      // ============================================
+      // Create A Profile
       if (process.env.NODE_ENV === 'development') {
-        console.log('📝 [useInitializeProfile] Step 1: Creating profile...')
+        console.log('📝 [useInitializeProfile] Creating profile...')
       }
       
       const initProfileInstruction = await vocabeeProgram.methods
@@ -90,7 +88,7 @@ export function useInitializeProfile() {
       const initTransaction = await buildTransaction({
         instructions: [initProfileInstruction],
         feePayer: payerPublicKey,
-        computeUnitLimit: 400_000,
+        computeUnitLimit: 300_000,
         addComputeBudget: true,
       })
 
@@ -140,110 +138,6 @@ export function useInitializeProfile() {
         console.log('✅ [useInitializeProfile] Profile created with signature:', initSignature)
       }
 
-      // ============================================
-      // STEP 2: Delegate to ER (if requested)
-      // ============================================
-      let delegateSignature: string | undefined
-      
-      if (withER) {
-        if (process.env.NODE_ENV === 'development') {
-          console.log('⏳ [useInitializeProfile] Waiting for profile creation to confirm...')
-        }
-        // Wait a bit for the profile to be confirmed on-chain
-        await new Promise(resolve => setTimeout(resolve, 2000))
-        
-        if (process.env.NODE_ENV === 'development') {
-          console.log('📝 [useInitializeProfile] Step 2: Delegating profile to ER...')
-        }
-        
-        const DELEGATION_PROGRAM_ID = new PublicKey('DELeGGvXpWV2fqJUhqcF5ZSYMS4JTLjteaAMARRSaeSh')
-        
-        // Derive buffer account - IMPORTANT: Use YOUR program ID, not delegation program!
-        const [bufferUserProfile] = PublicKey.findProgramAddressSync(
-          [Buffer.from('buffer'), userProfilePDA.toBuffer()],
-          VOBLE_PROGRAM_ID  // ← Fixed: Use your program ID
-        )
-        
-        // Derive delegation record - derived by delegation program
-        const [delegationRecordUserProfile] = PublicKey.findProgramAddressSync(
-          [Buffer.from('delegation'), userProfilePDA.toBuffer()],
-          DELEGATION_PROGRAM_ID
-        )
-        
-        // Derive delegation metadata - derived by delegation program
-        const [delegationMetadataUserProfile] = PublicKey.findProgramAddressSync(
-          [Buffer.from('delegation-metadata'), userProfilePDA.toBuffer()],
-          DELEGATION_PROGRAM_ID
-        )
-        
-        if (process.env.NODE_ENV === 'development') {
-          console.log('🔑 [useInitializeProfile] Delegation accounts:', {
-            buffer: bufferUserProfile.toString(),
-            record: delegationRecordUserProfile.toString(),
-            metadata: delegationMetadataUserProfile.toString(),
-          })
-        }
-        
-        const delegateInstruction = await vocabeeProgram.methods
-          .delegateUserProfile(30_000) // commitFrequencyMs parameter
-          .accounts({
-            payer: payerPublicKey,
-            bufferUserProfile,
-            delegationRecordUserProfile,
-            delegationMetadataUserProfile,
-            userProfile: userProfilePDA,
-            player: payerPublicKey,
-            delegationBuffer: bufferUserProfile,
-            delegationRecord: delegationRecordUserProfile,
-            delegationMetadata: delegationMetadataUserProfile,
-            delegationProgram: DELEGATION_PROGRAM_ID,
-            systemProgram: SYSTEM_PROGRAM_ID,
-            ownerProgram: VOBLE_PROGRAM_ID,
-          })
-          .instruction()
-        
-        const delegateTransaction = await buildTransaction({
-          instructions: [delegateInstruction],
-          feePayer: payerPublicKey,
-          computeUnitLimit: 600_000,
-          addComputeBudget: true,
-        })
-
-        if (process.env.NODE_ENV === 'development') {
-          console.log('✍️ [useInitializeProfile] Sending delegation transaction...')
-        }
-        
-        try {
-          const serializedDelegateTx = delegateTransaction.serialize({
-            requireAllSignatures: false,
-            verifySignatures: false
-          })
-          
-          const delegateResult = await selectedWallet.signAndSendTransaction({
-            transaction: serializedDelegateTx,
-            chain: 'solana:devnet' as any
-          })
-          
-          delegateSignature = typeof delegateResult.signature === 'string' 
-            ? delegateResult.signature 
-            : Buffer.from(delegateResult.signature as Uint8Array).toString('base64')
-          
-          if (process.env.NODE_ENV === 'development') {
-            console.log('✅ [useInitializeProfile] Profile delegated to ER with signature:', delegateSignature)
-          }
-        } catch (delegateError: any) {
-          console.error('❌ [useInitializeProfile] Delegation transaction failed:', {
-            error: delegateError,
-            message: delegateError?.message,
-            logs: delegateError?.logs,
-            code: delegateError?.code,
-          })
-          // Profile was created but delegation failed - still return success with warning
-          console.warn('⚠️ [useInitializeProfile] Profile created but delegation failed. User can delegate later.')
-          throw new Error(`Profile created successfully, but delegation failed: ${delegateError?.message || 'Unknown error'}. You can delegate your profile later from the create profile page.`)
-        }
-      }
-
       // Invalidate React Query cache to refetch profile
       if (process.env.NODE_ENV === 'development') {
         console.log('🔄 [useInitializeProfile] Invalidating profile cache for:', selectedWallet.address)
@@ -255,9 +149,9 @@ export function useInitializeProfile() {
       setIsLoading(false)
       return {
         success: true,
-        signature: withER && delegateSignature ? delegateSignature : initSignature,
+        signature: initSignature,
         profileAddress: userProfilePDA.toString(),
-        isDelegated: withER,
+        isDelegated: false,
       }
     } catch (err: any) {
       console.error('❌ [useInitializeProfile] Error initializing profile:', err)
@@ -283,14 +177,8 @@ export function useInitializeProfile() {
     }
   }
 
-  // Convenience method for creating ER-enabled profiles
-  const initializeProfileWithER = async (username: string): Promise<InitializeProfileResult> => {
-    return await initializeProfile(username, true)
-  }
-
   return {
     initializeProfile,
-    initializeProfileWithER,
     isLoading,
     error,
   }

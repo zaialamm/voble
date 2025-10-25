@@ -1,14 +1,14 @@
 import { useMutation } from '@tanstack/react-query'
 import { useConnectedStandardWallets } from '@privy-io/react-auth/solana'
-import { Transaction } from '@solana/web3.js'
 import { useERConnection } from '@/components/mb-er/er-connection-provider'
-import { useSessionWallet } from '@magicblock-labs/gum-react-sdk'
 import { shouldUseER } from './config'
+
+import { Transaction, Connection, Keypair } from '@solana/web3.js'
+import { useTempKeypair } from '@/hooks/use-temp-keypair'
 
 interface ERTransactionParams {
   transaction: Transaction
   instruction?: string // For routing decisions
-  useSession?: boolean // Whether to use session key
   commitment?: 'processed' | 'confirmed' | 'finalized'
 }
 
@@ -22,13 +22,13 @@ interface ERTransactionResult {
 export function useERTransaction() {
   const { wallets } = useConnectedStandardWallets()
   const { erConnection, baseConnection, isERConnected } = useERConnection()
-  const sessionWallet = useSessionWallet() // Use GUM session wallet
   const wallet = wallets[0]
+  const tempKeypair = useTempKeypair()
 
   const mutation = useMutation({
     mutationKey: ['erTransaction'],
     mutationFn: async (params: ERTransactionParams): Promise<ERTransactionResult> => {
-      const { transaction, instruction, useSession = false, commitment = 'confirmed' } = params
+      const { transaction, instruction, commitment = 'confirmed' } = params
 
       if (!wallet?.address) {
         throw new Error('Wallet not connected')
@@ -37,31 +37,27 @@ export function useERTransaction() {
       try {
         console.log('🚀 [ER Transaction] Starting transaction...')
         console.log('📝 [ER Transaction] Instruction:', instruction || 'unknown')
-        console.log('🔑 [ER Transaction] Use session:', useSession)
         console.log('⚡ [ER Transaction] ER available:', isERConnected)
         console.log('👛 [ER Transaction] Wallet address:', wallet.address)
-        console.log('🔌 [ER Transaction] Has session wallet:', !!sessionWallet?.sessionToken)
 
         // Determine routing strategy
         let connection = baseConnection
         let routedTo: 'er' | 'base' | 'unknown' = 'base'
 
-        // Priority 1: Session transactions MUST go to ER
-        if (useSession && sessionWallet?.sessionToken) {
-          if (!erConnection || !isERConnected) {
-            throw new Error('ER connection required for session transactions. Please ensure ER is connected.')
-          }
-          console.log('⚡ [ER Transaction] Routing to ER (session transaction)')
-          connection = erConnection
-          routedTo = 'er'
-        }
-        // Priority 2: Magic Router logic for non-session transactions
-        else if (instruction && shouldUseER(instruction) && isERConnected && erConnection) {
-          console.log('⚡ [ER Transaction] Routing to Ephemeral Rollup via Magic Router')
-          connection = erConnection
+        // Priority 1: Route to ER for eligible instructions
+        if (instruction && shouldUseER(instruction) && isERConnected) {
+          console.log('⚡ [ER Transaction] Routing to Ephemeral Rollup')
+          
+          // Use DIRECT ER endpoint (not Magic Router) for ER transactions
+          const erDirectEndpoint = 'https://devnet.magicblock.app'
+          connection = new Connection(erDirectEndpoint, {
+            commitment: 'confirmed',
+            confirmTransactionInitialTimeout: 60000,
+          })
+          
           routedTo = 'er'
         } 
-        // Priority 3: Default to base layer
+        // Priority 2: Default to base layer
         else {
           console.log('🔗 [ER Transaction] Routing to Base Layer (Solana)')
           connection = baseConnection
@@ -69,31 +65,52 @@ export function useERTransaction() {
         }
 
         if (!connection) {
-          throw new Error(`Connection not available for ${routedTo}`)
+          throw new Error('Connection not available')
         }
 
-        // Choose signer (session key or main wallet)
-        let signature: string
+        let signature: string 
 
-        if (useSession && sessionWallet?.sessionToken && sessionWallet.signAndSendTransaction) {
-          console.log('🔑 [ER Transaction] Using GUM session key for gasless signing')
-          
-          // Session transactions MUST go to ER
-          if (!erConnection) {
-            throw new Error('ER connection required for session transactions')
+        // Temp Keypair
+        if (routedTo === 'er') {
+          console.log('⚡ [ER Transaction] Sending to ER with temp keypair')
+
+          if (!tempKeypair) {
+            throw new Error('Temp keypair not available')
           }
+
+          console.log('🔑 [ER Transaction] Temp keypair:', tempKeypair.publicKey.toBase58())
+
+          // Get latest blockhash
+          console.log('⏳ [ER Transaction] Getting latest blockhash...')
+          const { blockhash } = await connection.getLatestBlockhash()
+          console.log('✅ [ER Transaction] Got blockhash:', blockhash)
+
+          // Set transaction properties
+          console.log('📝 [ER Transaction] Setting transaction properties...')
+          transaction.recentBlockhash = blockhash
+          transaction.feePayer = tempKeypair.publicKey
+          console.log('✅ [ER Transaction] Transaction properties set')
+
+          // Partially sign with temp keypair (as fee payer)
+          console.log('✍️ [ER Transaction] Signing transaction...')
+          transaction.partialSign(tempKeypair)
+          console.log('✅ [ER Transaction] Transaction signed')
+
+          // Send raw transaction to ER
+          console.log('📡 [ER Transaction] Sending raw transaction...')
+          signature = await connection.sendRawTransaction(
+            transaction.serialize(),
+            { skipPreflight: true }
+          )
           
-          // Use GUM session wallet for gasless transactions - ALWAYS use ER connection
-          const signatures = await sessionWallet.signAndSendTransaction(transaction, erConnection)
-          signature = Array.isArray(signatures) ? signatures[0] : signatures
-          routedTo = 'er' // Force ER routing for session transactions
-          
-          console.log('✅ [ER Transaction] Gasless transaction via session key to ER')
+          console.log('✅ [ER Transaction] Transaction sent:', signature)
+
+          console.log('✅ [ER Transaction] Sent to ER (gasless)')
+
         } else {
-          console.log('👤 [ER Transaction] Using main wallet for signing')
+          // For base layer: Simulate and use wallet
+          console.log('🧪 [ER Transaction] Simulating transaction on base layer...')
           
-          // Simulate transaction first to catch errors
-          console.log('🧪 [ER Transaction] Simulating transaction...')
           try {
             const simulation = await connection.simulateTransaction(transaction)
             console.log('🧪 [ER Transaction] Simulation result:', simulation)
@@ -110,8 +127,8 @@ export function useERTransaction() {
             throw simError
           }
           
-          // Use Privy's signAndSendTransaction (as per Privy docs)
-          // This handles both signing and sending in one call
+          console.log('👤 [ER Transaction] Using main wallet for signing')
+          
           const result = await wallet.signAndSendTransaction({
             chain: 'solana:devnet' as const,
             transaction: new Uint8Array(
@@ -122,26 +139,20 @@ export function useERTransaction() {
             )
           })
           
-          // Convert signature to base58 format (Privy returns base64 or Uint8Array)
+          // Convert signature to base58 format
           const resultSignature: string | Uint8Array = result.signature as string | Uint8Array
           if (typeof resultSignature === 'string') {
-            // If it's a string, check if it's base64 or base58
             if (resultSignature.includes('+') || resultSignature.includes('/') || resultSignature.includes('=')) {
-              // It's base64, convert to base58
               const bs58 = await import('bs58')
               const signatureBytes = Buffer.from(resultSignature, 'base64')
               signature = bs58.default.encode(signatureBytes)
             } else {
-              // Already base58
               signature = resultSignature
             }
           } else {
-            // It's Uint8Array, convert to base58
             const bs58 = await import('bs58')
             signature = bs58.default.encode(resultSignature)
           }
-          
-          console.log('✅ [ER Transaction] Transaction signed and sent via Privy')
         }
 
         console.log('📡 [ER Transaction] Transaction sent:', signature)
@@ -149,18 +160,18 @@ export function useERTransaction() {
 
         // Wait for confirmation
         const confirmation = await connection.confirmTransaction(signature, commitment)
-        
-        if (confirmation.value.err) {
-          throw new Error(`Transaction failed: ${confirmation.value.err}`)
-        }
+          
+          if (confirmation.value.err) {
+            throw new Error(`Transaction failed: ${confirmation.value.err}`)
+          }
 
-        console.log('✅ [ER Transaction] Transaction confirmed!')
+          console.log('✅ [ER Transaction] Transaction confirmed!')
 
-        return {
-          success: true,
-          signature,
-          routedTo,
-        }
+          return {
+            success: true,
+            signature,
+            routedTo,
+          }
 
       } catch (error: unknown) {
         const err = error as Error & { message?: string; logs?: string[]; code?: number }
@@ -176,8 +187,6 @@ export function useERTransaction() {
         
         if (err.message?.includes('ER connection required')) {
           errorMessage = 'Ephemeral Rollup not connected. Please refresh the page.'
-        } else if (err.message?.includes('session')) {
-          errorMessage = 'Session key error. Please create a new session.'
         } else if (err.message?.includes('insufficient')) {
           errorMessage = 'Insufficient SOL balance for transaction fees.'
         }
@@ -208,7 +217,6 @@ export function useERGameTransaction() {
     return await sendTransaction({
       transaction,
       instruction: 'submit_guess',
-      useSession: true, // Use session key for gasless experience
       commitment: 'confirmed',
     })
   }
@@ -218,17 +226,31 @@ export function useERGameTransaction() {
     return await sendTransaction({
       transaction,
       instruction: 'complete_voble_game',
-      useSession: true,
       commitment: 'confirmed',
     })
   }
 
-  // Buy ticket (must use main wallet for SOL payment, but route to ER if profile delegated)
+  const initializeSession = async (transaction: Transaction) => {
+    return await sendTransaction({
+      transaction,
+      instruction: 'initialize_session',
+      commitment: 'confirmed',
+    })
+  }
+
+  // Buy ticket (must use main wallet for SOL payment)
   const buyTicket = async (transaction: Transaction) => {
     return await sendTransaction({
       transaction,
       instruction: 'buy_ticket_and_start_game',
-      useSession: false, // Must use main wallet to pay ticket price
+      commitment: 'confirmed',
+    })
+  }
+
+  const undelegateSession = async (transaction: Transaction) => {
+    return await sendTransaction({
+      transaction,
+      instruction: 'undelegate_session',
       commitment: 'confirmed',
     })
   }
@@ -236,7 +258,9 @@ export function useERGameTransaction() {
   return {
     submitGuess,
     completeGame,
+    initializeSession,
     buyTicket,
+    undelegateSession,
     isTransacting,
     error,
     reset,
@@ -252,7 +276,6 @@ export function useERProfileTransaction() {
     return await sendTransaction({
       transaction,
       instruction: 'initialize_user_profile',
-      useSession: false,
       commitment: 'confirmed',
     })
   }
@@ -262,7 +285,6 @@ export function useERProfileTransaction() {
     return await sendTransaction({
       transaction,
       instruction: 'update_user_profile',
-      useSession: true,
       commitment: 'confirmed',
     })
   }

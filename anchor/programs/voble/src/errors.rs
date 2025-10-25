@@ -50,4 +50,12 @@ pub enum VobleError {
     InvalidTimeMs,
     #[msg("Target word not set - VRF callback pending")]
     WordNotSet,
+    #[msg("Invalid username format or length")]
+    InvalidUsername,
+    #[msg("Invalid guess length (must be 6 characters)")]
+    InvalidGuessLength,
+    #[msg("Invalid guess format (must contain only letters)")]
+    InvalidGuess,
+    #[msg("Player has already played this period")]
+    AlreadyPlayedThisPeriod,
 }

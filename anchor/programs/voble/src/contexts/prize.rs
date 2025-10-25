@@ -1,4 +1,5 @@
 use anchor_lang::prelude::*;
+use crate::constants::*;
 use crate::state::*;
 
 /// Finalize daily period
@@ -6,39 +7,39 @@ use crate::state::*;
 #[instruction(period_id: String)]
 pub struct FinalizeDaily<'info> {
     #[account(
-        seeds = [b"global_config_v2"],
+        seeds = [SEED_GLOBAL_CONFIG],
         bump,
         has_one = authority
     )]
     pub global_config: Account<'info, GlobalConfig>,
-    
+
     #[account(
         init,
         payer = authority,
         space = 8 + PeriodState::INIT_SPACE,
-        seeds = [b"daily_period", period_id.as_bytes()],
+        seeds = [SEED_DAILY_PERIOD, period_id.as_bytes()],
         bump
     )]
     pub period_state: Account<'info, PeriodState>,
-    
+
     #[account(
-        seeds = [b"daily_prize_vault"],
+        seeds = [SEED_DAILY_PRIZE_VAULT],
         bump
     )]
     /// CHECK: This is a PDA vault account
     pub daily_prize_vault: AccountInfo<'info>,
-    
+
     /// Leaderboard to get top winners
     #[account(
         mut,
-        seeds = [b"leaderboard", period_id.as_bytes(), b"daily"],
+        seeds = [SEED_LEADERBOARD, period_id.as_bytes(), b"daily"],
         bump
     )]
     pub leaderboard: Account<'info, PeriodLeaderboard>,
-    
+
     #[account(mut)]
     pub authority: Signer<'info>,
-    
+
     pub system_program: Program<'info, System>,
 }
 
@@ -47,39 +48,39 @@ pub struct FinalizeDaily<'info> {
 #[instruction(period_id: String)]
 pub struct FinalizeWeekly<'info> {
     #[account(
-        seeds = [b"global_config_v2"],
+        seeds = [SEED_GLOBAL_CONFIG],
         bump,
         has_one = authority
     )]
     pub global_config: Account<'info, GlobalConfig>,
-    
+
     #[account(
         init,
         payer = authority,
         space = 8 + PeriodState::INIT_SPACE,
-        seeds = [b"weekly_period", period_id.as_bytes()],
+        seeds = [SEED_WEEKLY_PERIOD, period_id.as_bytes()],
         bump
     )]
     pub period_state: Account<'info, PeriodState>,
-    
+
     #[account(
-        seeds = [b"weekly_prize_vault"],
+        seeds = [SEED_WEEKLY_PRIZE_VAULT],
         bump
     )]
     /// CHECK: This is a PDA vault account
     pub weekly_prize_vault: AccountInfo<'info>,
-    
+
     /// Leaderboard to get top winners
     #[account(
         mut,
-        seeds = [b"leaderboard", period_id.as_bytes(), b"weekly"],
+        seeds = [SEED_LEADERBOARD, period_id.as_bytes(), b"weekly"],
         bump
     )]
     pub leaderboard: Account<'info, PeriodLeaderboard>,
-    
+
     #[account(mut)]
     pub authority: Signer<'info>,
-    
+
     pub system_program: Program<'info, System>,
 }
 
@@ -88,39 +89,39 @@ pub struct FinalizeWeekly<'info> {
 #[instruction(period_id: String)]
 pub struct FinalizeMonthly<'info> {
     #[account(
-        seeds = [b"global_config_v2"],
+        seeds = [SEED_GLOBAL_CONFIG],
         bump,
         has_one = authority
     )]
     pub global_config: Account<'info, GlobalConfig>,
-    
+
     #[account(
         init,
         payer = authority,
         space = 8 + PeriodState::INIT_SPACE,
-        seeds = [b"monthly_period", period_id.as_bytes()],
+        seeds = [SEED_MONTHLY_PERIOD, period_id.as_bytes()],
         bump
     )]
     pub period_state: Account<'info, PeriodState>,
-    
+
     #[account(
-        seeds = [b"monthly_prize_vault"],
+        seeds = [SEED_MONTHLY_PRIZE_VAULT],
         bump
     )]
     /// CHECK: This is a PDA vault account
     pub monthly_prize_vault: AccountInfo<'info>,
-    
+
     /// Leaderboard to get top winners
     #[account(
         mut,
-        seeds = [b"leaderboard", period_id.as_bytes(), b"monthly"],
+        seeds = [SEED_LEADERBOARD, period_id.as_bytes(), b"monthly"],
         bump
     )]
     pub leaderboard: Account<'info, PeriodLeaderboard>,
-    
+
     #[account(mut)]
     pub authority: Signer<'info>,
-    
+
     pub system_program: Program<'info, System>,
 }
 
@@ -129,22 +130,22 @@ pub struct FinalizeMonthly<'info> {
 pub struct ClaimDaily<'info> {
     #[account(
         mut,
-        seeds = [b"winner_entitlement", winner.key().as_ref(), b"daily", winner_entitlement.period_id.as_ref()],
+        seeds = [SEED_WINNER_ENTITLEMENT, winner.key().as_ref(), b"daily", winner_entitlement.period_id.as_ref()],
         bump
     )]
     pub winner_entitlement: Account<'info, WinnerEntitlement>,
-    
+
     #[account(
         mut,
-        seeds = [b"daily_prize_vault"],
+        seeds = [SEED_DAILY_PRIZE_VAULT],
         bump
     )]
     /// CHECK: This is a PDA vault account
     pub daily_prize_vault: AccountInfo<'info>,
-    
+
     #[account(mut)]
     pub winner: Signer<'info>,
-    
+
     pub system_program: Program<'info, System>,
 }
 
@@ -153,22 +154,22 @@ pub struct ClaimDaily<'info> {
 pub struct ClaimWeekly<'info> {
     #[account(
         mut,
-        seeds = [b"winner_entitlement", winner.key().as_ref(), b"weekly", winner_entitlement.period_id.as_ref()],
+        seeds = [SEED_WINNER_ENTITLEMENT, winner.key().as_ref(), b"weekly", winner_entitlement.period_id.as_ref()],
         bump
     )]
     pub winner_entitlement: Account<'info, WinnerEntitlement>,
-    
+
     #[account(
         mut,
-        seeds = [b"weekly_prize_vault"],
+        seeds = [SEED_WEEKLY_PRIZE_VAULT],
         bump
     )]
     /// CHECK: This is a PDA vault account
     pub weekly_prize_vault: AccountInfo<'info>,
-    
+
     #[account(mut)]
     pub winner: Signer<'info>,
-    
+
     pub system_program: Program<'info, System>,
 }
 
@@ -177,22 +178,22 @@ pub struct ClaimWeekly<'info> {
 pub struct ClaimMonthly<'info> {
     #[account(
         mut,
-        seeds = [b"winner_entitlement", winner.key().as_ref(), b"monthly", winner_entitlement.period_id.as_ref()],
+        seeds = [SEED_WINNER_ENTITLEMENT, winner.key().as_ref(), b"monthly", winner_entitlement.period_id.as_ref()],
         bump
     )]
     pub winner_entitlement: Account<'info, WinnerEntitlement>,
-    
+
     #[account(
         mut,
-        seeds = [b"monthly_prize_vault"],
+        seeds = [SEED_MONTHLY_PRIZE_VAULT],
         bump
     )]
     /// CHECK: This is a PDA vault account
     pub monthly_prize_vault: AccountInfo<'info>,
-    
+
     #[account(mut)]
     pub winner: Signer<'info>,
-    
+
     pub system_program: Program<'info, System>,
 }
 
@@ -201,34 +202,34 @@ pub struct ClaimMonthly<'info> {
 #[instruction(period_id: String, rank: u8)]
 pub struct CreateDailyWinnerEntitlement<'info> {
     #[account(
-        seeds = [b"global_config_v2"],
+        seeds = [SEED_GLOBAL_CONFIG],
         bump,
         has_one = authority
     )]
     pub global_config: Account<'info, GlobalConfig>,
-    
+
     #[account(
-        seeds = [b"daily_period", period_id.as_bytes()],
+        seeds = [SEED_DAILY_PERIOD, period_id.as_bytes()],
         bump,
         constraint = period_state.finalized @ crate::errors::VobleError::InvalidPeriodState
     )]
     pub period_state: Account<'info, PeriodState>,
-    
+
     #[account(
         init,
         payer = authority,
         space = 8 + WinnerEntitlement::INIT_SPACE,
-        seeds = [b"winner_entitlement", winner.key().as_ref(), b"daily", period_id.as_bytes()],
+        seeds = [SEED_WINNER_ENTITLEMENT, winner.key().as_ref(), b"daily", period_id.as_bytes()],
         bump
     )]
     pub winner_entitlement: Account<'info, WinnerEntitlement>,
-    
+
     /// CHECK: Winner's public key
     pub winner: AccountInfo<'info>,
-    
+
     #[account(mut)]
     pub authority: Signer<'info>,
-    
+
     pub system_program: Program<'info, System>,
 }
 
@@ -237,34 +238,34 @@ pub struct CreateDailyWinnerEntitlement<'info> {
 #[instruction(period_id: String, rank: u8)]
 pub struct CreateWeeklyWinnerEntitlement<'info> {
     #[account(
-        seeds = [b"global_config_v2"],
+        seeds = [SEED_GLOBAL_CONFIG],
         bump,
         has_one = authority
     )]
     pub global_config: Account<'info, GlobalConfig>,
-    
+
     #[account(
-        seeds = [b"weekly_period", period_id.as_bytes()],
+        seeds = [SEED_WEEKLY_PERIOD, period_id.as_bytes()],
         bump,
         constraint = period_state.finalized @ crate::errors::VobleError::InvalidPeriodState
     )]
     pub period_state: Account<'info, PeriodState>,
-    
+
     #[account(
         init,
         payer = authority,
         space = 8 + WinnerEntitlement::INIT_SPACE,
-        seeds = [b"winner_entitlement", winner.key().as_ref(), b"weekly", period_id.as_bytes()],
+        seeds = [SEED_WINNER_ENTITLEMENT, winner.key().as_ref(), b"weekly", period_id.as_bytes()],
         bump
     )]
     pub winner_entitlement: Account<'info, WinnerEntitlement>,
-    
+
     /// CHECK: Winner's public key
     pub winner: AccountInfo<'info>,
-    
+
     #[account(mut)]
     pub authority: Signer<'info>,
-    
+
     pub system_program: Program<'info, System>,
 }
 
@@ -273,77 +274,33 @@ pub struct CreateWeeklyWinnerEntitlement<'info> {
 #[instruction(period_id: String, rank: u8)]
 pub struct CreateMonthlyWinnerEntitlement<'info> {
     #[account(
-        seeds = [b"global_config_v2"],
+        seeds = [SEED_GLOBAL_CONFIG],
         bump,
         has_one = authority
     )]
     pub global_config: Account<'info, GlobalConfig>,
-    
+
     #[account(
-        seeds = [b"monthly_period", period_id.as_bytes()],
+        seeds = [SEED_MONTHLY_PERIOD, period_id.as_bytes()],
         bump,
         constraint = period_state.finalized @ crate::errors::VobleError::InvalidPeriodState
     )]
     pub period_state: Account<'info, PeriodState>,
-    
+
     #[account(
         init,
         payer = authority,
         space = 8 + WinnerEntitlement::INIT_SPACE,
-        seeds = [b"winner_entitlement", winner.key().as_ref(), b"monthly", period_id.as_bytes()],
+        seeds = [SEED_WINNER_ENTITLEMENT, winner.key().as_ref(), b"monthly", period_id.as_bytes()],
         bump
     )]
     pub winner_entitlement: Account<'info, WinnerEntitlement>,
-    
+
     /// CHECK: Winner's public key
     pub winner: AccountInfo<'info>,
-    
-    #[account(mut)]
-    pub authority: Signer<'info>,
-    
-    pub system_program: Program<'info, System>,
-}
 
-/// Enhanced finalize daily with automatic winner creation
-#[derive(Accounts)]
-#[instruction(period_id: String, winners: Vec<Pubkey>, scores: Vec<crate::instructions::prize::LeaderboardScore>)]
-pub struct FinalizeDailyWithWinners<'info> {
-    #[account(
-        seeds = [b"global_config_v2"],
-        bump
-    )]
-    pub global_config: Account<'info, GlobalConfig>,
-    
     #[account(mut)]
     pub authority: Signer<'info>,
-    
-    #[account(
-        init,
-        payer = authority,
-        space = 8 + PeriodState::INIT_SPACE,
-        seeds = [b"daily_period", period_id.as_bytes()],
-        bump
-    )]
-    pub period_state: Account<'info, PeriodState>,
-    
-    #[account(
-        seeds = [b"daily_prize_vault"],
-        bump
-    )]
-    /// CHECK: Daily prize vault PDA
-    pub daily_prize_vault: AccountInfo<'info>,
-    
-    /// CHECK: First place winner entitlement PDA
-    #[account(mut)]
-    pub first_place_entitlement: AccountInfo<'info>,
-    
-    /// CHECK: Second place winner entitlement PDA
-    #[account(mut)]
-    pub second_place_entitlement: AccountInfo<'info>,
-    
-    /// CHECK: Third place winner entitlement PDA
-    #[account(mut)]
-    pub third_place_entitlement: AccountInfo<'info>,
-    
+
     pub system_program: Program<'info, System>,
 }
