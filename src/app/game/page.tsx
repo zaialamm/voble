@@ -21,7 +21,8 @@ import {
   useSubmitGuess,
   useCompleteGame,
   useFetchSession,
-  useUserProfile
+  useUserProfile,
+  SessionData
 } from '@/hooks/web3-js'
 import { useInitializeSession } from '@/hooks/web3-js/use-initialize-session'
 import { PrizeVaultsDisplay } from '@/components/prize-vaults-display'
@@ -140,7 +141,7 @@ export default function GamePage() {
   const [startTime, setStartTime] = useState<number>(Date.now())
   const [isDelegated, setIsDelegated] = useState(false) 
 
-  // Function to update grid from blockchain session data
+  /*
   const updateGridFromSession = () => {
     if (!session) return
     
@@ -150,6 +151,19 @@ export default function GamePage() {
         guessesArray: session.guesses,
       })
     }
+  */    
+
+  // Function to update grid from blockchain session data
+  const updateGridFromSession = (sessionData?: SessionData | null) => {
+  const dataToUse = sessionData || session
+  if (!dataToUse) return
+  
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🔄 [updateGridFromSession] Updating grid from session:', {
+      guessesUsed: dataToUse.guessesUsed,
+      guessesArray: dataToUse.guesses,
+    })
+  }
     
     const newGrid = Array(7).fill(null).map(() => 
       Array(6).fill(null).map(() => ({ letter: '', state: 'empty' as TileState }))
@@ -157,7 +171,7 @@ export default function GamePage() {
     const newKeyboardState: Record<string, TileState> = {}
     
     // Update grid with guesses from blockchain
-    session.guesses.forEach((guessData: { guess: string; result: string[] } | null, rowIndex: number) => {
+    dataToUse.guesses.forEach((guessData: { guess: string; result: string[] } | null, rowIndex: number) => {
       // Check if guess data exists
       if (!guessData || !guessData.guess) return
       
@@ -192,7 +206,7 @@ export default function GamePage() {
     
     if (process.env.NODE_ENV === 'development') {
       console.log('✅ [updateGridFromSession] Grid updated:', {
-        currentRow: session.guessesUsed,
+        currentRow: dataToUse.guessesUsed,
         keyboardState: newKeyboardState,
       })
     }
@@ -200,7 +214,7 @@ export default function GamePage() {
     setGameState(prev => ({
       ...prev,
       grid: newGrid,
-      currentRow: session.guessesUsed,
+      currentRow: dataToUse.guessesUsed,
       currentCol: 0
     }))
     setKeyboardState(newKeyboardState)
@@ -355,7 +369,7 @@ export default function GamePage() {
           })
         }
         
-        updateGridFromSession()
+        updateGridFromSession(freshSession)
         
         // Check if game ended
         if (allCorrect || freshSession.isSolved || freshSession.guessesUsed >= 7) {
