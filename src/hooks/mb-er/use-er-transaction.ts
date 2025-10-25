@@ -3,7 +3,7 @@ import { useConnectedStandardWallets } from '@privy-io/react-auth/solana'
 import { useERConnection } from '@/components/mb-er/er-connection-provider'
 import { shouldUseER } from './config'
 
-import { Transaction, Connection, Keypair } from '@solana/web3.js'
+import { Transaction, Connection } from '@solana/web3.js'
 import { useTempKeypair } from '@/hooks/use-temp-keypair'
 
 interface ERTransactionParams {
@@ -21,7 +21,7 @@ interface ERTransactionResult {
 
 export function useERTransaction() {
   const { wallets } = useConnectedStandardWallets()
-  const { erConnection, baseConnection, isERConnected } = useERConnection()
+  const { baseConnection, isERConnected } = useERConnection()
   const wallet = wallets[0]
   const tempKeypair = useTempKeypair()
 

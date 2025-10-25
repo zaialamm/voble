@@ -247,6 +247,11 @@ export async function buildVersionedTransaction(options: TransactionBuildOptions
     addComputeBudget = true,
   } = options
 
+  // Validate feePayer
+  if (!feePayer) {
+    throw new Error('feePayer is required for versioned transactions')
+  }
+
   // Prepare instructions
   const allInstructions: TransactionInstruction[] = []
 

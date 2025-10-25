@@ -46,9 +46,7 @@ export type {
 
 
 export type { 
-  SubmitGuessResult,
-  GuessResult,
-  LetterResult
+  SubmitGuessResult
 } from './use-submit-guess'
 
 export type { 
@@ -58,7 +56,8 @@ export type {
 export type {
   SessionData,
   GuessData,
-  FetchSessionResult
+  FetchSessionResult,
+  LetterResult
 } from './use-fetch-session'
 
 export type {

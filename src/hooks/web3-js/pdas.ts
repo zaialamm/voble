@@ -1,8 +1,5 @@
 import { PublicKey } from '@solana/web3.js'
-import { VOBLE_PROGRAM_ID } from './program'
-
-// MagicBlock Delegation program ID
-export const DELEGATION_PROGRAM_ID = new PublicKey('DELeGGvXpWV2fqJUhqcF5ZSYMS4JTLjteaAMARRSaeSh')
+import { VOBLE_PROGRAM_ID, DELEGATION_PROGRAM_ID } from './program'
 
 /**
  * PDA seed constants (matching the smart contract)

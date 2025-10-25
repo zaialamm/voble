@@ -85,7 +85,7 @@ export function useFetchSession(periodId: string): FetchSessionResult {
           if (process.env.NODE_ENV === 'development') {
             console.log('✅ [useFetchSession] Session fetched from ER')
           }
-        } catch (erError: any) {
+        } catch {
           // Fallback to base layer for completed/undelegated sessions
           if (process.env.NODE_ENV === 'development') {
             console.log('ℹ️ [useFetchSession] Not on ER, trying base layer...')

@@ -97,7 +97,7 @@ export function useDelegateSession() {
         success: true,
         signature,
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('❌ [useDelegateSession] Error:', err)
       
       const errorMessage = handleTransactionError(err)

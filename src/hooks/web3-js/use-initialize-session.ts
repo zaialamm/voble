@@ -77,7 +77,7 @@ export function useInitializeSession() {
         success: true,
         signature: result.signature,
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('❌ [useInitializeSession] Error:', err)
       
       const errorMessage = handleTransactionError(err)

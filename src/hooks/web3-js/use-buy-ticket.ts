@@ -4,8 +4,7 @@ import { PublicKey } from '@solana/web3.js'
 
 import { 
   vocabeeProgram, 
-  SYSTEM_PROGRAM_ID,
-  VOBLE_PROGRAM_ID
+  SYSTEM_PROGRAM_ID
 } from './program'
 import { 
   getUserProfilePDA, 

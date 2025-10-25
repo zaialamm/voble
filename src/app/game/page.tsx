@@ -24,11 +24,8 @@ import {
   useUserProfile
 } from '@/hooks/web3-js'
 import { useInitializeSession } from '@/hooks/web3-js/use-initialize-session'
-import { useCheckSession } from '@/hooks/web3-js/use-check-session'
 import { PrizeVaultsDisplay } from '@/components/prize-vaults-display'
 import Link from 'next/link'
-import { Connection, PublicKey } from '@solana/web3.js'
-import { getSessionPDA } from '@/hooks/web3-js/pdas'
 import { useUndelegateSession } from '@/hooks/web3-js/use-undelegate-session'
 
 // Game state types
@@ -92,15 +89,17 @@ export default function GamePage() {
   const periodId = new Date().toISOString().split('T')[0]
   
   const { buyTicket, isLoading: isBuyingTicket, error: buyTicketError } = useBuyTicket()
-  const { delegateSession, isLoading: isDelegating } = useDelegateSession()
+  const { isLoading: isDelegating } = useDelegateSession()
   const { submitGuess: submitGuessToBlockchain } = useSubmitGuess()
   const { completeGame } = useCompleteGame()
-  const { undelegateSession, isLoading: isUndelegating } = useUndelegateSession()  
+  const { undelegateSession } = useUndelegateSession()  
   const { session, refetch: refetchSession } = useFetchSession(periodId)
   const { initializeSession, isLoading: isInitializing } = useInitializeSession()
-  const { data: sessionExists, refetch: refetchSessionExists } = useCheckSession(activeWallet?.address)
   // Use activeWallet address to support both external and embedded wallets
-  const { profile, isLoading: isLoadingProfile, refetch: refetchProfile } = useUserProfile(activeWallet?.address)
+  const { profile, isLoading: isLoadingProfile } = useUserProfile(activeWallet?.address)
+  
+  // Check if session account exists (session will be null if account doesn't exist)
+  const sessionAccountExists = session !== null
   
   // Debug: Log session status (only when session data changes)
   useEffect(() => {
@@ -336,7 +335,10 @@ export default function GamePage() {
       // Refetch session to get updated guesses and results
       await refetchSession()
 
-      // Update UI based on blockchain data (use session from hook)
+      // Wait a tiny bit for React Query to update
+      await new Promise(resolve => setTimeout(resolve, 100))
+
+      // Update UI based on blockchain data (use UPDATED session)
       if (session) {
         // Check the last guess result directly from session data
         const lastGuessIndex = session.guessesUsed - 1
@@ -356,6 +358,9 @@ export default function GamePage() {
         
         // Check if game ended
         if (allCorrect || session.isSolved || session.guessesUsed >= 7) {
+          if (process.env.NODE_ENV === 'development') {
+            console.log('🏁 Game ended! Completing game...')
+          }
           await handleCompleteGame()
         } else {
           setGameState(prev => ({ ...prev, gameStatus: 'playing' }))
@@ -384,7 +389,7 @@ export default function GamePage() {
       }
     
     // Refetch to update UI
-    await refetchSessionExists()
+    await refetchSession()
     
     alert('Session created! You can now buy a ticket to play.')
     } else {
@@ -620,7 +625,7 @@ export default function GamePage() {
       <PrizeVaultsDisplay />
 
       {/* Session Creation (First Time Only) */}
-      {!sessionExists && (
+      {!sessionAccountExists && (
         <Card className="border-yellow-200 dark:border-yellow-700 bg-yellow-50 dark:bg-yellow-900/20">
           <CardHeader>
             <CardTitle className="text-yellow-800 dark:text-yellow-200">
@@ -646,7 +651,7 @@ export default function GamePage() {
       )}
 
       {/* Buy Ticket Button (Only show if session exists) */}
-      {sessionExists && !session && (
+      {sessionAccountExists && !session && (
         <Card>
           <CardHeader>
             <CardTitle>Buy Ticket to Play</CardTitle>
