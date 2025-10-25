@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, QueryObserverResult } from '@tanstack/react-query'
 import { useConnectedStandardWallets } from '@privy-io/react-auth/solana'
 import { PublicKey, Connection } from '@solana/web3.js'
 import { Program, AnchorProvider } from '@coral-xyz/anchor' 
@@ -34,7 +34,7 @@ export interface FetchSessionResult {
   session: SessionData | null
   isLoading: boolean
   error: string | null
-  refetch: () => void
+  refetch: () => Promise<QueryObserverResult<SessionData | null, Error>>
 }
 
 export function useFetchSession(periodId: string): FetchSessionResult {

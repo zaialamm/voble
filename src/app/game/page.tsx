@@ -333,31 +333,32 @@ export default function GamePage() {
         }
         
       // Refetch session to get updated guesses and results
-      await refetchSession()
+      const refetchResult = await refetchSession()
+      const freshSession = refetchResult.data
 
       // Wait a tiny bit for React Query to update
       await new Promise(resolve => setTimeout(resolve, 100))
 
       // Update UI based on blockchain data (use UPDATED session)
-      if (session) {
+      if (freshSession) {
         // Check the last guess result directly from session data
-        const lastGuessIndex = session.guessesUsed - 1
-        const lastGuess = session.guesses[lastGuessIndex]
+        const lastGuessIndex = freshSession.guessesUsed - 1
+        const lastGuess = freshSession.guesses[lastGuessIndex]
         const allCorrect = lastGuess?.result?.every((r: string) => r === 'Correct')
         
         if (process.env.NODE_ENV === 'development') {
           console.log('🔍 Checking game end:', {
             lastGuessIndex,
             allCorrect,
-            isSolved: session.isSolved,
-            guessesUsed: session.guessesUsed
+            isSolved: freshSession.isSolved,
+            guessesUsed: freshSession.guessesUsed
           })
         }
         
         updateGridFromSession()
         
         // Check if game ended
-        if (allCorrect || session.isSolved || session.guessesUsed >= 7) {
+        if (allCorrect || freshSession.isSolved || freshSession.guessesUsed >= 7) {
           if (process.env.NODE_ENV === 'development') {
             console.log('🏁 Game ended! Completing game...')
           }
