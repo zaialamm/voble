@@ -123,17 +123,41 @@ pub fn submit_guess(ctx: Context<SubmitGuess>, _period_id: String, guess: String
         result,
     });
 
+    // ========== AUTO-COMPLETE GAME ==========
+    let game_ended = is_correct || session.guesses_used >= MAX_GUESSES;
+
+    if game_ended {
+        msg!("🏁 Game ended - auto-completing on ER");
+        
+        // Calculate final score
+        let now = Clock::get()?.unix_timestamp;
+        let time_elapsed = (now - session.vrf_request_timestamp) as u64 * 1000; // Convert to milliseconds
+        session.time_ms = time_elapsed;
+        
+        // Use the scoring module to calculate final score
+        let final_score = super::scoring::calculate_final_score(
+            session.is_solved,
+            session.guesses_used,
+            session.time_ms
+        );
+        session.score = final_score;
+        session.completed = true;
+        
+        msg!("   Final score: {}", final_score);
+        msg!("   Time: {}ms", time_elapsed);
+        msg!("   ✅ Game auto-completed on ER");
+    }
+
     // ========== GAME STATUS LOGGING ==========
     if is_correct {
         msg!("🏆 Congratulations! You guessed the word!");
-        msg!("💡 Call complete_voble_game to finalize and claim rent back");
+        msg!("💡 Game auto-completed - leaderboard will update on commit");
     } else if session.guesses_used >= MAX_GUESSES {
         msg!("😔 Out of guesses! Better luck next time.");
-        msg!("💡 Call complete_voble_game to see the answer and claim rent back");
+        msg!("💡 Game auto-completed - leaderboard will update on commit");
     } else {
         let remaining = MAX_GUESSES - session.guesses_used;
         msg!("🔄 {} guess(es) remaining", remaining);
-        msg!("   Keep trying!");
     }
 
     // Color coding legend for client

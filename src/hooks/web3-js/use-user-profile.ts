@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useConnectedStandardWallets } from '@privy-io/react-auth/solana'
 import { PublicKey } from '@solana/web3.js'
 
-import { vocabeeProgram } from './program'
+import { vobleProgram } from './program'
 import { getUserProfilePDA } from './pdas'
 
 export interface Achievement {
@@ -71,7 +71,7 @@ export function useUserProfile(walletAddress?: string): UserProfileResult {
       try {
         // Fetch the user profile account using Anchor
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const profileAccount = await (vocabeeProgram.account as any).userProfile.fetch(userProfilePDA)
+        const profileAccount = await (vobleProgram.account as any).userProfile.fetch(userProfilePDA)
 
         if (process.env.NODE_ENV === 'development') {
           console.log('✅ [useUserProfile] Profile fetched:', {
@@ -130,8 +130,8 @@ export function useUserProfile(walletAddress?: string): UserProfileResult {
       }
     },
     enabled: !!targetAddress,
-    staleTime: 30000, // Consider data stale after 30 seconds
-    refetchInterval: false, // Don't auto-refetch (profile data changes less frequently)
+    staleTime: 5 * 60 * 1000, 
+    refetchOnWindowFocus: false, 
     retry: (failureCount, error) => {
       // Don't retry if account doesn't exist
       if (error.message?.includes('Account does not exist')) {
@@ -180,7 +180,7 @@ export function useProfileExists(walletAddress: string): {
 
       try {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await (vocabeeProgram.account as any).userProfile.fetch(userProfilePDA)
+        await (vobleProgram.account as any).userProfile.fetch(userProfilePDA)
         return true
       } catch (err: unknown) {
         const error = err as Error & { message?: string }

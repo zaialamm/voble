@@ -9,14 +9,13 @@
 export * from './utils'
 export * from './program'
 export * from './pdas'
-export * from './transaction-builder'
 
 // Transaction hooks (write operations)
 export { useInitializeProfile } from './use-initialize-profile'
 export { useBuyTicket } from './use-buy-ticket'
 export { useSubmitGuess } from './use-submit-guess'
 export { useCompleteGame } from './use-complete-game'
-export { useDelegateSession } from './use-delegate-session'
+export { useRecordKeystroke } from './use-record-keystroke'
 
 // Data fetching hooks (read operations)
 export { useFetchSession } from './use-fetch-session'
@@ -39,10 +38,6 @@ export type {
 export type { 
   BuyTicketResult
 } from './use-buy-ticket'
-
-export type {
-  DelegateSessionResult 
-} from './use-delegate-session'
 
 
 export type { 
@@ -73,8 +68,5 @@ export type {
 } from './use-vault-balances'
 
 export type {
-  TransactionResult,
-  TransactionBuildOptions
-} from './transaction-builder'
-
-// Session types now provided by MagicBlock SDK
+  RecordKeystrokeResult
+} from './use-record-keystroke'

@@ -19,9 +19,9 @@ export const SYSTEM_PROGRAM_ID = new PublicKey('11111111111111111111111111111111
 export const DELEGATION_PROGRAM_ID = new PublicKey('DELeGGvXpWV2fqJUhqcF5ZSYMS4JTLjteaAMARRSaeSh')
 
 /**
- * Vocabee Program type (inferred from IDL)
+ * Voble Program type (inferred from IDL)
  */
-export type VocabeeProgram = Program<typeof IDL & Idl>
+export type VobleProgram = Program<typeof IDL & Idl>
 
 /**
  * Create a dummy wallet for read-only operations
@@ -48,14 +48,14 @@ export function createReadOnlyProvider(conn: Connection = connection): AnchorPro
 }
 
 /**
- * Create the Vocabee program instance for read-only operations
+ * Create the Voble program instance for read-only operations
  */
-export function createVocabeeProgram(conn: Connection = connection): VocabeeProgram {
+export function createVobleProgram(conn: Connection = connection): VobleProgram {
   const provider = createReadOnlyProvider(conn)
-  return new Program(IDL as Idl, provider) as VocabeeProgram
+  return new Program(IDL as Idl, provider) as VobleProgram
 }
 
 /**
  * Singleton program instance for read-only operations
  */
-export const vocabeeProgram = createVocabeeProgram()
+export const vobleProgram = createVobleProgram()

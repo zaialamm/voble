@@ -17,7 +17,7 @@ import { usePrivy } from "@privy-io/react-auth"
 import { useConnectedStandardWallets } from "@privy-io/react-auth/solana"
 import { 
   useBuyTicket,
-  useDelegateSession,
+  useRecordKeystroke,
   useSubmitGuess,
   useCompleteGame,
   useFetchSession,
@@ -27,7 +27,6 @@ import {
 import { useInitializeSession } from '@/hooks/web3-js/use-initialize-session'
 import { PrizeVaultsDisplay } from '@/components/prize-vaults-display'
 import Link from 'next/link'
-import { useUndelegateSession } from '@/hooks/web3-js/use-undelegate-session'
 
 // Game state types
 type TileState = 'empty' | 'filled' | 'correct' | 'present' | 'absent'
@@ -90,10 +89,9 @@ export default function GamePage() {
   const periodId = new Date().toISOString().split('T')[0]
   
   const { buyTicket, isLoading: isBuyingTicket, error: buyTicketError } = useBuyTicket()
-  const { isLoading: isDelegating } = useDelegateSession()
+  const { recordKeystroke } = useRecordKeystroke()
   const { submitGuess: submitGuessToBlockchain } = useSubmitGuess()
-  const { completeGame } = useCompleteGame()
-  const { undelegateSession } = useUndelegateSession()  
+  const { completeGame } = useCompleteGame() 
   const { session, refetch: refetchSession } = useFetchSession(periodId)
   const { initializeSession, isLoading: isInitializing } = useInitializeSession()
   // Use activeWallet address to support both external and embedded wallets
@@ -116,7 +114,7 @@ export default function GamePage() {
         isSolved: session?.isSolved,
         score: session?.score,
         shouldShowBuyTicket: !session || session.periodId !== periodId || session.completed || (session.guessesUsed >= 7),
-        shouldShowGame: session && session.periodId === periodId && !session.completed && session.guessesUsed < 7 && isDelegated,
+        shouldShowGame: session && session.periodId === periodId && !session.completed && session.guessesUsed < 7,
       })
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -131,7 +129,7 @@ export default function GamePage() {
     currentRow: 0,
     currentCol: 0,
     gameStatus: 'playing',
-    targetWord: 'SOLANA', // Mock word - will come from smart contract VRF
+    targetWord: 'SOLANA', 
     guesses: [],
     score: 0,
     timeElapsed: 0
@@ -139,19 +137,6 @@ export default function GamePage() {
 
   const [keyboardState, setKeyboardState] = useState<Record<string, TileState>>({})
   const [startTime, setStartTime] = useState<number>(Date.now())
-  const [isDelegated, setIsDelegated] = useState(false) 
-
-  /*
-  const updateGridFromSession = () => {
-    if (!session) return
-    
-    if (process.env.NODE_ENV === 'development') {
-      console.log('🔄 [updateGridFromSession] Updating grid from session:', {
-        guessesUsed: session.guessesUsed,
-        guessesArray: session.guesses,
-      })
-    }
-  */    
 
   // Function to update grid from blockchain session data
   const updateGridFromSession = (sessionData?: SessionData | null) => {
@@ -283,6 +268,7 @@ export default function GamePage() {
   // 2. Session exists on-chain for current period
   const canPlayGame = session && session.periodId === periodId && !session.completed && session.guessesUsed < 7
 
+  /*
   const handleKeyPress = (key: string) => {
     // Block input if no valid ticket
     if (!canPlayGame) {
@@ -316,6 +302,72 @@ export default function GamePage() {
       }))
     }
   }
+  */
+
+  const handleKeyPress = async (key: string) => {
+    if (!canPlayGame || gameState.gameStatus !== 'playing') return
+
+    if (key === 'BACKSPACE') {
+      if (gameState.currentCol > 0) {
+        // Update UI
+        const newGrid = [...gameState.grid]
+        newGrid[gameState.currentRow][gameState.currentCol - 1] = { 
+          letter: '', 
+          state: 'empty' 
+        }
+        setGameState(prev => ({
+          ...prev,
+          grid: newGrid,
+          currentCol: prev.currentCol - 1
+        }))
+        
+        // Record keystroke
+        recordKeystroke('Backspace').catch(err => {
+          console.warn('⚠️ Failed to record backspace:', err)
+        })
+      } else {
+        // NEW: Record invalid backspace too (player tried to delete when empty)
+        recordKeystroke('Backspace').catch(err => {
+          console.warn('⚠️ Failed to record backspace:', err)
+        })
+      }
+    } 
+    else if (key === 'ENTER') {
+      // NEW: Always record Enter (even if invalid)
+      recordKeystroke('Enter').catch(err => {
+        console.warn('⚠️ Failed to record Enter:', err)
+      })
+      
+      // Only submit if valid
+      if (gameState.currentCol === 6) {
+        submitGuess()
+      }
+    } 
+    else if (key.length === 1 && gameState.currentCol < 6) {
+      // Update UI
+      const newGrid = [...gameState.grid]
+      newGrid[gameState.currentRow][gameState.currentCol] = { 
+        letter: key, 
+        state: 'filled' 
+      }
+      setGameState(prev => ({
+        ...prev,
+        grid: newGrid,
+        currentCol: prev.currentCol + 1
+      }))
+      
+      // Record keystroke
+      recordKeystroke(key).catch(err => {
+        console.warn(`⚠️ Failed to record '${key}':`, err)
+      })
+    }
+    // NEW: Record invalid letter inputs too (when row is full)
+    else if (key.length === 1 && gameState.currentCol >= 6) {
+      recordKeystroke(key).catch(err => {
+        console.warn(`⚠️ Failed to record '${key}':`, err)
+      })
+    }
+  }
 
   const submitGuess = async () => {
     // ✅ SECURITY: Double-check before submitting to blockchain
@@ -342,16 +394,15 @@ export default function GamePage() {
       const result = await submitGuessToBlockchain(periodId, currentGuess)
       
       if (result.success) {
-        if (process.env.NODE_ENV === 'development') {
-          console.log('✅ Guess submitted successfully!', result.signature)
-        }
+
+        console.log('✅ Guess submitted successfully!', result.signature)
+
         
       // Refetch session to get updated guesses and results
-      const refetchResult = await refetchSession()
-      const freshSession = refetchResult.data
+      await refetchSession()
 
-      // Wait a tiny bit for React Query to update
-      await new Promise(resolve => setTimeout(resolve, 100))
+      const freshSession = refetchSession.data
+
 
       // Update UI based on blockchain data (use UPDATED session)
       if (freshSession) {
@@ -432,12 +483,19 @@ export default function GamePage() {
 
     // Wait for ER to sync the account
     console.log('⏳ Syncing account to ER...')
-    await new Promise(resolve => setTimeout(resolve, 3000)) 
+    await new Promise(resolve => setTimeout(resolve, 5000)) 
 
     console.log('✅ Account synced to ER!')
     
     // Refetch session to get updated data
-    await refetchSession()   
+    const { data: freshSession } = await refetchSession()
+    
+    console.log('🔄 [handleBuyTicket] Refetched session:', {
+      completed: freshSession?.completed,
+      guessesUsed: freshSession?.guessesUsed,
+      isSolved: freshSession?.isSolved,
+      periodId: freshSession?.periodId,
+    })
     
     // Reset game state for new session
     setGameState({
@@ -460,7 +518,6 @@ export default function GamePage() {
   } catch (error: unknown) {
     const err = error as Error & { message?: string }
     console.error('❌ [handleBuyTicket] Error:', err)
-    setIsDelegated(false)
     alert(`Error: ${err.message}`)
   }
 }
@@ -476,31 +533,19 @@ export default function GamePage() {
         console.log('✅ Game completed!', result.signature)
       }
 
-      // Undelegate session from ER
-      if (process.env.NODE_ENV === 'development') {
-        console.log('🔄 Undelegating session...')
-      }
-
-      await undelegateSession()  // ← ADD THIS
-      if (process.env.NODE_ENV === 'development') {
-        console.log('✅ Session undelegated!')
-      }
-      
       // Wait for session to update
       await new Promise(resolve => setTimeout(resolve, 2000))
-      await refetchSession()
-      
-      // Wait for React state to update
-      await new Promise(resolve => setTimeout(resolve, 100))
+
+      const { data: updatedSession } = await refetchSession()
       
       // Now use the updated session data
-      if (session) {
+      if (updatedSession) {
         setGameState(prev => ({
           ...prev,
-          gameStatus: session.isSolved ? 'won' : 'lost',
-          score: session.score || 0,
-          targetWord: session.targetWord || 'UNKNOWN', // ← Add target word!
-          timeElapsed: session.timeMs || 0 // ← Add time!
+          gameStatus: updatedSession.isSolved ? 'won' : 'lost',
+          score: updatedSession.score || 0,
+          targetWord: updatedSession.targetWord || 'UNKNOWN', // ← Add target word!
+          timeElapsed: updatedSession.timeMs || 0 // ← Add time!
         }))
       }
     } else {
@@ -685,7 +730,7 @@ export default function GamePage() {
 
       {/* Buy Ticket Section */}
       {/* Show when: no valid ticket OR session not on-chain */}
-      {(!session || session.periodId !== periodId || session.completed || session.guessesUsed >= 7) && (
+      {(!session || session.periodId !== periodId || (session.completed && gameState.gameStatus === 'playing') || session.guessesUsed >= 7) && (
         <Card className="mb-6 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
           <CardContent className="pt-6">
             <div className="text-center space-y-4">
@@ -703,7 +748,7 @@ export default function GamePage() {
                   </p>
                   <Button
                     onClick={handleBuyTicket}
-                    disabled={isBuyingTicket || isDelegating}
+                    disabled={isBuyingTicket}
                     size="lg"
                     className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium"
                   >
@@ -711,11 +756,6 @@ export default function GamePage() {
                       <>
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                         Buying Ticket...
-                      </>
-                    ) : isDelegating ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Delegating to ER...
                       </>
                     ) : (
                       <>

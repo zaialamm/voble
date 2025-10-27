@@ -154,7 +154,7 @@ export default function ProfilePage() {
             <User className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
             <h2 className="text-2xl font-bold mb-2">No Profile Found</h2>
             <p className="text-muted-foreground mb-6">
-              Create a profile to start playing VocaBee!
+              Create a profile to start playing Voble!
             </p>
             
             {/* Debug info */}

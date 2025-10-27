@@ -562,52 +562,22 @@
       "args": []
     },
     {
-      "name": "complete_voble_game",
+      "name": "commit_and_update_stats",
       "discriminator": [
-        9,
-        240,
-        54,
-        167,
-        213,
-        152,
-        147,
-        162
+        216,
+        59,
+        245,
+        55,
+        136,
+        173,
+        73,
+        208
       ],
       "accounts": [
         {
           "name": "payer",
           "writable": true,
           "signer": true
-        },
-        {
-          "name": "user_profile",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  117,
-                  115,
-                  101,
-                  114,
-                  95,
-                  112,
-                  114,
-                  111,
-                  102,
-                  105,
-                  108,
-                  101
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "session.player",
-                "account": "SessionAccount"
-              }
-            ]
-          }
         },
         {
           "name": "session",
@@ -628,15 +598,13 @@
               },
               {
                 "kind": "account",
-                "path": "session.player",
-                "account": "SessionAccount"
+                "path": "payer"
               }
             ]
           }
         },
         {
           "name": "leaderboard",
-          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -671,6 +639,37 @@
               }
             ]
           }
+        },
+        {
+          "name": "user_profile",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114,
+                  95,
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "payer"
+              }
+            ]
+          }
+        },
+        {
+          "name": "program_id"
         },
         {
           "name": "magic_program",
@@ -1162,10 +1161,6 @@
           "name": "payer",
           "writable": true,
           "signer": true
-        },
-        {
-          "name": "validator",
-          "optional": true
         },
         {
           "name": "buffer_pda",
@@ -2346,6 +2341,31 @@
       ]
     },
     {
+      "name": "record_keystroke",
+      "discriminator": [
+        217,
+        230,
+        116,
+        94,
+        186,
+        131,
+        145,
+        152
+      ],
+      "accounts": [
+        {
+          "name": "session",
+          "writable": true
+        }
+      ],
+      "args": [
+        {
+          "name": "key",
+          "type": "string"
+        }
+      ]
+    },
+    {
       "name": "set_config",
       "discriminator": [
         108,
@@ -2483,7 +2503,27 @@
         },
         {
           "name": "session",
-          "writable": true
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  101,
+                  115,
+                  115,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "payer"
+              }
+            ]
+          }
         },
         {
           "name": "magic_program",
@@ -2493,6 +2533,46 @@
           "name": "magic_context",
           "writable": true,
           "address": "MagicContext1111111111111111111111111111111"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "update_player_stats",
+      "discriminator": [
+        61,
+        85,
+        73,
+        244,
+        51,
+        95,
+        21,
+        33
+      ],
+      "accounts": [
+        {
+          "name": "escrow",
+          "writable": true
+        },
+        {
+          "name": "escrow_auth"
+        },
+        {
+          "name": "leaderboard",
+          "docs": [
+            "Leaderboard to update - THIRD"
+          ],
+          "writable": true
+        },
+        {
+          "name": "user_profile",
+          "docs": [
+            "User profile to update stats - FOURTH"
+          ],
+          "writable": true
+        },
+        {
+          "name": "committed_session"
         }
       ],
       "args": []
@@ -2749,6 +2829,19 @@
         8,
         159,
         123
+      ]
+    },
+    {
+      "name": "KeystrokeRecorded",
+      "discriminator": [
+        159,
+        171,
+        230,
+        35,
+        146,
+        97,
+        193,
+        15
       ]
     },
     {
@@ -3191,6 +3284,16 @@
       "code": 6027,
       "name": "AlreadyPlayedThisPeriod",
       "msg": "Player has already played this period"
+    },
+    {
+      "code": 6028,
+      "name": "TooManyKeystrokes",
+      "msg": "Too many keystrokes (max 200)"
+    },
+    {
+      "code": 6029,
+      "name": "InvalidInput",
+      "msg": "Invalid input"
     }
   ],
   "types": [
@@ -3425,6 +3528,61 @@
                 6
               ]
             }
+          }
+        ]
+      }
+    },
+    {
+      "name": "KeystrokeData",
+      "docs": [
+        "Individual keystroke data for anti-cheat and analytics"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "key",
+            "type": "string"
+          },
+          {
+            "name": "timestamp_ms",
+            "type": "u64"
+          },
+          {
+            "name": "guess_index",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "KeystrokeRecorded",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "player",
+            "type": "pubkey"
+          },
+          {
+            "name": "session_id",
+            "type": "string"
+          },
+          {
+            "name": "key",
+            "type": "string"
+          },
+          {
+            "name": "timestamp_ms",
+            "type": "u64"
+          },
+          {
+            "name": "current_input",
+            "type": "string"
+          },
+          {
+            "name": "guess_index",
+            "type": "u8"
           }
         ]
       }
@@ -3996,6 +4154,20 @@
           {
             "name": "vrf_request_timestamp",
             "type": "i64"
+          },
+          {
+            "name": "keystrokes",
+            "type": {
+              "vec": {
+                "defined": {
+                  "name": "KeystrokeData"
+                }
+              }
+            }
+          },
+          {
+            "name": "current_input",
+            "type": "string"
           }
         ]
       }

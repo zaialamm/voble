@@ -79,6 +79,10 @@ pub struct SessionAccount {
     #[max_len(20)]
     pub period_id: String, // Period ID like "D123" for 7-minute periods
     pub vrf_request_timestamp: i64, // Timestamp when VRF was requested (for freshness validation)
+    #[max_len(200)]
+    pub keystrokes: Vec<KeystrokeData>,
+    #[max_len(6)]
+    pub current_input: String,  // Current typing buffer
 }
 
 /// Guess data with result (used in fixed array)
@@ -229,4 +233,13 @@ pub struct PeriodLeaderboard {
     pub finalized: bool,
     pub created_at: i64,
     pub finalized_at: Option<i64>,
+}
+
+/// Individual keystroke data for anti-cheat and analytics
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, InitSpace)]
+pub struct KeystrokeData {
+    #[max_len(10)]
+    pub key: String,        // "A", "Backspace", "Enter", etc.
+    pub timestamp_ms: u64,  // Relative to game start
+    pub guess_index: u8,    // Which guess (0-6)
 }

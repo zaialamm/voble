@@ -3,6 +3,8 @@ use anchor_lang::prelude::*;
 use anchor_lang::system_program;
 use ephemeral_rollups_sdk::cpi::DelegateConfig;
 use ephemeral_rollups_sdk::ephem::commit_and_undelegate_accounts;
+use ephemeral_rollups_sdk::ephem::{MagicInstructionBuilder, MagicAction, CallHandler, CommitType};
+use ephemeral_rollups_sdk::{ActionArgs, ShortAccountMeta};
 
 // Import helper modules
 use super::word_selection;
@@ -206,6 +208,8 @@ pub fn buy_ticket_and_start_game(
     session.completed = false;
     session.period_id = period_id.clone();
     session.vrf_request_timestamp = now; // Track session start time
+    session.keystrokes = Vec::new();        
+    session.current_input = String::new();  
 
     msg!("✅ Session initialized");
     
@@ -250,6 +254,8 @@ pub fn initialize_session(ctx: Context<InitializeSession>) -> Result<()> {
     
     let session = &mut ctx.accounts.session;
     session.player = ctx.accounts.payer.key();
+    session.keystrokes = Vec::new();  
+    session.current_input = String::new(); 
     
     msg!("✅ Session initialized for player: {}", session.player);
     
@@ -264,8 +270,8 @@ pub fn delegate_session(ctx: Context<DelegateSession>) -> Result<()> {
         &ctx.accounts.payer,
         &[SEED_SESSION, ctx.accounts.payer.key().as_ref()],
         DelegateConfig {
-            validator: ctx.remaining_accounts.first().map(|acc| acc.key()),
-            ..Default::default() // 1 minute auto-commit
+            commit_frequency_ms: 30_000,
+            validator: Some(pubkey!("MAS1Dt9qreoRMQ14YQuhg8UTZMMzDdKhmkZMECCzk57")),
         },
     )?;
     
@@ -274,10 +280,14 @@ pub fn delegate_session(ctx: Context<DelegateSession>) -> Result<()> {
     Ok(())
 }
 
+
 /// Undelegate session from Ephemeral Rollup
+/// This instruction ONLY commits the session from ER to base layer
+/// It does NOT update leaderboard or profile (those accounts are not on ER)
 pub fn undelegate_session(ctx: Context<UndelegateSession>) -> Result<()> {
-    msg!("🔄 Undelegating session from ER");
+    msg!("🔄 Committing session from ER to base layer");
     
+    // Commit and undelegate session from ER to base layer
     commit_and_undelegate_accounts(
         &ctx.accounts.payer,
         vec![&ctx.accounts.session.to_account_info()],
@@ -285,7 +295,173 @@ pub fn undelegate_session(ctx: Context<UndelegateSession>) -> Result<()> {
         &ctx.accounts.magic_program,
     )?;
     
-    msg!("✅ Session undelegated from ER");
+    msg!("✅ Session committed successfully");
+    
+    Ok(())
+}
 
+
+/// Commit and update stats when undelegate
+pub fn commit_and_update_stats(ctx: Context<CommitAndUpdateStats>, _period_id: String) -> Result<()> {
+    msg!("🔄 Committing session from ER to base layer with handler");
+    
+    // Build handler instruction data
+    let instruction_data = anchor_lang::InstructionData::data(
+        &crate::instruction::UpdatePlayerStats {}
+    );
+
+    let call_handler = CallHandler {
+        args: ActionArgs {
+            escrow_index: 0,
+            data: instruction_data,
+        },
+        compute_units: 400_000,
+        escrow_authority: ctx.accounts.payer.to_account_info(),
+        destination_program: crate::ID,
+        accounts: vec![
+            ShortAccountMeta {
+                pubkey: ctx.accounts.leaderboard.key(),
+                is_writable: true,
+            },
+            ShortAccountMeta {
+                pubkey: ctx.accounts.user_profile.key(),
+                is_writable: true,
+            },
+            ShortAccountMeta {
+                pubkey: ctx.accounts.session.key(),
+                is_writable: false,
+            },
+        ],
+    };
+
+    MagicInstructionBuilder {
+        payer: ctx.accounts.payer.to_account_info(),
+        magic_context: ctx.accounts.magic_context.to_account_info(),
+        magic_program: ctx.accounts.magic_program.to_account_info(),
+        magic_action: MagicAction::Commit(CommitType::WithHandler {
+            commited_accounts: vec![ctx.accounts.session.to_account_info()],
+            call_handlers: vec![call_handler],
+        }),
+    }.build_and_invoke()?;
+
+    msg!("✅ Session committed - handler will update leaderboard automatically");
+    
+    Ok(())
+}
+
+
+/// Update leaderboard after game completion (runs on base layer)
+pub fn update_leaderboard_after_game(
+    ctx: Context<UpdateLeaderboardAfterGame>,
+    _period_id: String,
+) -> Result<()> {
+    msg!("📊 Updating leaderboard on base layer");
+    
+    let session = &ctx.accounts.session;
+    let leaderboard = &mut ctx.accounts.leaderboard;
+    let now = Clock::get()?.unix_timestamp;
+    
+    // Only update if game was completed
+    require!(session.completed, VobleError::InvalidPeriodState);
+    require!(session.score > 0, VobleError::InvalidScore);
+    require!(!leaderboard.finalized, VobleError::PeriodAlreadyFinalized);
+    
+    let new_entry = LeaderEntry {
+        player: session.player,
+        score: session.score,
+        guesses_used: session.guesses_used,
+        time_ms: session.time_ms,
+        timestamp: now,
+        username: ctx.accounts.user_profile.username.clone(),
+    };
+    
+    // Check if player already on leaderboard
+    let mut updated = false;
+    for entry in &mut leaderboard.entries {
+        if entry.player == session.player {
+            if session.score > entry.score {
+                *entry = new_entry.clone();
+                updated = true;
+                msg!("✅ Updated leaderboard entry");
+            }
+            break;
+        }
+    }
+    
+    if !updated {
+        leaderboard.entries.push(new_entry);
+        leaderboard.total_players += 1;
+        msg!("✅ Added new leaderboard entry");
+    }
+    
+    // Sort by score (highest first)
+    leaderboard.entries.sort_by(|a, b| {
+        match b.score.cmp(&a.score) {
+            std::cmp::Ordering::Equal => a.time_ms.cmp(&b.time_ms),
+            other => other,
+        }
+    });
+    
+    if leaderboard.entries.len() > 100 {
+        leaderboard.entries.truncate(100);
+    }
+    
+    if let Some(rank) = leaderboard.entries.iter().position(|e| e.player == session.player) {
+        msg!("🏆 Player rank: #{}", rank + 1);
+    }
+    
+    Ok(())
+}
+
+/// Update user profile after game completion (runs on base layer)
+pub fn update_profile_after_game(
+    ctx: Context<UpdateProfileAfterGame>,
+) -> Result<()> {
+    msg!("👤 Updating user profile on base layer");
+    
+    let session = &ctx.accounts.session;
+    let profile = &mut ctx.accounts.user_profile;
+    let now = Clock::get()?.unix_timestamp;
+    
+    require!(session.completed, VobleError::InvalidPeriodState);
+    
+    profile.total_games_played += 1;
+    
+    if session.is_solved {
+        profile.games_won += 1;
+        profile.current_streak += 1;
+        
+        if profile.current_streak > profile.max_streak {
+            profile.max_streak = profile.current_streak;
+        }
+        
+        msg!("✅ Win! Streak: {}", profile.current_streak);
+    } else {
+        profile.current_streak = 0;
+        msg!("📊 Loss. Streak reset.");
+    }
+    
+    profile.total_score += session.score as u64;
+    
+    if session.score > profile.best_score {
+        profile.best_score = session.score;
+    }
+    
+    if session.is_solved && session.guesses_used > 0 && session.guesses_used <= 7 {
+        let idx = (session.guesses_used - 1) as usize;
+        profile.guess_distribution[idx] += 1;
+    }
+    
+    if profile.games_won > 0 {
+        let total_guesses: u32 = profile.guess_distribution.iter().enumerate()
+            .map(|(i, &count)| (i as u32 + 1) * count)
+            .sum();
+        profile.average_guesses = total_guesses as f32 / profile.games_won as f32;
+    }
+    
+    profile.last_played = now;
+    
+    msg!("✅ Profile updated");
+    
     Ok(())
 }

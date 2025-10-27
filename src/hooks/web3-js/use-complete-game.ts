@@ -1,15 +1,18 @@
 import { useState } from 'react'
 import { useConnectedStandardWallets } from '@privy-io/react-auth/solana'
-import { PublicKey } from '@solana/web3.js'
+import { PublicKey, sendAndConfirmTransaction} from '@solana/web3.js'
 
-import { vocabeeProgram } from './program'
-import { getUserProfilePDA, getSessionPDA, getLeaderboardPDA } from './pdas'
-import { 
-  buildTransaction
-} from './transaction-builder'
+import { vobleProgram } from './program'
 import { handleTransactionError } from './utils'
-// ER Integration
-import { useERGameTransaction } from '@/hooks/mb-er'
+
+import { useTempKeypair } from '@/hooks/use-temp-keypair'
+import { erConnection } from '@/hooks/mb-er/er-connection'
+
+import { 
+  getSessionPDA,
+  getUserProfilePDA,
+  getLeaderboardPDA,
+} from './pdas'
 
 export interface CompleteGameResult {
   success: boolean
@@ -19,13 +22,12 @@ export interface CompleteGameResult {
   leaderboardRank?: number
 }
 
+
 export function useCompleteGame() {
   const { wallets } = useConnectedStandardWallets()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  
-  // ER Integration
-  const { completeGame: completeGameER, isTransacting: isERTransacting } = useERGameTransaction()
+  const tempKeypair = useTempKeypair()
 
   const selectedWallet = wallets[0]
 
@@ -56,6 +58,12 @@ export function useCompleteGame() {
       const signerPublicKey = new PublicKey(selectedWallet.address)
       const trimmedPeriodId = periodId.trim()
 
+      // Use temp keypair as payer for gasless ER transaction
+      if (!tempKeypair) {
+        throw new Error('Temp keypair not available')
+      }
+      const payerPublicKey = tempKeypair.publicKey
+
       if (process.env.NODE_ENV === 'development') {
         console.log('📝 [useCompleteGame] Creating instruction for:', {
           wallet: selectedWallet.address,
@@ -63,60 +71,48 @@ export function useCompleteGame() {
         })
       }
 
-      // Derive required PDAs
-      const [userProfilePDA] = getUserProfilePDA(signerPublicKey)
+      // Derive all PDAs
       const [sessionPDA] = getSessionPDA(signerPublicKey)
+      const [userProfilePDA] = getUserProfilePDA(signerPublicKey)
       const [leaderboardPDA] = getLeaderboardPDA(trimmedPeriodId, 'daily')
 
       if (process.env.NODE_ENV === 'development') {
-        console.log('🔑 [useCompleteGame] Derived PDAs:', {
-          userProfile: userProfilePDA.toString(),
+        console.log('🔑 [useCompleteGame] PDAs:', {
           session: sessionPDA.toString(),
+          profile: userProfilePDA.toString(),
           leaderboard: leaderboardPDA.toString(),
         })
       }
 
-      // Create the complete game instruction using Anchor
-      const completeGameInstruction = await vocabeeProgram.methods
-        .completeVobleGame(trimmedPeriodId)
+      const undelegateSession = await vobleProgram.methods
+        .undelegateSession()
         .accounts({
-          userProfile: userProfilePDA,
+          payer: tempKeypair.publicKey,
           session: sessionPDA,
           leaderboard: leaderboardPDA,
+          userProfile: userProfilePDA,
         })
-        .instruction()
+        .transaction()
 
-      // Build the transaction with compute budget
-      const transaction = await buildTransaction({
-        instructions: [completeGameInstruction],
-        feePayer: signerPublicKey, // Use same signer as instruction for consistency
-        computeUnitLimit: 400_000, // Higher compute for leaderboard updates
-        computeUnitPrice: 1,
-        addComputeBudget: true,
-      })
+      const signature = await sendAndConfirmTransaction(erConnection, undelegateSession, [tempKeypair],
+        { skipPreflight: true, commitment: 'confirmed' }
+      );
 
-      // Send transaction via ER
-      if (process.env.NODE_ENV === 'development') {
-        console.log('✍️ [useCompleteGame] Sending transaction...')
-      }
-      
-      const result = await completeGameER(transaction)
-      
-      if (!result.success) {
-        throw new Error(result.error || 'Transaction failed')
+      console.log('✅ Session undelegated:', signature)
+
+      if (!signature) {
+        throw new Error('Transaction failed')
       }
 
       if (process.env.NODE_ENV === 'development') {
-        console.log('✅ [useCompleteGame] Game completed successfully:', result.signature)
+        console.log('✅ [useCompleteGame] Session undelegated successfully:', signature)
+        console.log('   Leaderboard and profile will be updated automatically')
       }
-
-      // TODO: Parse transaction logs to get the final score and leaderboard rank
-      // For now, we'll need to fetch the session and leaderboard accounts to get the result
 
       setIsLoading(false)
       return {
         success: true,
-        signature: result.signature,
+        signature: signature,
         // finalScore and leaderboardRank will be populated by fetching the updated accounts
       }
     } catch (err: any) {
@@ -148,7 +144,7 @@ export function useCompleteGame() {
 
   return {
     completeGame,
-    isLoading: isLoading || isERTransacting,
+    isLoading: isLoading,
     error,
   }
 }

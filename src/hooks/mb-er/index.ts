@@ -4,17 +4,8 @@
  * This module provides all the hooks needed for ER integration
  */
 
-// Configuration
-export * from './config'
+// Export shared ER connection
+export { erConnection } from './er-connection'
 
-// Delegation hooks
-export * from './use-delegate-user-profile'
-export * from './use-commit-user-profile'
-
-// Transaction hooks
-export * from './use-er-transaction'
-
-// Re-export connection provider hook
-export { useERConnection, useConnectionForInstruction } from '@/components/mb-er/er-connection-provider'
-
+// Re-export temp keypair hook
 export { useTempKeypair } from '@/hooks/use-temp-keypair'

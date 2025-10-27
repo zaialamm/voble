@@ -58,4 +58,8 @@ pub enum VobleError {
     InvalidGuess,
     #[msg("Player has already played this period")]
     AlreadyPlayedThisPeriod,
+    #[msg("Too many keystrokes (max 200)")]
+    TooManyKeystrokes,
+    #[msg("Invalid input")]
+    InvalidInput,
 }

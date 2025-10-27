@@ -12,11 +12,14 @@ importers:
         specifier: ^0.31.1
         version: 0.31.1(bufferutil@4.0.9)(encoding@0.1.13)(typescript@5.9.2)(utf-8-validate@5.0.10)
       '@magicblock-labs/ephemeral-rollups-sdk':
-        specifier: ^0.3.4
-        version: 0.3.4(bufferutil@4.0.9)(encoding@0.1.13)(utf-8-validate@5.0.10)
+        specifier: ^0.3.6
+        version: 0.3.6(bufferutil@4.0.9)(encoding@0.1.13)(utf-8-validate@5.0.10)
       '@magicblock-labs/gum-react-sdk':
         specifier: ^3.0.8
         version: 3.0.8(bs58@6.0.0)(bufferutil@4.0.9)(encoding@0.1.13)(react-native@0.81.4(@babel/core@7.28.4)(@types/react@19.2.0)(bufferutil@4.0.9)(react@18.3.1)(utf-8-validate@5.0.10))(react@18.3.1)(typescript@5.9.2)(utf-8-validate@5.0.10)
+      '@metaplex-foundation/beet':
+        specifier: ^0.7.2
+        version: 0.7.2
       '@privy-io/react-auth':
         specifier: 2.25.0
         version: 2.25.0(338d5f4461a053ee0b78580ea17fe6ef)
@@ -730,8 +733,8 @@ packages:
   '@lit/reactive-element@2.1.1':
     resolution: {integrity: sha512-N+dm5PAYdQ8e6UlywyyrgI2t++wFGXfHx+dSJ1oBrg6FAxUj40jId++EaRm80MKX5JnlH1sBsyZ5h0bcZKemCg==}
 
-  '@magicblock-labs/ephemeral-rollups-sdk@0.3.4':
-    resolution: {integrity: sha512-OXCY7f5CFETUvpDoDfBCyjRjlqp2MrVNdeGVXvoBj0WMHZChqF9sBGle1qt5WwzLW8FTZguplMJYbhkgcGSKgg==}
+  '@magicblock-labs/ephemeral-rollups-sdk@0.3.6':
+    resolution: {integrity: sha512-Koh3TFPgUU7pa+t0USqmyY1ncFZy8w6ysrlcHVzwP9qui+FNEm/T27oQg282+wYPzaPrsCcmzkq+Pie3tF4u7Q==}
 
   '@magicblock-labs/gum-react-sdk@3.0.8':
     resolution: {integrity: sha512-NssazH2P9nxZbPOT/zYmyAlzfmcom1PZlH+x3KJt2l1tY/H8ag4QUlTVdZhq10ovaHeuEjSOwftUgK+cVHFIRQ==}
@@ -6194,7 +6197,7 @@ snapshots:
     dependencies:
       '@lit-labs/ssr-dom-shim': 1.4.0
 
-  '@magicblock-labs/ephemeral-rollups-sdk@0.3.4(bufferutil@4.0.9)(encoding@0.1.13)(utf-8-validate@5.0.10)':
+  '@magicblock-labs/ephemeral-rollups-sdk@0.3.6(bufferutil@4.0.9)(encoding@0.1.13)(utf-8-validate@5.0.10)':
     dependencies:
       '@metaplex-foundation/beet': 0.7.2
       '@phala/dcap-qvl-web': 0.2.7

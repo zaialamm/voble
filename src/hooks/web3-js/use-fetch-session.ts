@@ -2,7 +2,7 @@ import { useQuery, QueryObserverResult } from '@tanstack/react-query'
 import { useConnectedStandardWallets } from '@privy-io/react-auth/solana'
 import { PublicKey, Connection } from '@solana/web3.js'
 import { Program, AnchorProvider } from '@coral-xyz/anchor' 
-import { vocabeeProgram, createReadOnlyProvider } from './program'
+import { vobleProgram, createReadOnlyProvider } from './program'
 import { getSessionPDA } from './pdas'
 import IDL from '@/idl/idl.json' 
 
@@ -72,27 +72,30 @@ export function useFetchSession(periodId: string): FetchSessionResult {
       try {
         // Fetch the session account using Anchor
         const erConnection = new Connection('https://devnet.magicblock.app', 'confirmed')
-        const erProvider = new AnchorProvider(erConnection, createReadOnlyProvider().wallet, {
-          commitment: 'confirmed',
-        })
+        const erProvider = createReadOnlyProvider(erConnection)
         const erProgram = new Program(IDL as any, erProvider)
         
         let sessionAccount: any  // Declare variable
         
         try {
-          // First try ER (for active gameplay)
+          // During active gameplay, ONLY check ER (faster)
           sessionAccount = await (erProgram.account as any).sessionAccount.fetch(sessionPDA)
           if (process.env.NODE_ENV === 'development') {
             console.log('✅ [useFetchSession] Session fetched from ER')
           }
-        } catch {
-          // Fallback to base layer for completed/undelegated sessions
-          if (process.env.NODE_ENV === 'development') {
-            console.log('ℹ️ [useFetchSession] Not on ER, trying base layer...')
-          }
-          sessionAccount = await (vocabeeProgram.account as any).sessionAccount.fetch(sessionPDA)
-          if (process.env.NODE_ENV === 'development') {
-            console.log('✅ [useFetchSession] Session fetched from Base Layer')
+        } catch (err: any) {
+          // Only try base layer if ER fails with "Account does not exist"
+          if (err.message?.includes('Account does not exist')) {
+            if (process.env.NODE_ENV === 'development') {
+              console.log('ℹ️ [useFetchSession] Not on ER, trying base layer...')
+            }
+            sessionAccount = await (vobleProgram.account as any).sessionAccount.fetch(sessionPDA)
+            if (process.env.NODE_ENV === 'development') {
+              console.log('✅ [useFetchSession] Session fetched from Base Layer')
+            }
+          } else {
+            // Re-throw other errors (network issues, etc.)
+            throw err
           }
         }
 
@@ -150,8 +153,8 @@ export function useFetchSession(periodId: string): FetchSessionResult {
       }
     },
     enabled: !!selectedWallet?.address && !!periodId,
-    staleTime: 5000, // Consider data stale after 5 seconds
-    refetchInterval: false, // Refetch every 10 seconds during active gameplay
+    staleTime: 1000, 
+    refetchInterval: false, 
     retry: (failureCount, error) => {
       // Don't retry if account doesn't exist
       if (error.message?.includes('Account does not exist')) {

@@ -113,6 +113,16 @@ pub struct SessionScoreUpdated {
 }
 
 #[event]
+pub struct KeystrokeRecorded {
+    pub player: Pubkey,
+    pub session_id: String,
+    pub key: String,
+    pub timestamp_ms: u64,
+    pub current_input: String,
+    pub guess_index: u8,
+}
+
+#[event]
 pub struct SessionCompleted {
     pub player: Pubkey,
     pub session_id: String,

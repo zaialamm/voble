@@ -2,6 +2,10 @@ use anchor_lang::prelude::*;
 use anchor_lang::InstructionData;
 use ephemeral_rollups_sdk::anchor::ephemeral;
 
+use ephemeral_rollups_sdk::ephem::{MagicInstructionBuilder, MagicAction, CallHandler, CommitType};
+use ephemeral_rollups_sdk::{ActionArgs, ShortAccountMeta};
+use anchor_lang::Discriminator;
+
 pub mod constants;
 pub mod contexts;
 pub mod errors;
@@ -171,16 +175,26 @@ pub mod voble {
         game::delegate_session(ctx)
     }
 
-    /// Undelegate session from Ephemeral Rollup  
-    pub fn undelegate_session(ctx: Context<UndelegateSession>) -> Result<()> {
-        game::undelegate_session(ctx)
+    pub fn record_keystroke(ctx: Context<RecordKeystroke>, key: String) -> Result<()> {
+        game::record_keystroke(ctx, key)
     }
 
     pub fn submit_guess(ctx: Context<SubmitGuess>, period_id: String, guess: String) -> Result<()> {
         game::submit_guess(ctx, period_id, guess)
     }
 
-    pub fn complete_voble_game(ctx: Context<CompleteGame>, period_id: String) -> Result<()> {
-        game::complete_voble_game(ctx, period_id)
+    pub fn update_player_stats(ctx: Context<UpdatePlayerStats>) -> Result<()> {
+        game::update_player_stats(ctx)
     }
+
+    /// Undelegate session from Ephemeral Rollup  
+    pub fn undelegate_session(ctx: Context<UndelegateSession>) -> Result<()> {
+        game::undelegate_session(ctx)
+    }
+
+    pub fn commit_and_update_stats(ctx: Context<CommitAndUpdateStats>, period_id: String) -> Result<()> {
+        game::commit_and_update_stats(ctx, period_id)
+    }
+
+
 }

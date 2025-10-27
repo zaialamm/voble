@@ -107,8 +107,9 @@ export function useVaultBalances(): VaultBalancesResult {
         throw new Error(`Failed to fetch vault balances: ${error.message}`)
       }
     },
-    staleTime: 15000, // Consider data stale after 15 seconds
-    refetchInterval: false, // Refetch every 30 seconds
+    staleTime: Infinity, 
+    refetchInterval: false,
+    refetchOnWindowFocus: false, 
     retry: 3,
   })
 
@@ -184,8 +185,9 @@ export function useVaultBalance(vaultType: 'daily' | 'weekly' | 'monthly' | 'pla
         throw new Error(`Failed to fetch ${vaultType} vault balance: ${error.message}`)
       }
     },
-    staleTime: 15000, // Consider data stale after 15 seconds
-    refetchInterval: false, // Refetch every 30 seconds
+    staleTime: Infinity, 
+    refetchInterval: false,
+    refetchOnWindowFocus: false, 
     retry: 3,
   })
 

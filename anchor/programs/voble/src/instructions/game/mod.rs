@@ -1,8 +1,8 @@
 // Main game instruction modules
-pub mod complete_game;
 pub mod start_game;
 pub mod submit_guess;
-pub mod update_profile_handler;
+pub mod update_player_stats;
+pub mod record_keystroke;
 
 // Helper modules
 pub mod achievements;
@@ -10,10 +10,10 @@ pub mod scoring;
 pub mod word_selection;
 
 // Re-export all public functions for easy access
-pub use complete_game::*;
 pub use start_game::*;
 pub use submit_guess::*;
-pub use update_profile_handler::*;
+pub use update_player_stats::*;
+pub use record_keystroke::*;
 
 // Re-export helper functions that might be needed externally
 pub use achievements::{check_and_unlock_achievements, get_unlocked_count};

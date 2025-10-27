@@ -67,9 +67,9 @@ pub struct BuyTicketAndStartGame<'info> {
     
 }
 
+// Submit Guess
 #[derive(Accounts)]
 pub struct SubmitGuess<'info> {
-
     #[account(
         mut,
         seeds = [SEED_SESSION, session.player.as_ref()],
@@ -79,6 +79,7 @@ pub struct SubmitGuess<'info> {
     
 }
 
+/*
 #[commit]
 #[derive(Accounts)]
 #[instruction(period_id: String)]
@@ -88,26 +89,52 @@ pub struct CompleteGame<'info> {
     
     #[account(
         mut,
-        seeds = [SEED_USER_PROFILE, session.player.as_ref()],
-        bump
-    )]
-    pub user_profile: Account<'info, UserProfile>,
-    
-    #[account(
-        mut,
-        seeds = [SEED_SESSION, session.player.as_ref()],
+        seeds = [SEED_SESSION, payer.key().as_ref()],
         bump
     )]
     pub session: Account<'info, SessionAccount>,
     
+    /// CHECK: Leaderboard - not mut here, writable set in handler
     #[account(
-        mut,
         seeds = [SEED_LEADERBOARD, period_id.as_bytes(), b"daily"],
         bump
     )]
-    pub leaderboard: Account<'info, PeriodLeaderboard>,
+
+    pub leaderboard: UncheckedAccount<'info>,
+    
+    /// CHECK: User profile - not mut here, writable set in handler
+    #[account(
+        seeds = [SEED_USER_PROFILE, payer.key().as_ref()], 
+        bump
+    )]
+
+    pub user_profile: UncheckedAccount<'info>,
     
 }
+*/
+
+/// Handler context for Magic Actions - updates leaderboard after game completion
+#[derive(Accounts)]
+pub struct UpdatePlayerStats<'info> {
+    /// CHECK: Injected by Magic Actions (escrow account) - FIRST
+    #[account(mut)]
+    pub escrow: UncheckedAccount<'info>,
+    
+    /// CHECK: Injected by Magic Actions (escrow authority) - SECOND
+    pub escrow_auth: UncheckedAccount<'info>,
+    
+    /// Leaderboard to update - THIRD
+    #[account(mut)]
+    pub leaderboard: Account<'info, PeriodLeaderboard>,
+    
+    /// User profile to update stats - FOURTH
+    #[account(mut)]
+    pub user_profile: Account<'info, UserProfile>,
+    
+    /// CHECK: Committed session account (manually deserialized) - FIFTH
+    pub committed_session: UncheckedAccount<'info>,
+}
+
 
 #[derive(Accounts)]
 pub struct UpdateProfileHandler<'info> {
@@ -154,23 +181,117 @@ pub struct DelegateSession<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
 
+    /*
     /// CHECK: Checked by the delegate program
     pub validator: Option<AccountInfo<'info>>,
+    */
     
     /// CHECK: Session PDA to delegate to ER
     #[account(mut, del)]
     pub pda: AccountInfo<'info>,
 }
 
+#[derive(Accounts)]
+pub struct RecordKeystroke<'info> {
+    #[account(mut)]
+    pub session: Account<'info, SessionAccount>,
+}
+
 /// Context for undelegating session from ER
+/// Only commits the session - does not update leaderboard or profile
 #[commit]
 #[derive(Accounts)]
 pub struct UndelegateSession<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
     
+    #[account(
+        mut,
+        seeds = [SEED_SESSION, payer.key().as_ref()],
+        bump
+    )]
+    pub session: Account<'info, SessionAccount>,
+    
+    /*
+    /// CHECK: Committed by ER SDK
     #[account(mut)]
+    pub session: AccountInfo<'info>,
+    */
+
+}
+
+#[commit]
+#[derive(Accounts)]
+#[instruction(period_id: String)]
+pub struct CommitAndUpdateStats<'info> {
+    #[account(mut)]
+    pub payer: Signer<'info>,
+
+    #[account(
+        mut,
+        seeds = [SEED_SESSION, payer.key().as_ref()],
+        bump
+    )]
     pub session: Account<'info, SessionAccount>,
 
+    /// CHECK: Leaderboard - not mut here, writable set in handler
+    #[account(seeds = [SEED_LEADERBOARD, period_id.as_bytes(), b"daily"], bump)]
+    pub leaderboard: UncheckedAccount<'info>,
+    
+    /// CHECK: User profile - not mut here, writable set in handler
+    #[account(seeds = [SEED_USER_PROFILE, payer.key().as_ref()], bump)]
+    pub user_profile: UncheckedAccount<'info>,
 
+    /// CHECK: Your program ID
+    pub program_id: AccountInfo<'info>,
+}
+
+
+/// Context for updating leaderboard after game (base layer only)
+#[derive(Accounts)]
+#[instruction(period_id: String)]
+pub struct UpdateLeaderboardAfterGame<'info> {
+    #[account(mut)]
+    pub payer: Signer<'info>,
+    
+    #[account(
+        seeds = [SEED_SESSION, payer.key().as_ref()],
+        bump
+    )]
+    pub session: Account<'info, SessionAccount>,
+    
+    #[account(
+        seeds = [SEED_USER_PROFILE, payer.key().as_ref()],
+        bump
+    )]
+    pub user_profile: Account<'info, UserProfile>,
+    
+    #[account(
+        mut,
+        seeds = [SEED_LEADERBOARD, period_id.as_bytes(), b"daily"],
+        bump
+    )]
+    pub leaderboard: Account<'info, PeriodLeaderboard>,
+}
+
+
+
+/// Context for updating profile after game (base layer only)
+#[derive(Accounts)]
+pub struct UpdateProfileAfterGame<'info> {
+    #[account(mut)]
+    pub payer: Signer<'info>,
+    
+    #[account(
+        seeds = [SEED_SESSION, payer.key().as_ref()],
+        bump
+    )]
+    pub session: Account<'info, SessionAccount>,
+    
+    #[account(
+        mut,
+        seeds = [SEED_USER_PROFILE, payer.key().as_ref()],
+        bump
+    )]
+    pub user_profile: Account<'info, UserProfile>,
 }
