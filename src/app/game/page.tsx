@@ -397,7 +397,7 @@ export default function GamePage() {
 
         console.log('✅ Guess submitted successfully!', result.signature)
 
-        
+      /*  
       // Refetch session to get updated guesses and results
       await refetchSession()
 
@@ -419,19 +419,28 @@ export default function GamePage() {
             guessesUsed: freshSession.guessesUsed
           })
         }
-        
-        updateGridFromSession(freshSession)
+      */
+
+        await refetchSession()
+
+        if (session) {
+          // Check the last guess result directly from session data
+          const lastGuessIndex = session.guessesUsed - 1
+          const lastGuess = session.guesses[lastGuessIndex]
+          const allCorrect = lastGuess?.result?.every((r: string) => r === 'Correct')
+
+          updateGridFromSession(session)
         
         // Check if game ended
-        if (allCorrect || freshSession.isSolved || freshSession.guessesUsed >= 7) {
+        if (allCorrect || session.isSolved || session.guessesUsed >= 7) {
           if (process.env.NODE_ENV === 'development') {
             console.log('🏁 Game ended! Completing game...')
           }
           await handleCompleteGame()
         } else {
           setGameState(prev => ({ ...prev, gameStatus: 'playing' }))
+          }
         }
-      }
       } else {
         console.error('❌ Failed to submit guess:', result.error)
         setGameState(prev => ({ ...prev, gameStatus: 'playing' }))

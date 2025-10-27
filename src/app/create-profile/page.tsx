@@ -70,28 +70,20 @@ export default function CreateProfilePage() {
       return
     }
 
-    if (process.env.NODE_ENV === 'development') {
-      console.log('📝 [CreateProfile] Creating profile...')
-    }
     const result = await initializeProfile(username.trim())
 
     if (result.success) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('✅ [CreateProfile] Profile created successfully!', {
+        console.log('✅ Profile created successfully!', {
           signature: result.signature,
           profileAddress: result.profileAddress,
-          isDelegated: result.isDelegated,
         })
-      }
+
       setSuccess(true)
       
       // Wait a bit longer to ensure blockchain state is updated
       setTimeout(() => {
-        if (process.env.NODE_ENV === 'development') {
-          console.log('🔄 [CreateProfile] Redirecting to profile page...')
-        }
         router.push('/profile')
-      }, 3000) // Increased from 2000 to 3000ms
+      }, 3000) 
     } else {
       console.error('❌ [CreateProfile] Profile creation failed:', result.error)
     }
@@ -142,7 +134,7 @@ export default function CreateProfilePage() {
               </div>
               <h2 className="text-2xl font-bold">Profile Created!</h2>
               <p className="text-muted-foreground">
-                Your gaming profile is ready. Game sessions will be delegated to ER automatically when you play!
+                Your gaming profile is ready. You can now play!
               </p>
             </div>
           </CardContent>

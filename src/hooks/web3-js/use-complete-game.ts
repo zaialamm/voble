@@ -62,7 +62,6 @@ export function useCompleteGame() {
       if (!tempKeypair) {
         throw new Error('Temp keypair not available')
       }
-      const payerPublicKey = tempKeypair.publicKey
 
       if (process.env.NODE_ENV === 'development') {
         console.log('📝 [useCompleteGame] Creating instruction for:', {

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useConnectedStandardWallets, useSendTransaction } from '@privy-io/react-auth/solana'
+import { useConnectedStandardWallets } from '@privy-io/react-auth/solana'
 import { PublicKey, Transaction, Connection } from '@solana/web3.js'
 import bs58 from 'bs58';
 
@@ -27,7 +27,6 @@ export interface BuyTicketResult {
 
 export function useBuyTicket() {
   const { wallets } = useConnectedStandardWallets()
-  const { sendTransaction } = useSendTransaction()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   

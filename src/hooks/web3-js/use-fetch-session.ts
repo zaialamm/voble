@@ -1,7 +1,7 @@
 import { useQuery, QueryObserverResult } from '@tanstack/react-query'
 import { useConnectedStandardWallets } from '@privy-io/react-auth/solana'
 import { PublicKey, Connection } from '@solana/web3.js'
-import { Program, AnchorProvider } from '@coral-xyz/anchor' 
+import { Program } from '@coral-xyz/anchor' 
 import { vobleProgram, createReadOnlyProvider } from './program'
 import { getSessionPDA } from './pdas'
 import IDL from '@/idl/idl.json' 
