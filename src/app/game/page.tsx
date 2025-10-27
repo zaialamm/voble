@@ -249,7 +249,7 @@ export default function GamePage() {
 
   const getKeyStyle = (letter: string) => {
     const state = keyboardState[letter] || 'empty'
-    const baseStyle = 'px-4 py-6 rounded-lg font-medium text-base transition-all duration-200 hover:scale-105 min-w-[2.5rem]'
+    const baseStyle = 'px-2 py-3 sm:px-4 sm:py-6 rounded-lg font-medium text-sm sm:text-base transition-all duration-200 hover:scale-105 min-w-[2rem] sm:min-w-[2.5rem]'
     
     switch (state) {
       case 'correct':
@@ -689,7 +689,7 @@ export default function GamePage() {
 
   return (
     <div className="min-h-screen w-full bg-slate-50 dark:bg-slate-900">
-      <div className="container mx-auto py-8 max-w-4xl">
+      <div className="container mx-auto py-4 sm:py-8 px-4 max-w-4xl">
       {/* Prize Vaults Display */}
       <PrizeVaultsDisplay />
 
@@ -813,7 +813,7 @@ export default function GamePage() {
           </div>
 
           {/* Game Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-8">
         <Card className="border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
           <CardContent className="pt-6">
             <div className="flex items-center space-x-2">
@@ -864,8 +864,8 @@ export default function GamePage() {
       </div>
 
       {/* Game Grid */}
-      <Card className="mb-8 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
-        <CardContent className="pt-6">
+      <Card className="mb-4 sm:mb-8 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+        <CardContent className="pt-4 sm:pt-6 px-2 sm:px-6">
           <div className="grid grid-rows-7 gap-1 max-w-md mx-auto">
             {gameState.grid.map((row, rowIndex) => (
               <div key={rowIndex} className="grid grid-cols-6 gap-1">
@@ -873,7 +873,7 @@ export default function GamePage() {
                   <div
                     key={`${rowIndex}-${colIndex}`}
                     className={`
-                      w-16 h-16 border-2 rounded flex items-center justify-center text-xl font-bold
+                      w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 border-2 rounded flex items-center justify-center text-lg sm:text-xl font-bold
                       transition-all duration-300 ease-in-out
                       ${getTileStyle(tile.state)}
                     `}
@@ -889,8 +889,8 @@ export default function GamePage() {
 
       {/* Virtual Keyboard */}
       <Card className="border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
-        <CardContent className="pt-6">
-          <div className="space-y-2">
+        <CardContent className="pt-4 sm:pt-6 px-2 sm:px-6">
+          <div className="space-y-1 sm:space-y-2">
             {KEYBOARD_ROWS.map((row, rowIndex) => (
               <div key={rowIndex} className="flex justify-center gap-1">
                 {row.map((key) => (
@@ -898,7 +898,7 @@ export default function GamePage() {
                     key={key}
                     onClick={() => handleKeyPress(key)}
                     className={`
-                      ${key === 'ENTER' || key === 'BACKSPACE' ? 'px-6 min-w-[4rem]' : ''} 
+                      ${key === 'ENTER' || key === 'BACKSPACE' ? 'px-3 sm:px-6 min-w-[3rem] sm:min-w-[4rem]' : ''} 
                       ${getKeyStyle(key)}
                     `}
                     disabled={gameState.gameStatus !== 'playing' || !canPlayGame}
@@ -915,8 +915,8 @@ export default function GamePage() {
 
       {/* Game Result Modal */}
       {(gameState.gameStatus === 'won' || gameState.gameStatus === 'lost') && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <Card className="w-96 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-md mx-4 border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">
             <CardHeader>
               <CardTitle className="text-center">
                 {gameState.gameStatus === 'won' ? (
