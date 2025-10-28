@@ -10,9 +10,5 @@ export const erConnection = new ConnectionMagicRouter(
     wsEndpoint: "wss://devnet-router.magicblock.app",
     commitment: 'confirmed'
   }
+  
 )
-
-// Optional: Add connection health monitoring
-if (process.env.NODE_ENV === 'development') {
-  console.log('🔌 [ER Connection] Magic Router connection initialized')
-}

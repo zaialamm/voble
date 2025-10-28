@@ -1,5 +1,5 @@
 /**
- * Update VocaBee Config
+ * Update Voble Config
  * 
  * This script updates the global config ticket price.
  * 
@@ -37,7 +37,7 @@ async function main() {
   const program = new Program(idl, provider);
   const authority = provider.wallet.publicKey;
 
-  console.log("🔧 Updating VocaBee Config...");
+  console.log("🔧 Updating Voble Config...");
   console.log("📍 Program ID:", program.programId.toString());
   console.log("👤 Authority:", authority.toString());
   console.log("");

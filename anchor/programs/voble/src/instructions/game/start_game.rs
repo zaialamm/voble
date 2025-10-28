@@ -236,16 +236,6 @@ pub fn buy_ticket_and_start_game(
         timestamp: now,
     });
 
-    // ========== LOGGING ==========
-    msg!("⚠️  ========== DEMO MODE ACTIVE ========== ⚠️");
-    msg!("⚠️  Using deterministic word selection");
-    msg!("⚠️  NOT SECURE for games with real prizes!");
-    msg!("⚠️  IMPLEMENT VRF BEFORE MAINNET LAUNCH");
-    msg!("⚠️  ======================================== ⚠️");
-    
-    msg!("✅ Session created successfully!");
-    msg!("   Call delegate_session() to move session to ER");
-
     Ok(())
 }
 
@@ -264,7 +254,6 @@ pub fn initialize_session(ctx: Context<InitializeSession>) -> Result<()> {
 
 /// Delegate session to Ephemeral Rollup
 pub fn delegate_session(ctx: Context<DelegateSession>) -> Result<()> {
-    msg!("⚡ Delegating session to ER");
     
     ctx.accounts.delegate_pda(
         &ctx.accounts.payer,

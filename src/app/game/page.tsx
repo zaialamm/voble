@@ -394,49 +394,24 @@ export default function GamePage() {
       const result = await submitGuessToBlockchain(periodId, currentGuess)
       
       if (result.success) {
+     
+       const {data: freshSession} = await refetchSession()
 
-        console.log('✅ Guess submitted successfully!', result.signature)
-
-      /*  
-      // Refetch session to get updated guesses and results
-      await refetchSession()
-
-      const freshSession = refetchSession.data
-
-
-      // Update UI based on blockchain data (use UPDATED session)
-      if (freshSession) {
-        // Check the last guess result directly from session data
-        const lastGuessIndex = freshSession.guessesUsed - 1
-        const lastGuess = freshSession.guesses[lastGuessIndex]
-        const allCorrect = lastGuess?.result?.every((r: string) => r === 'Correct')
-        
-        if (process.env.NODE_ENV === 'development') {
-          console.log('🔍 Checking game end:', {
-            lastGuessIndex,
-            allCorrect,
-            isSolved: freshSession.isSolved,
-            guessesUsed: freshSession.guessesUsed
-          })
-        }
-      */
-
-        await refetchSession()
-
-        if (session) {
+        if (freshSession) {
           // Check the last guess result directly from session data
-          const lastGuessIndex = session.guessesUsed - 1
-          const lastGuess = session.guesses[lastGuessIndex]
+          const lastGuessIndex = freshSession.guessesUsed - 1
+          const lastGuess = freshSession.guesses[lastGuessIndex]
           const allCorrect = lastGuess?.result?.every((r: string) => r === 'Correct')
 
-          updateGridFromSession(session)
+          updateGridFromSession(freshSession)
         
         // Check if game ended
-        if (allCorrect || session.isSolved || session.guessesUsed >= 7) {
-          if (process.env.NODE_ENV === 'development') {
-            console.log('🏁 Game ended! Completing game...')
-          }
+        if (allCorrect || freshSession.isSolved || freshSession.guessesUsed >= 7) {
+
+          console.log('🏁 Game ended! Completing game...');
+
           await handleCompleteGame()
+
         } else {
           setGameState(prev => ({ ...prev, gameStatus: 'playing' }))
           }
@@ -492,7 +467,7 @@ export default function GamePage() {
 
     // Wait for ER to sync the account
     console.log('⏳ Syncing account to ER...')
-    await new Promise(resolve => setTimeout(resolve, 5000)) 
+    await new Promise(resolve => setTimeout(resolve, 3000)) 
 
     console.log('✅ Account synced to ER!')
     
@@ -791,27 +766,6 @@ export default function GamePage() {
       {/* ✅ SECURITY: Only show game if BOTH session key AND valid ticket exist */}
       {canPlayGame && (
         <>
-          <div className="flex justify-center items-center mb-8">
-            <div className="text-center">
-              <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
-                Voble
-              </h1>
-              <p className="text-slate-600 dark:text-slate-400">Guess the 6-letter word!</p>
-              <div className="flex flex-wrap items-center justify-center gap-2 mt-2">
-                <p className="text-xs text-green-600 dark:text-green-400">
-                  ✅ Ticket Paid
-                </p>
-                <span className="text-slate-400">•</span>
-                <p className="text-xs text-green-600 dark:text-green-400">
-                  ✅ On-Chain Session
-                </p>
-              </div>
-              <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
-                🎮 Ready to play!
-              </p>
-            </div>
-          </div>
-
           {/* Game Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-8">
         <Card className="border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800">

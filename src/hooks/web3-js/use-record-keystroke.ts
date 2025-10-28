@@ -47,7 +47,7 @@ export function useRecordKeystroke() {
       const signature  = await sendAndConfirmTransaction(erConnection, recordKeystroke, [tempKeypair],
         { skipPreflight: true, commitment: 'confirmed' });
 
-      console.log('✅ [useRecordKeystroke] Keystroke recorded:', signature)
+      console.log('✅ Keystroke recorded:', signature)
 
       return {
         success: true,

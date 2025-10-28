@@ -57,7 +57,7 @@ export function useSubmitGuess() {
         { skipPreflight: true, commitment: 'confirmed' }
       );
 
-      console.log('✅ [useSubmitGuess] Guess submitted:', signature)
+      console.log('✅ Guess submitted:', signature)
 
       if (!signature) {
         throw new Error('Transaction failed')

@@ -73,10 +73,6 @@ export default function CreateProfilePage() {
     const result = await initializeProfile(username.trim())
 
     if (result.success) {
-        console.log('✅ Profile created successfully!', {
-          signature: result.signature,
-          profileAddress: result.profileAddress,
-        })
 
       setSuccess(true)
       
