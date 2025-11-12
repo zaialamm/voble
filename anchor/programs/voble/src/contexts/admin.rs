@@ -84,6 +84,17 @@ pub struct InitializeVaults<'info> {
     /// CHECK: This is a PDA vault for platform revenue
     pub platform_vault: AccountInfo<'info>,
 
+    #[account(
+        init,
+        payer = authority,
+        space = 8,
+        seeds = [SEED_LUCKY_DRAW_VAULT],
+        bump
+    )]
+
+    /// CHECK: This is a PDA vault for lucky draw prizes
+    pub lucky_draw_vault: AccountInfo<'info>,
+
     #[account(mut)]
     pub authority: Signer<'info>,
 

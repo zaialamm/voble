@@ -62,6 +62,14 @@ pub struct BuyTicketAndStartGame<'info> {
 
     /// CHECK: Platform revenue vault PDA
     pub platform_vault: AccountInfo<'info>,
+
+    #[account(
+        mut,
+        seeds = [SEED_LUCKY_DRAW_VAULT],
+        bump
+    )]
+    /// CHECK: Lucky draw vault PDA
+    pub lucky_draw_vault: AccountInfo<'info>,
     
     pub system_program: Program<'info, System>,
     
@@ -204,10 +212,13 @@ pub struct RecordKeystroke<'info> {
 pub struct UndelegateSession<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
+
+    /// CHECK: The actual player who owns the session
+    pub player: AccountInfo<'info>,
     
     #[account(
         mut,
-        seeds = [SEED_SESSION, payer.key().as_ref()],
+        seeds = [SEED_SESSION, player.key().as_ref()],
         bump
     )]
     pub session: Account<'info, SessionAccount>,
@@ -226,10 +237,13 @@ pub struct UndelegateSession<'info> {
 pub struct CommitAndUpdateStats<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
+    
+    /// CHECK: The actual player who owns the session
+    pub player: AccountInfo<'info>,  
 
     #[account(
         mut,
-        seeds = [SEED_SESSION, payer.key().as_ref()],
+        seeds = [SEED_SESSION, player.key().as_ref()],
         bump
     )]
     pub session: Account<'info, SessionAccount>,
@@ -239,7 +253,7 @@ pub struct CommitAndUpdateStats<'info> {
     pub leaderboard: UncheckedAccount<'info>,
     
     /// CHECK: User profile - not mut here, writable set in handler
-    #[account(seeds = [SEED_USER_PROFILE, payer.key().as_ref()], bump)]
+    #[account(seeds = [SEED_USER_PROFILE, player.key().as_ref()], bump)]
     pub user_profile: UncheckedAccount<'info>,
 
     /// CHECK: Your program ID

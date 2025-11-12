@@ -14,7 +14,8 @@ import {
   getDailyPrizeVaultPDA,
   getWeeklyPrizeVaultPDA,
   getMonthlyPrizeVaultPDA,
-  getPlatformVaultPDA
+  getPlatformVaultPDA,
+  getLuckyDrawVaultPDA 
 } from './pdas'
 import { handleTransactionError } from './utils'
 
@@ -29,6 +30,7 @@ export function useBuyTicket() {
   const { wallets } = useConnectedStandardWallets()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
   
   const selectedWallet = wallets[0]
 
@@ -74,6 +76,7 @@ export function useBuyTicket() {
       const [weeklyPrizeVaultPDA] = getWeeklyPrizeVaultPDA()
       const [monthlyPrizeVaultPDA] = getMonthlyPrizeVaultPDA()
       const [platformVaultPDA] = getPlatformVaultPDA()
+      const [luckyDrawVaultPDA] = getLuckyDrawVaultPDA()
 
       if (process.env.NODE_ENV === 'development') {
         console.log('🔑 [useBuyTicket] Derived PDAs:', {
@@ -83,6 +86,7 @@ export function useBuyTicket() {
           dailyVault: dailyPrizeVaultPDA.toString(),
           weeklyVault: weeklyPrizeVaultPDA.toString(),
           monthlyVault: monthlyPrizeVaultPDA.toString(),
+          luckyDrawVault: luckyDrawVaultPDA.toString(),
           platformVault: platformVaultPDA.toString()
         })
       }
@@ -101,7 +105,8 @@ export function useBuyTicket() {
           weeklyPrizeVault: weeklyPrizeVaultPDA,
           monthlyPrizeVault: monthlyPrizeVaultPDA,
           platformVault: platformVaultPDA,
-          systemProgram: SYSTEM_PROGRAM_ID
+          luckyDrawVault: luckyDrawVaultPDA,
+          systemProgram: SYSTEM_PROGRAM_ID,
         })
         .instruction()
       

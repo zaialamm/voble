@@ -27,6 +27,7 @@ pub const SEED_DAILY_PRIZE_VAULT: &[u8] = b"daily_prize_vault";
 pub const SEED_WEEKLY_PRIZE_VAULT: &[u8] = b"weekly_prize_vault";
 pub const SEED_MONTHLY_PRIZE_VAULT: &[u8] = b"monthly_prize_vault";
 pub const SEED_PLATFORM_VAULT: &[u8] = b"platform_vault";
+pub const SEED_LUCKY_DRAW_VAULT: &[u8] = b"lucky_draw_vault";
 
 // ============ PERIOD CONFIGURATION ============
 

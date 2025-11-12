@@ -6,6 +6,7 @@ import {
   getWeeklyPrizeVaultPDA,
   getMonthlyPrizeVaultPDA,
   getPlatformVaultPDA,
+  getLuckyDrawVaultPDA,
   getAllVaultPDAs
 } from './pdas'
 
@@ -19,8 +20,9 @@ export interface VaultBalances {
   daily: VaultBalance
   weekly: VaultBalance
   monthly: VaultBalance
+  luckyDraw: VaultBalance
   platform: VaultBalance
-  totalPrizePool: number // Combined daily + weekly + monthly in SOL
+  totalPrizePool: number 
 }
 
 export interface VaultBalancesResult {
@@ -53,16 +55,18 @@ export function useVaultBalances(): VaultBalancesResult {
           daily: vaultPDAs.daily[0].toString(),
           weekly: vaultPDAs.weekly[0].toString(),
           monthly: vaultPDAs.monthly[0].toString(),
+          luckyDraw: vaultPDAs.luckyDraw[0].toString(), 
           platform: vaultPDAs.platform[0].toString(),
         })
       }
 
       try {
         // Fetch all vault balances in parallel
-        const [dailyBalance, weeklyBalance, monthlyBalance, platformBalance] = await Promise.all([
+        const [dailyBalance, weeklyBalance, monthlyBalance, luckyDrawBalance, platformBalance] = await Promise.all([
           connection.getBalance(vaultPDAs.daily[0]),
           connection.getBalance(vaultPDAs.weekly[0]),
           connection.getBalance(vaultPDAs.monthly[0]),
+          connection.getBalance(vaultPDAs.luckyDraw[0]),
           connection.getBalance(vaultPDAs.platform[0]),
         ])
 
@@ -71,6 +75,7 @@ export function useVaultBalances(): VaultBalancesResult {
             daily: `${dailyBalance / LAMPORTS_PER_SOL} SOL`,
             weekly: `${weeklyBalance / LAMPORTS_PER_SOL} SOL`,
             monthly: `${monthlyBalance / LAMPORTS_PER_SOL} SOL`,
+            luckyDraw: `${luckyDrawBalance / LAMPORTS_PER_SOL} SOL`,
             platform: `${platformBalance / LAMPORTS_PER_SOL} SOL`,
           })
         }
@@ -91,6 +96,11 @@ export function useVaultBalances(): VaultBalancesResult {
             address: vaultPDAs.monthly[0].toString(),
             balance: monthlyBalance / LAMPORTS_PER_SOL,
             balanceLamports: monthlyBalance,
+          },
+          luckyDraw: {  
+            address: vaultPDAs.luckyDraw[0].toString(),
+            balance: luckyDrawBalance / LAMPORTS_PER_SOL,
+            balanceLamports: luckyDrawBalance,
           },
           platform: {
             address: vaultPDAs.platform[0].toString(),
@@ -125,7 +135,7 @@ export function useVaultBalances(): VaultBalancesResult {
 /**
  * Hook to get individual vault balance
  */
-export function useVaultBalance(vaultType: 'daily' | 'weekly' | 'monthly' | 'platform'): {
+export function useVaultBalance(vaultType: 'daily' | 'weekly' | 'monthly' | 'luckyDraw' | 'platform'): {
   balance: VaultBalance | null
   isLoading: boolean
   error: string | null
@@ -156,6 +166,9 @@ export function useVaultBalance(vaultType: 'daily' | 'weekly' | 'monthly' | 'pla
         case 'monthly':
           vaultPDA = getMonthlyPrizeVaultPDA()[0]
           break
+        case 'luckyDraw':  // NEW
+        vaultPDA = getLuckyDrawVaultPDA()[0]
+        break
         case 'platform':
           vaultPDA = getPlatformVaultPDA()[0]
           break
@@ -213,7 +226,7 @@ export function useTotalPrizePool(): {
   return {
     totalSOL: balances?.totalPrizePool || 0,
     totalLamports: balances 
-      ? balances.daily.balanceLamports + balances.weekly.balanceLamports + balances.monthly.balanceLamports
+      ? balances.daily.balanceLamports + balances.weekly.balanceLamports + balances.monthly.balanceLamports + balances.luckyDraw.balanceLamports
       : 0,
     isLoading,
     error,

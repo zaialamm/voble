@@ -6,7 +6,7 @@ resolution = true
 skip-lint = false
 
 [programs.devnet]
-voble = "AC7J4h1rzxbm7Ey229X2rFxEse4CMJS5CkFpaTEyZMr"
+voble = "B4WnYsj1AoX2dNdgXyzKDEZCjmVqNT8fBc8DPoHn8P2C"
 
 [registry]
 url = "https://api.apr.dev"

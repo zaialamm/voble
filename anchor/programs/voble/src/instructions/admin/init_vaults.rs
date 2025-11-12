@@ -8,7 +8,8 @@ use anchor_lang::prelude::*;
 /// - Weekly prize vault
 /// - Monthly prize vault
 /// - Platform revenue vault
-///
+/// - Lucky draw vault
+
 /// # Arguments
 /// * `ctx` - The context containing all vault accounts and authority
 ///
@@ -31,6 +32,7 @@ pub fn initialize_vaults(ctx: Context<InitializeVaults>) -> Result<()> {
     let weekly_vault_key = ctx.accounts.weekly_prize_vault.key();
     let monthly_vault_key = ctx.accounts.monthly_prize_vault.key();
     let platform_vault_key = ctx.accounts.platform_vault.key();
+    let lucky_draw_vault_key = ctx.accounts.lucky_draw_vault.key();
     let authority_key = ctx.accounts.authority.key();
 
     // Emit event for tracking and confirmation
@@ -39,6 +41,7 @@ pub fn initialize_vaults(ctx: Context<InitializeVaults>) -> Result<()> {
         weekly_vault: weekly_vault_key,
         monthly_vault: monthly_vault_key,
         platform_vault: platform_vault_key,
+        lucky_draw_vault: lucky_draw_vault_key,
         authority: authority_key,
     });
 
@@ -47,6 +50,7 @@ pub fn initialize_vaults(ctx: Context<InitializeVaults>) -> Result<()> {
     msg!("📍 Weekly vault: {}", weekly_vault_key);
     msg!("📍 Monthly vault: {}", monthly_vault_key);
     msg!("📍 Platform vault: {}", platform_vault_key);
+    msg!("📍 Lucky draw vault: {}", lucky_draw_vault_key);
     msg!("👤 Authority: {}", authority_key);
     msg!("✅ Vaults are ready to receive ticket payments");
 

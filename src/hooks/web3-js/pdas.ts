@@ -16,6 +16,7 @@ export const PDA_SEEDS = {
   DAILY_PERIOD: 'daily_period',
   WEEKLY_PERIOD: 'weekly_period',
   MONTHLY_PERIOD: 'monthly_period',
+  LUCKY_DRAW_VAULT: 'lucky_draw_vault',
   WINNER_ENTITLEMENT: 'winner_entitlement',
   DAILY: 'daily',
   WEEKLY: 'weekly',
@@ -100,6 +101,16 @@ export function getPlatformVaultPDA(): [PublicKey, number] {
 }
 
 /**
+ * Derive lucky draw vault PDA
+ */
+export function getLuckyDrawVaultPDA(): [PublicKey, number] {
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from(PDA_SEEDS.LUCKY_DRAW_VAULT, 'utf8')],
+    VOBLE_PROGRAM_ID
+  )
+}
+
+/**
  * Derive leaderboard PDA
  */
 export function getLeaderboardPDA(periodId: string, leaderboardType: 'daily' | 'weekly' | 'monthly'): [PublicKey, number] {
@@ -178,12 +189,14 @@ export function getAllVaultPDAs(): {
   daily: [PublicKey, number]
   weekly: [PublicKey, number]
   monthly: [PublicKey, number]
+  luckyDraw: [PublicKey, number] 
   platform: [PublicKey, number]
 } {
   return {
     daily: getDailyPrizeVaultPDA(),
     weekly: getWeeklyPrizeVaultPDA(),
     monthly: getMonthlyPrizeVaultPDA(),
+    luckyDraw: getLuckyDrawVaultPDA(),
     platform: getPlatformVaultPDA(),
   }
 }

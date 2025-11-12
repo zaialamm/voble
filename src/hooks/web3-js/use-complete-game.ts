@@ -1,9 +1,10 @@
 import { useState } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import { useConnectedStandardWallets } from '@privy-io/react-auth/solana'
 import { PublicKey, sendAndConfirmTransaction} from '@solana/web3.js'
 
 import { vobleProgram } from './program'
-import { handleTransactionError } from './utils'
+import { handleTransactionError} from './utils'
 
 import { useTempKeypair } from '@/hooks/use-temp-keypair'
 import { erConnection } from '@/hooks/mb-er/er-connection'
@@ -28,6 +29,7 @@ export function useCompleteGame() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const tempKeypair = useTempKeypair()
+  const queryClient = useQueryClient()  
 
   const selectedWallet = wallets[0]
 
@@ -83,6 +85,7 @@ export function useCompleteGame() {
         })
       }
 
+      /* 
       const undelegateSession = await vobleProgram.methods
         .undelegateSession()
         .accounts({
@@ -92,19 +95,80 @@ export function useCompleteGame() {
           userProfile: userProfilePDA,
         })
         .transaction()
+      
 
       const signature = await sendAndConfirmTransaction(erConnection, undelegateSession, [tempKeypair],
         { skipPreflight: true, commitment: 'confirmed' }
       );
+      */
 
-      console.log('✅ Session undelegated:', signature)
+      console.log('🔧 [DEBUG] Building commitAndUpdateStats transaction...')
+      console.log('   Period ID:', trimmedPeriodId)
+      console.log('   Payer:', tempKeypair.publicKey.toString())
+      console.log('   Session PDA:', sessionPDA.toString())
+      console.log('   Leaderboard PDA:', leaderboardPDA.toString())
+      console.log('   UserProfile PDA:', userProfilePDA.toString())
+      console.log('   Program ID:', vobleProgram.programId.toString())
+
+      const commitAndUpdateStats = await vobleProgram.methods
+        .commitAndUpdateStats(trimmedPeriodId)  // Pass periodId as argument
+        .accounts({
+          payer: tempKeypair.publicKey,
+          player: signerPublicKey,
+          session: sessionPDA,
+          leaderboard: leaderboardPDA,
+          userProfile: userProfilePDA,
+          programId: vobleProgram.programId,  // Add this
+        })
+        .transaction()
+
+      console.log('📦 [DEBUG] Transaction built successfully')
+      console.log('   Instructions:', commitAndUpdateStats.instructions.length)
+      console.log('   Accounts in first instruction:', commitAndUpdateStats.instructions[0]?.keys.length)
+
+      // Log all accounts being passed
+      commitAndUpdateStats.instructions[0]?.keys.forEach((key, idx) => {
+        console.log(`   Account ${idx}:`, key.pubkey.toString(), 
+          `(writable: ${key.isWritable}, signer: ${key.isSigner})`)
+      })
+
+      console.log('📤 [DEBUG] Sending transaction to ER...')
+
+      const signature = await sendAndConfirmTransaction(erConnection, commitAndUpdateStats, [tempKeypair],
+        { skipPreflight: true, commitment: 'confirmed' }
+      );
+
+      console.log('✅ Commit and update stats:', signature)
+
+      // Add this - Undelegate session after stats are updated
+      console.log('🔄 [DEBUG] Undelegating session...')
+
+      const undelegateSession = await vobleProgram.methods
+        .undelegateSession()
+        .accounts({
+          payer: tempKeypair.publicKey,
+          player: signerPublicKey, 
+          session: sessionPDA,
+        })
+        .transaction()
+
+      const undelegateSignature = await sendAndConfirmTransaction(erConnection, undelegateSession, [tempKeypair],
+        { skipPreflight: true, commitment: 'confirmed' }
+      );
+
+      console.log('✅ Session undelegated:', undelegateSignature)
+
+      // Invalidate profile cache to refresh stats
+      await queryClient.invalidateQueries({ 
+        queryKey: ['userProfile', selectedWallet.address] 
+      })
 
       if (!signature) {
         throw new Error('Transaction failed')
       }
 
       if (process.env.NODE_ENV === 'development') {
-        console.log('✅ [useCompleteGame] Session undelegated successfully:', signature)
+        console.log('✅ [useCompleteGame] Commit and update stats successfully:', signature)
         console.log('   Leaderboard and profile will be updated automatically')
       }
 

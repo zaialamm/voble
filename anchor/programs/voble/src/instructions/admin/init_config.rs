@@ -30,6 +30,7 @@ pub fn initialize_global_config(
     prize_split_weekly: u16,
     prize_split_monthly: u16,
     platform_revenue_split: u16,
+    lucky_draw_split: u16,
     winner_splits: Vec<u16>,
 ) -> Result<()> {
     // ========== VALIDATION: Ticket Price ==========
@@ -46,7 +47,8 @@ pub fn initialize_global_config(
     let total_splits = prize_split_daily as u32
         + prize_split_weekly as u32
         + prize_split_monthly as u32
-        + platform_revenue_split as u32;
+        + platform_revenue_split as u32
+        + lucky_draw_split as u32;
 
     require!(
         total_splits == BASIS_POINTS_TOTAL as u32,
@@ -54,11 +56,12 @@ pub fn initialize_global_config(
     );
 
     msg!(
-        "✅ Prize splits validated: daily={}, weekly={}, monthly={}, platform={}, total={}",
+        "✅ Prize splits validated: daily={}, weekly={}, monthly={}, platform={}, lucky_draw={}, total={}",
         prize_split_daily,
         prize_split_weekly,
         prize_split_monthly,
         platform_revenue_split,
+        lucky_draw_split,
         total_splits
     );
 
@@ -93,6 +96,7 @@ pub fn initialize_global_config(
     config.prize_split_weekly = prize_split_weekly;
     config.prize_split_monthly = prize_split_monthly;
     config.platform_revenue_split = platform_revenue_split;
+    config.lucky_draw_split = lucky_draw_split;
     config.winner_splits = winner_splits;
     config.paused = false;
 

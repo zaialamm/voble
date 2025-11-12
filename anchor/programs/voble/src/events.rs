@@ -15,6 +15,7 @@ pub struct TicketPurchased {
     pub weekly_amount: u64,
     pub monthly_amount: u64,
     pub platform_amount: u64,
+    pub lucky_draw_amount: u64, 
 }
 
 #[event]
@@ -67,6 +68,7 @@ pub struct VaultsInitialized {
     pub weekly_vault: Pubkey,
     pub monthly_vault: Pubkey,
     pub platform_vault: Pubkey,
+    pub lucky_draw_vault: Pubkey,
     pub authority: Pubkey,
 }
 

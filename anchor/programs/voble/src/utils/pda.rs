@@ -55,6 +55,11 @@ pub fn derive_platform_vault_pda(program_id: &Pubkey) -> (Pubkey, u8) {
     Pubkey::find_program_address(&[SEED_PLATFORM_VAULT], program_id)
 }
 
+/// Derive the lucky draw vault PDA
+pub fn derive_lucky_draw_vault_pda(program_id: &Pubkey) -> (Pubkey, u8) {
+    Pubkey::find_program_address(&[SEED_LUCKY_DRAW_VAULT], program_id)
+}
+
 /// Derive vault PDA based on period type
 ///
 /// # Arguments

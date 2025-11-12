@@ -7,14 +7,8 @@ const nextConfig: NextConfig = {
   },
   // Suppress turbopack warnings for missing optional dependencies
   experimental: {
-    turbo: {
-      resolveAlias: {
-        // Suppress viem internal module resolution issues
-        'viem/_cjs': 'viem',
-        'viem/_esm': 'viem',
-      },
-    },
+    turbopackFileSystemCacheForDev: true,
   },
-}
+};
 
 export default nextConfig

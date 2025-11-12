@@ -4,7 +4,8 @@
   "description": "Voble test",
   "scripts": {
     "test": "anchor test",
-    "test:unit": "mocha -t 1000000 tests/**/*.test.ts"
+    "test:unit": "mocha -t 1000000 tests/**/*.test.ts",
+    "initialize": "ts-node scripts/initialize-program.ts"
   },
   "dependencies": {
     "@codama/nodes-from-anchor": "^1.2.9",

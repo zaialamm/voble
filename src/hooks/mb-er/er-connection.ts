@@ -6,9 +6,5 @@ import { ConnectionMagicRouter } from '@magicblock-labs/ephemeral-rollups-sdk'
  */
 export const erConnection = new ConnectionMagicRouter(
   "https://devnet-router.magicblock.app",
-  { 
-    wsEndpoint: "wss://devnet-router.magicblock.app",
-    commitment: 'confirmed'
-  }
-  
-)
+  { wsEndpoint: "wss://devnet-router.magicblock.app" }
+);

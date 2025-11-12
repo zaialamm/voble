@@ -27,7 +27,7 @@ use instructions::prize;
 use instructions::profile;
 
 
-declare_id!("AC7J4h1rzxbm7Ey229X2rFxEse4CMJS5CkFpaTEyZMr");
+declare_id!("B4WnYsj1AoX2dNdgXyzKDEZCjmVqNT8fBc8DPoHn8P2C");
 
 #[ephemeral]
 #[program]
@@ -43,6 +43,7 @@ pub mod voble {
         prize_split_weekly: u16,
         prize_split_monthly: u16,
         platform_revenue_split: u16,
+        lucky_draw_split: u16,
         winner_splits: Vec<u16>,
     ) -> Result<()> {
         admin::initialize_global_config(
@@ -52,6 +53,7 @@ pub mod voble {
             prize_split_weekly,
             prize_split_monthly,
             platform_revenue_split,
+            lucky_draw_split,
             winner_splits,
         )
     }

@@ -33,7 +33,6 @@ async function main() {
   anchor.setProvider(provider);
 
   // Load IDL and create program
-  const programId = new anchor.web3.PublicKey("AC7J4h1rzxbm7Ey229X2rFxEse4CMJS5CkFpaTEyZMr");
   const idl = JSON.parse(fs.readFileSync("./target/idl/idl.json", "utf-8"));
   const program = new Program(idl, provider);
   const authority = provider.wallet.publicKey;
@@ -62,10 +61,11 @@ async function main() {
     } else {
       // Initialize with default values
       const ticketPrice = new anchor.BN(1_000_000); // 0.001 SOL (1 million lamports)
-      const prizeSplitDaily = 3000;    // 30%
-      const prizeSplitWeekly = 2500;   // 25%
+      const prizeSplitDaily = 4000;    // 40%
+      const prizeSplitWeekly = 3000;   // 30%
       const prizeSplitMonthly = 2000;  // 20%
-      const platformRevenueSplit = 2500; // 25%
+      const platformRevenueSplit = 700; // 7%
+      const luckyDrawSplit = 300; // 3%
       const winnerSplits = [5000, 3000, 2000]; // 50%, 30%, 20% for top 3 winners
 
       const tx = await program.methods
@@ -75,6 +75,7 @@ async function main() {
           prizeSplitWeekly,
           prizeSplitMonthly,
           platformRevenueSplit,
+          luckyDrawSplit,
           winnerSplits
         )
         .accounts({
@@ -117,6 +118,11 @@ async function main() {
     program.programId
   );
 
+  const [luckyDrawVaultPda] = anchor.web3.PublicKey.findProgramAddressSync(
+    [Buffer.from("lucky_draw_vault")],
+    program.programId
+  );
+
   try {
     // Check if vaults already exist by checking account info
     const dailyVaultInfo = await provider.connection.getAccountInfo(dailyVaultPda);
@@ -127,6 +133,7 @@ async function main() {
       console.log("   Weekly Vault:", weeklyVaultPda.toString());
       console.log("   Monthly Vault:", monthlyVaultPda.toString());
       console.log("   Platform Vault:", platformVaultPda.toString());
+      console.log("   Lucky Draw Vault:", luckyDrawVaultPda.toString());
     } else {
       const tx = await program.methods
         .initializeVaults()
@@ -141,6 +148,7 @@ async function main() {
       console.log("   Weekly Vault:", weeklyVaultPda.toString());
       console.log("   Monthly Vault:", monthlyVaultPda.toString());
       console.log("   Platform Vault:", platformVaultPda.toString());
+      console.log("   Lucky Draw Vault:", luckyDrawVaultPda.toString());
     }
   } catch (error) {
     console.error("❌ Error initializing vaults:", error);
@@ -156,7 +164,8 @@ async function main() {
   console.log("   Daily Vault:", dailyVaultPda.toString());
   console.log("   Weekly Vault:", weeklyVaultPda.toString());
   console.log("   Monthly Vault:", monthlyVaultPda.toString());
-  console.log("   Platform Vault:", platformVaultPda.toString());
+  console.log("   Platform Vault:", platformVaultPda.toString()); 
+  console.log("   Lucky Draw Vault:", luckyDrawVaultPda.toString());
   console.log("");
   console.log("✅ Users can now create profiles and play games!");
 }

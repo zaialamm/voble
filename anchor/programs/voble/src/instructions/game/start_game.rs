@@ -93,27 +93,31 @@ pub fn buy_ticket_and_start_game(
     msg!("💰 Processing ticket payment: {} lamports", ticket_price);
 
     // Calculate prize distribution splits (basis points -> lamports)
-    let daily_amount = (ticket_price * config.prize_split_daily as u64) / BASIS_POINTS_TOTAL as u64;
+    let daily_amount = 
+        (ticket_price * config.prize_split_daily as u64) / BASIS_POINTS_TOTAL as u64;
     let weekly_amount =
         (ticket_price * config.prize_split_weekly as u64) / BASIS_POINTS_TOTAL as u64;
     let monthly_amount =
         (ticket_price * config.prize_split_monthly as u64) / BASIS_POINTS_TOTAL as u64;
     let platform_amount =
         (ticket_price * config.platform_revenue_split as u64) / BASIS_POINTS_TOTAL as u64;
+    let lucky_draw_amount =
+        (ticket_price * config.lucky_draw_split as u64) / BASIS_POINTS_TOTAL as u64;
 
     // CRITICAL: Validate splits add up exactly to ticket price (prevent lamport loss)
-    let total_distributed = daily_amount + weekly_amount + monthly_amount + platform_amount;
+    let total_distributed = daily_amount + weekly_amount + monthly_amount + platform_amount + lucky_draw_amount;
     require!(
         total_distributed == ticket_price,
         VobleError::InvalidPrizeSplits
     );
 
     msg!(
-        "   Distribution: daily={}, weekly={}, monthly={}, platform={}",
+        "   Distribution: daily={}, weekly={}, monthly={}, platform={}, lucky_draw={}",
         daily_amount,
         weekly_amount,
         monthly_amount,
-        platform_amount
+        platform_amount,
+        lucky_draw_amount
     );
 
     // Transfer to daily prize vault
@@ -162,6 +166,18 @@ pub fn buy_ticket_and_start_game(
             },
         ),
         platform_amount,
+    )?;
+
+    // Transfer to lucky draw vault
+    system_program::transfer(
+        CpiContext::new(
+            ctx.accounts.system_program.to_account_info(),
+            system_program::Transfer {
+                from: ctx.accounts.payer.to_account_info(),
+                to: ctx.accounts.lucky_draw_vault.to_account_info(),
+            },
+        ),
+        lucky_draw_amount,
     )?;
 
     msg!("✅ Payment distributed to all vaults");
@@ -226,6 +242,7 @@ pub fn buy_ticket_and_start_game(
         weekly_amount,
         monthly_amount,
         platform_amount,
+        lucky_draw_amount, 
     });
 
     emit!(VobleGameStarted {
@@ -323,7 +340,7 @@ pub fn commit_and_update_stats(ctx: Context<CommitAndUpdateStats>, _period_id: S
         ],
     };
 
-    MagicInstructionBuilder {
+    let magic_builder = MagicInstructionBuilder {
         payer: ctx.accounts.payer.to_account_info(),
         magic_context: ctx.accounts.magic_context.to_account_info(),
         magic_program: ctx.accounts.magic_program.to_account_info(),
@@ -331,7 +348,9 @@ pub fn commit_and_update_stats(ctx: Context<CommitAndUpdateStats>, _period_id: S
             commited_accounts: vec![ctx.accounts.session.to_account_info()],
             call_handlers: vec![call_handler],
         }),
-    }.build_and_invoke()?;
+    };
+
+    magic_builder.build_and_invoke()?;
 
     msg!("✅ Session committed - handler will update leaderboard automatically");
     
