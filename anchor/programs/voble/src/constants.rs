@@ -31,17 +31,17 @@ pub const SEED_LUCKY_DRAW_VAULT: &[u8] = b"lucky_draw_vault";
 
 // ============ PERIOD CONFIGURATION ============
 
-/// Daily period duration (7 minutes for testing)
-pub const PERIOD_DAILY_DURATION: i64 = 7 * 60; // seconds
+/// Daily period duration (24 hours)
+pub const PERIOD_DAILY_DURATION: i64 = 24 * 60 * 60; // seconds
 
-/// Weekly period duration (12 minutes for testing)
-pub const PERIOD_WEEKLY_DURATION: i64 = 12 * 60; // seconds
+/// Weekly period duration (7 days)
+pub const PERIOD_WEEKLY_DURATION: i64 = 7 * 24 * 60 * 60; // seconds
 
-/// Monthly period duration (15 minutes for testing)
-pub const PERIOD_MONTHLY_DURATION: i64 = 15 * 60; // seconds
+/// Monthly period duration (30 days)
+pub const PERIOD_MONTHLY_DURATION: i64 = 30 * 24 * 60 * 60; // seconds
 
-/// Epoch start timestamp (adjust for deployment)
-pub const PERIOD_EPOCH_START: i64 = 1700000000; // November 14, 2023
+/// Epoch start timestamp (2024-01-01 00:00:00 UTC+8)
+pub const PERIOD_EPOCH_START: i64 = 1704038400; // January 1, 2024 00:00:00 UTC+8
 
 // ============ GAME CONFIGURATION ============
 

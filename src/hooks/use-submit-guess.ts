@@ -1,7 +1,7 @@
 import { useConnectedStandardWallets } from '@privy-io/react-auth/solana'
 import { PublicKey, sendAndConfirmTransaction } from '@solana/web3.js'
 import { erConnection } from '@/hooks/mb-er/er-connection'
-import { vobleProgram} from './program'
+import { vobleProgram } from './program'
 import { getSessionPDA } from './pdas'
 import { useTempKeypair } from '@/hooks/use-temp-keypair'
 
@@ -15,7 +15,7 @@ export function useSubmitGuess() {
   const { wallets } = useConnectedStandardWallets()
   const selectedWallet = wallets[0]
   const tempKeypair = useTempKeypair()
-  
+
 
   const submitGuess = async (periodId: string, guess: string): Promise<SubmitGuessResult> => {
     try {
@@ -51,9 +51,9 @@ export function useSubmitGuess() {
           session: sessionPDA,
         })
         .transaction()
-      
+
       // get signature
-      const signature  = await sendAndConfirmTransaction(erConnection, submitGuess, [tempKeypair],
+      const signature = await sendAndConfirmTransaction(erConnection, submitGuess, [tempKeypair],
         { skipPreflight: true, commitment: 'confirmed' }
       );
 

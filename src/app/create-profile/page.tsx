@@ -10,14 +10,14 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { User, Loader2, CheckCircle, AlertCircle } from 'lucide-react'
 import { usePrivy } from '@privy-io/react-auth'
 import { useConnectedStandardWallets } from '@privy-io/react-auth/solana'
-import { useInitializeProfile } from '@/hooks/web3-js'
+import { useInitializeProfile } from '@/hooks'
 
 export default function CreateProfilePage() {
   const router = useRouter()
   const { ready, authenticated, login } = usePrivy()
   const { wallets } = useConnectedStandardWallets()
   const { initializeProfile, isLoading, error } = useInitializeProfile()
-  
+
   const [username, setUsername] = useState('')
   const [validationError, setValidationError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
@@ -75,11 +75,11 @@ export default function CreateProfilePage() {
     if (result.success) {
 
       setSuccess(true)
-      
+
       // Wait a bit longer to ensure blockchain state is updated
       setTimeout(() => {
         router.push('/profile')
-      }, 3000) 
+      }, 3000)
     } else {
       console.error('❌ [CreateProfile] Profile creation failed:', result.error)
     }

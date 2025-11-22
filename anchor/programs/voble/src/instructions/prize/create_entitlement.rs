@@ -1,9 +1,6 @@
 use crate::{constants::*, contexts::*, errors::VobleError, state::*};
 use anchor_lang::prelude::*;
 
-// Import helper module
-use super::distribution;
-
 /// Create a winner entitlement for a specific period
 ///
 /// This instruction creates a WinnerEntitlement account that grants a winner

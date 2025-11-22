@@ -1,18 +1,19 @@
 import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useConnectedStandardWallets } from '@privy-io/react-auth/solana'
-import { PublicKey, sendAndConfirmTransaction} from '@solana/web3.js'
+import { PublicKey, sendAndConfirmTransaction } from '@solana/web3.js'
 
 import { vobleProgram } from './program'
-import { handleTransactionError} from './utils'
+import { handleTransactionError } from './utils'
 
 import { useTempKeypair } from '@/hooks/use-temp-keypair'
 import { erConnection } from '@/hooks/mb-er/er-connection'
 
-import { 
+import {
   getSessionPDA,
   getUserProfilePDA,
   getLeaderboardPDA,
+  getCurrentPeriodIds,
 } from './pdas'
 
 export interface CompleteGameResult {
@@ -29,7 +30,7 @@ export function useCompleteGame() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const tempKeypair = useTempKeypair()
-  const queryClient = useQueryClient()  
+  const queryClient = useQueryClient()
 
   const selectedWallet = wallets[0]
 
@@ -59,6 +60,7 @@ export function useCompleteGame() {
 
       const signerPublicKey = new PublicKey(selectedWallet.address)
       const trimmedPeriodId = periodId.trim()
+      const { daily, weekly, monthly } = getCurrentPeriodIds()
 
       // Use temp keypair as payer for gasless ER transaction
       if (!tempKeypair) {
@@ -75,48 +77,39 @@ export function useCompleteGame() {
       // Derive all PDAs
       const [sessionPDA] = getSessionPDA(signerPublicKey)
       const [userProfilePDA] = getUserProfilePDA(signerPublicKey)
-      const [leaderboardPDA] = getLeaderboardPDA(trimmedPeriodId, 'daily')
+      const [dailyLeaderboardPDA] = getLeaderboardPDA(daily, 'daily')
+      const [weeklyLeaderboardPDA] = getLeaderboardPDA(weekly, 'weekly')
+      const [monthlyLeaderboardPDA] = getLeaderboardPDA(monthly, 'monthly')
 
       if (process.env.NODE_ENV === 'development') {
         console.log('🔑 [useCompleteGame] PDAs:', {
           session: sessionPDA.toString(),
           profile: userProfilePDA.toString(),
-          leaderboard: leaderboardPDA.toString(),
+          leaderboard: dailyLeaderboardPDA.toString(),
         })
       }
 
-      /* 
-      const undelegateSession = await vobleProgram.methods
-        .undelegateSession()
-        .accounts({
-          payer: tempKeypair.publicKey,
-          session: sessionPDA,
-          leaderboard: leaderboardPDA,
-          userProfile: userProfilePDA,
-        })
-        .transaction()
-      
-
-      const signature = await sendAndConfirmTransaction(erConnection, undelegateSession, [tempKeypair],
-        { skipPreflight: true, commitment: 'confirmed' }
-      );
-      */
-
       console.log('🔧 [DEBUG] Building commitAndUpdateStats transaction...')
-      console.log('   Period ID:', trimmedPeriodId)
+      console.log('   Period IDs:', { daily, weekly, monthly })
       console.log('   Payer:', tempKeypair.publicKey.toString())
       console.log('   Session PDA:', sessionPDA.toString())
-      console.log('   Leaderboard PDA:', leaderboardPDA.toString())
+      console.log('   Leaderboard PDAs:', {
+        daily: dailyLeaderboardPDA.toString(),
+        weekly: weeklyLeaderboardPDA.toString(),
+        monthly: monthlyLeaderboardPDA.toString(),
+      })
       console.log('   UserProfile PDA:', userProfilePDA.toString())
       console.log('   Program ID:', vobleProgram.programId.toString())
 
       const commitAndUpdateStats = await vobleProgram.methods
-        .commitAndUpdateStats(trimmedPeriodId)  // Pass periodId as argument
+        .commitAndUpdateStats(daily, weekly, monthly)
         .accounts({
           payer: tempKeypair.publicKey,
           player: signerPublicKey,
           session: sessionPDA,
-          leaderboard: leaderboardPDA,
+          dailyLeaderboard: dailyLeaderboardPDA,
+          weeklyLeaderboard: weeklyLeaderboardPDA,
+          monthlyLeaderboard: monthlyLeaderboardPDA,
           userProfile: userProfilePDA,
           programId: vobleProgram.programId,  // Add this
         })
@@ -128,7 +121,7 @@ export function useCompleteGame() {
 
       // Log all accounts being passed
       commitAndUpdateStats.instructions[0]?.keys.forEach((key, idx) => {
-        console.log(`   Account ${idx}:`, key.pubkey.toString(), 
+        console.log(`   Account ${idx}:`, key.pubkey.toString(),
           `(writable: ${key.isWritable}, signer: ${key.isSigner})`)
       })
 
@@ -140,6 +133,7 @@ export function useCompleteGame() {
 
       console.log('✅ Commit and update stats:', signature)
 
+      /*
       // Add this - Undelegate session after stats are updated
       console.log('🔄 [DEBUG] Undelegating session...')
 
@@ -147,7 +141,7 @@ export function useCompleteGame() {
         .undelegateSession()
         .accounts({
           payer: tempKeypair.publicKey,
-          player: signerPublicKey, 
+          player: signerPublicKey,
           session: sessionPDA,
         })
         .transaction()
@@ -157,10 +151,11 @@ export function useCompleteGame() {
       );
 
       console.log('✅ Session undelegated:', undelegateSignature)
+      */
 
       // Invalidate profile cache to refresh stats
-      await queryClient.invalidateQueries({ 
-        queryKey: ['userProfile', selectedWallet.address] 
+      await queryClient.invalidateQueries({
+        queryKey: ['userProfile', selectedWallet.address]
       })
 
       if (!signature) {
@@ -180,9 +175,9 @@ export function useCompleteGame() {
       }
     } catch (err: any) {
       console.error('❌ [useCompleteGame] Error completing game:', err)
-      
+
       let errorMessage = handleTransactionError(err)
-      
+
       // Check for specific game completion errors
       if (err?.message?.includes('User rejected')) {
         errorMessage = 'Transaction was rejected'
@@ -195,7 +190,7 @@ export function useCompleteGame() {
       } else if (err?.message?.includes('no guesses submitted')) {
         errorMessage = 'You must submit at least one guess before completing the game'
       }
-      
+
       setError(errorMessage)
       setIsLoading(false)
       return {

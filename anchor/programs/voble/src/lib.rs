@@ -1,10 +1,6 @@
 use anchor_lang::prelude::*;
-use anchor_lang::InstructionData;
+use anchor_lang::{Discriminator};
 use ephemeral_rollups_sdk::anchor::ephemeral;
-
-use ephemeral_rollups_sdk::ephem::{MagicInstructionBuilder, MagicAction, CallHandler, CommitType};
-use ephemeral_rollups_sdk::{ActionArgs, ShortAccountMeta};
-use anchor_lang::Discriminator;
 
 pub mod constants;
 pub mod contexts;
@@ -181,6 +177,11 @@ pub mod voble {
         game::record_keystroke(ctx, key)
     }
 
+    /// Reset session state after commit, before undelegation
+    pub fn reset_session(ctx: Context<RecordKeystroke>) -> Result<()> {
+        game::reset_session(ctx)
+    }
+
     pub fn submit_guess(ctx: Context<SubmitGuess>, period_id: String, guess: String) -> Result<()> {
         game::submit_guess(ctx, period_id, guess)
     }
@@ -194,8 +195,13 @@ pub mod voble {
         game::undelegate_session(ctx)
     }
 
-    pub fn commit_and_update_stats(ctx: Context<CommitAndUpdateStats>, period_id: String) -> Result<()> {
-        game::commit_and_update_stats(ctx, period_id)
+    pub fn commit_and_update_stats(
+        ctx: Context<CommitAndUpdateStats>,
+        daily_period_id: String,
+        weekly_period_id: String,
+        monthly_period_id: String,
+    ) -> Result<()> {
+        game::commit_and_update_stats(ctx, daily_period_id, weekly_period_id, monthly_period_id)
     }
 
 

@@ -16,6 +16,7 @@ export { useBuyTicket } from './use-buy-ticket'
 export { useSubmitGuess } from './use-submit-guess'
 export { useCompleteGame } from './use-complete-game'
 export { useRecordKeystroke } from './use-record-keystroke'
+export { useClaimPrize } from './use-claim-prize'
 
 // Data fetching hooks (read operations)
 export { useFetchSession } from './use-fetch-session'
@@ -29,6 +30,7 @@ export {
   useVaultBalance, 
   useTotalPrizePool 
 } from './use-vault-balances'
+export { useLeaderboard } from './use-leaderboard'
 
 // Re-export types for convenience
 export type { 
@@ -66,6 +68,12 @@ export type {
   VaultBalances,
   VaultBalancesResult
 } from './use-vault-balances'
+
+export type {
+  ClaimPrizeResult,
+  PrizePeriodType,
+  PrizeEntitlementInfo,
+} from './use-claim-prize'
 
 export type {
   RecordKeystrokeResult
