@@ -25,6 +25,7 @@ import {
   useUserProfile,
   SessionData
 } from '@/hooks'
+import { getCurrentDayPeriodId } from '@/hooks/pdas'
 import { useLeaderboard } from '@/hooks/use-leaderboard'
 import { useInitializeSession } from '@/hooks/use-initialize-session'
 import { PrizeVaultsDisplay } from '@/components/prize-vaults-display'
@@ -92,7 +93,7 @@ export default function GamePage() {
   }, [ready, authenticated]) // Only log when these change - intentionally limited deps for debug logging
 
   // Generate period ID (daily format: YYYY-MM-DD)
-  const periodId = new Date().toISOString().split('T')[0]
+  const periodId = getCurrentDayPeriodId()
 
   const { buyTicket, isLoading: isBuyingTicket, error: buyTicketError } = useBuyTicket()
   const { recordKeystroke } = useRecordKeystroke()

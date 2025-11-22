@@ -111,32 +111,10 @@ export function useFetchSession(periodId: string): FetchSessionResult {
             })
           }
 
-          if (source === 'er') {
-            try {
-              const baseSession = await (vobleProgram.account as any).sessionAccount.fetch(sessionPDA)
-              if (process.env.NODE_ENV === 'development') {
-                console.log('✅ [useFetchSession] Session fetched from Base Layer after mismatch:', {
-                  periodId: baseSession.periodId,
-                })
-              }
-              if (baseSession.periodId === trimmedPeriodId) {
-                sessionAccount = baseSession
-                source = 'base'
-              } else {
-                if (process.env.NODE_ENV === 'development') {
-                  console.log('ℹ️ [useFetchSession] Base layer still reflects previous period; reusing existing session account')
-                }
-              }
-            } catch (baseErr: any) {
-              if (baseErr.message?.includes('Account does not exist')) {
-                if (process.env.NODE_ENV === 'development') {
-                  console.log('ℹ️ [useFetchSession] No session account found on base layer; keeping ER session data')
-                }
-              } else {
-                throw baseErr
-              }
-            }
-          }
+          // Logic change: We DO NOT try to fetch from base layer just because of mismatch.
+          // The session account is persistent. If it's on ER, it's the latest state.
+          // If the period ID is old, it just means the user hasn't played in the new period yet.
+          // We return the session data anyway, and let the frontend handle it via `isCurrentPeriod`.
         }
 
         if (!sessionAccount) {
