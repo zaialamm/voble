@@ -59,7 +59,7 @@ const KEYBOARD_ROWS = [
   ['ENTER', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'BACKSPACE']
 ]
 
-const ticketPrice = 0.001
+const ticketPrice = 1
 
 export default function GamePage() {
   const router = useRouter()
@@ -439,21 +439,16 @@ export default function GamePage() {
   }
 
   const handleBuyTicket = async () => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('🎫 [handleBuyTicket] Starting ticket purchase...')
-    }
 
     try {
 
-      // Buy ticket AND delegate in ONE transaction!
-      console.log('🎫 Step 1: Buying ticket and delegating session...')
       const result = await buyTicket(periodId)
 
       if (!result.success) {
         throw new Error(result.error || 'Failed to buy ticket')
       }
 
-      console.log('✅ Ticket purchased and session delegated!')
+      console.log('✅ Ticket purchased!')
 
       // Wait for ER to sync the account
       console.log('⏳ Syncing account to ER...')
@@ -724,7 +719,7 @@ export default function GamePage() {
                     disabled={isBuyingTicket}
                     className="w-full"
                   >
-                    {isBuyingTicket ? 'Buying Ticket...' : `Buy Ticket (${ticketPrice} SOL)`}
+                    {isBuyingTicket ? 'Buying Ticket...' : `Buy Ticket (${ticketPrice} USDC)`}
                   </Button>
                 </CardContent>
               </Card>
@@ -745,7 +740,7 @@ export default function GamePage() {
                       {/* Original Buy Ticket Button */}
                       <div className="w-full space-y-3">
                         <p className="text-sm text-slate-600 dark:text-slate-400">
-                          Ticket Price: <span className="font-bold text-blue-600 dark:text-blue-400">0.001 SOL</span>
+                          Ticket Price: <span className="font-bold text-blue-600 dark:text-blue-400">1 USDC</span>
                         </p>
                         <Button
                           onClick={handleBuyTicket}

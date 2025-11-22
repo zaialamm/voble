@@ -97,7 +97,7 @@ export function useLuckyDrawData(): LuckyDrawData {
     const nextDrawIn = calculateNextDrawIn()
 
     // Derived Stats
-    const ticketPrice = 0.001 // Fixed constant
+    const ticketPrice = 1 // Fixed constant (1 USDC)
     const allocationPercentage = 3 // Fixed constant
 
     // Estimate tickets sold based on revenue (if we had revenue data)

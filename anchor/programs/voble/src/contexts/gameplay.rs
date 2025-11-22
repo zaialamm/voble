@@ -1,10 +1,6 @@
 use anchor_lang::prelude::*;
 use anchor_spl::associated_token::AssociatedToken; 
-use anchor_spl::token_interface::
-{
-    self, Mint, TokenAccount, 
-    TokenInterface, TransferChecked
-};
+use anchor_spl::token_interface::{ self, Mint, TokenAccount, TokenInterface };
 
 use crate::constants::*;
 use crate::state::*;
@@ -17,72 +13,80 @@ pub struct BuyTicketAndStartGame<'info> {
     #[account(mut)]
     pub payer: Signer<'info>,
 
-    #[account(
-        seeds = [SEED_USER_PROFILE, payer.key().as_ref()],
-        bump
-    )]
-    pub user_profile: Account<'info, UserProfile>,
+    pub mint: InterfaceAccount<'info, Mint>,
+
+
     
     #[account(
         mut,
-        seeds = [SEED_SESSION, payer.key().as_ref()],
+        seeds = [SEED_USER_PROFILE, payer.key().as_ref()],
         bump
     )]
-    pub session: Account<'info, SessionAccount>,
+    pub user_profile: Box<Account<'info, UserProfile>>,
     
     #[account(
         seeds = [SEED_GLOBAL_CONFIG],
         bump
     )]
-    pub global_config: Account<'info, GlobalConfig>,
+    pub global_config: Box<Account<'info, GlobalConfig>>,
     
     // Prize vaults for payment distribution
     #[account(
         mut,
         seeds = [SEED_DAILY_PRIZE_VAULT],
-        bump
+        bump,
+        token::mint = global_config.usdc_mint,
+        token::authority = daily_prize_vault,
     )]
-
-    /// CHECK: Daily prize vault PDA
-    pub daily_prize_vault: AccountInfo<'info>,
+    pub daily_prize_vault: Box<InterfaceAccount<'info, TokenAccount>>,
 
     #[account(
         mut,
         seeds = [SEED_WEEKLY_PRIZE_VAULT],
-        bump
+        bump,
+        token::mint = global_config.usdc_mint,
+        token::authority = weekly_prize_vault,
     )]
-
-    /// CHECK: Weekly prize vault PDA
-    pub weekly_prize_vault: AccountInfo<'info>,
+    pub weekly_prize_vault: Box<InterfaceAccount<'info, TokenAccount>>,
 
     #[account(
         mut,
         seeds = [SEED_MONTHLY_PRIZE_VAULT],
-        bump
+        bump,
+        token::mint = global_config.usdc_mint,
+        token::authority = monthly_prize_vault,
     )]
-
-    /// CHECK: Monthly prize vault PDA
-    pub monthly_prize_vault: AccountInfo<'info>,
+    pub monthly_prize_vault: Box<InterfaceAccount<'info, TokenAccount>>,
 
     #[account(
         mut,
         seeds = [SEED_PLATFORM_VAULT],
-        bump
+        bump,
+        token::mint = global_config.usdc_mint,
+        token::authority = platform_vault,
     )]
-
-    /// CHECK: Platform revenue vault PDA
-    pub platform_vault: AccountInfo<'info>,
+    pub platform_vault: Box<InterfaceAccount<'info, TokenAccount>>,
 
     #[account(
         mut,
         seeds = [SEED_LUCKY_DRAW_VAULT],
-        bump
+        bump,
+        token::mint = global_config.usdc_mint,
+        token::authority = lucky_draw_vault,
     )]
-
-    /// CHECK: Lucky draw vault PDA
-    pub lucky_draw_vault: AccountInfo<'info>,
+    pub lucky_draw_vault: Box<InterfaceAccount<'info, TokenAccount>>,
     
+    #[account(
+        mut,
+        associated_token::mint = global_config.usdc_mint,
+        associated_token::authority = payer,
+        associated_token::token_program = token_program
+    )]
+    pub payer_token_account: Box<InterfaceAccount<'info, TokenAccount>>,
+
     pub system_program: Program<'info, System>,
+    pub token_program: Interface<'info, TokenInterface>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
     
 }
 
@@ -164,6 +168,19 @@ pub struct DelegateSession<'info> {
 pub struct RecordKeystroke<'info> {
     #[account(mut)]
     pub session: Account<'info, SessionAccount>,
+}
+
+#[derive(Accounts)]
+#[instruction(period_id: String)]
+pub struct ResetSession<'info> {
+    #[account(mut)]
+    pub session: Account<'info, SessionAccount>,
+    
+    #[account(
+        seeds = [SEED_USER_PROFILE, session.player.as_ref()],
+        bump
+    )]
+    pub user_profile: Account<'info, UserProfile>,
 }
 
 /// Context for undelegating session from ER

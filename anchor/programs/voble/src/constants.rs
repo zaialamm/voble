@@ -29,6 +29,9 @@ pub const SEED_MONTHLY_PRIZE_VAULT: &[u8] = b"monthly_prize_vault";
 pub const SEED_PLATFORM_VAULT: &[u8] = b"platform_vault";
 pub const SEED_LUCKY_DRAW_VAULT: &[u8] = b"lucky_draw_vault";
 
+/// Ticket receipt account seed
+pub const SEED_TICKET_RECEIPT: &[u8] = b"ticket_receipt";
+
 // ============ PERIOD CONFIGURATION ============
 
 /// Daily period duration (24 hours)

@@ -1,6 +1,6 @@
 use crate::{constants::*, contexts::*, errors::VobleError, events::*};
 use anchor_lang::prelude::*;
-use anchor_lang::system_program;
+use anchor_spl::token_interface::{TransferChecked, transfer_checked};
 use ephemeral_rollups_sdk::cpi::DelegateConfig;
 use ephemeral_rollups_sdk::ephem::commit_and_undelegate_accounts;
 use ephemeral_rollups_sdk::ephem::{MagicInstructionBuilder, MagicAction, CallHandler, CommitType};
@@ -90,6 +90,7 @@ pub fn buy_ticket_and_start_game(
 
     // ========== PAYMENT PROCESSING ==========
     let ticket_price = config.ticket_price;
+    let decimals = ctx.accounts.mint.decimals;
 
     msg!("💰 Processing ticket payment: {} USDC ", ticket_price);
 
@@ -121,64 +122,80 @@ pub fn buy_ticket_and_start_game(
         lucky_draw_amount
     );
 
+
     // Transfer to daily prize vault
-    system_program::transfer(
+    transfer_checked(
         CpiContext::new(
-            ctx.accounts.system_program.to_account_info(),
-            system_program::Transfer {
-                from: ctx.accounts.payer.to_account_info(),
+            ctx.accounts.token_program.to_account_info(),
+            TransferChecked {
+                from: ctx.accounts.payer_token_account.to_account_info(),
                 to: ctx.accounts.daily_prize_vault.to_account_info(),
+                authority: ctx.accounts.payer.to_account_info(),
+                mint: ctx.accounts.mint.to_account_info()
             },
         ),
         daily_amount,
+        decimals
     )?;
 
     // Transfer to weekly prize vault
-    system_program::transfer(
+    transfer_checked(
         CpiContext::new(
-            ctx.accounts.system_program.to_account_info(),
-            system_program::Transfer {
-                from: ctx.accounts.payer.to_account_info(),
+            ctx.accounts.token_program.to_account_info(),
+            TransferChecked {
+                from: ctx.accounts.payer_token_account.to_account_info(),
                 to: ctx.accounts.weekly_prize_vault.to_account_info(),
+                authority: ctx.accounts.payer.to_account_info(),
+                mint: ctx.accounts.mint.to_account_info()
             },
         ),
         weekly_amount,
+        decimals
     )?;
 
     // Transfer to monthly prize vault
-    system_program::transfer(
+    transfer_checked(
         CpiContext::new(
-            ctx.accounts.system_program.to_account_info(),
-            system_program::Transfer {
-                from: ctx.accounts.payer.to_account_info(),
+            ctx.accounts.token_program.to_account_info(),
+            TransferChecked {
+                from: ctx.accounts.payer_token_account.to_account_info(),
                 to: ctx.accounts.monthly_prize_vault.to_account_info(),
+                authority: ctx.accounts.payer.to_account_info(),
+                mint: ctx.accounts.mint.to_account_info()
             },
         ),
         monthly_amount,
+        decimals
     )?;
 
     // Transfer to platform vault
-    system_program::transfer(
+    transfer_checked(
         CpiContext::new(
-            ctx.accounts.system_program.to_account_info(),
-            system_program::Transfer {
-                from: ctx.accounts.payer.to_account_info(),
+            ctx.accounts.token_program.to_account_info(),
+            TransferChecked {
+                from: ctx.accounts.payer_token_account.to_account_info(),
                 to: ctx.accounts.platform_vault.to_account_info(),
+                authority: ctx.accounts.payer.to_account_info(),
+                mint: ctx.accounts.mint.to_account_info()
             },
         ),
         platform_amount,
+        decimals
     )?;
 
     // Transfer to lucky draw vault
-    system_program::transfer(
+    transfer_checked(
         CpiContext::new(
-            ctx.accounts.system_program.to_account_info(),
-            system_program::Transfer {
-                from: ctx.accounts.payer.to_account_info(),
+            ctx.accounts.token_program.to_account_info(),
+            TransferChecked {
+                from: ctx.accounts.payer_token_account.to_account_info(),
                 to: ctx.accounts.lucky_draw_vault.to_account_info(),
+                authority: ctx.accounts.payer.to_account_info(),
+                mint: ctx.accounts.mint.to_account_info()
             },
         ),
         lucky_draw_amount,
+        decimals
     )?;
     
 
@@ -188,55 +205,32 @@ pub fn buy_ticket_and_start_game(
     // Select a word for this game session
     // ⚠️ Currently uses deterministic selection (DEMO MODE)
     // ⚠️ Replace with VRF for production!
-    let word_data = word_selection::select_word_for_session(player_key, &period_id, total_games)?;
+    let _word_data = word_selection::select_word_for_session(player_key, &period_id, total_games)?;
 
     msg!("📝 Word selected for session");
 
     // ========== PERIOD LIMIT ENFORCEMENT ==========
     // Check if player already played this period
-    let profile = &ctx.accounts.user_profile;
+    // Note: We access user_profile mutably later, so we just read fields here
     require!(
-        profile.last_played_period != period_id,
+        ctx.accounts.user_profile.last_played_period != period_id,
         VobleError::AlreadyPlayedThisPeriod
     );
 
     msg!("✅ Period limit enforced: Player hasn't played period {}", period_id);
 
-    // ========== SESSION INITIALIZATION ==========
-    let session = &mut ctx.accounts.session;
+    // ========== PAYMENT TRACKING ==========
+    // Update user profile to reflect payment for this period
+    // This allows ER to verify payment without needing a separate receipt account
+    let user_profile = &mut ctx.accounts.user_profile;
+    user_profile.last_paid_period = period_id.clone();
 
-    // Generate session ID (format: "voble-{period}")
-    let session_id = format!("voble-{}", period_id);
-    require!(
-        session_id.len() <= MAX_SESSION_ID_LENGTH,
-        VobleError::SessionIdTooLong
-    );
-
-    // Initialize session data
-    session.player = player_key;
-    session.session_id = session_id.clone();
-    session.target_word_hash = word_data.word_hash;
-    session.word_index = word_data.word_index;
-    session.target_word = String::new(); // Hidden until completion (anti-cheat)
-    session.guesses = [None, None, None, None, None, None, None];
-    session.is_solved = false;
-    session.guesses_used = 0;
-    session.time_ms = 0;
-    session.score = 0;
-    session.completed = false;
-    session.period_id = period_id.clone();
-    session.vrf_request_timestamp = now; // Track session start time
-    session.keystrokes = Vec::new();        
-    session.current_input = String::new();  
-
-    msg!("✅ Session initialized");
+    msg!("✅ Payment recorded for period: {}", period_id);
     
-    // Note: Profile period tracking will be updated via Magic Action after game completion
-    // This avoids needing to clone user_profile to ER
+    // Note: Session initialization/reset now happens on ER in reset_session
+    // This avoids writing to the delegated session account from Base layer
 
     // ========== EMIT EVENTS ==========
-    // IMPORTANT: Events must be emitted BEFORE delegation!
-    // After delegation, the session account is owned by ER and cannot be modified
     emit!(TicketPurchased {
         player: ctx.accounts.payer.key(),
         amount: ticket_price,
@@ -245,14 +239,6 @@ pub fn buy_ticket_and_start_game(
         monthly_amount,
         platform_amount,
         lucky_draw_amount, 
-    });
-
-    emit!(VobleGameStarted {
-        player: player_key,
-        session_id: session_id.clone(),
-        period_id: period_id.clone(),
-        target_word_hash: format!("{:x?}", word_data.word_hash),
-        timestamp: now,
     });
 
     Ok(())

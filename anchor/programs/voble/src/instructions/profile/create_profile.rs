@@ -63,6 +63,7 @@ pub fn initialize_user_profile(
 
     // Initialize period tracking
     profile.last_played_period = String::new();
+    profile.last_paid_period = String::new();
     profile.has_played_this_period = false;
 
     // Initialize achievements (empty)

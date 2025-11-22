@@ -158,7 +158,7 @@ export default function LeaderboardPage() {
             <div>
               <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Prize Pool</p>
               <p className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
-                {getPrizePoolForPeriod(activePeriod).toFixed(4)} <span className="text-sm font-normal text-slate-500">SOL</span>
+                {getPrizePoolForPeriod(activePeriod).toFixed(2)} <span className="text-sm font-normal text-slate-500">USDC</span>
               </p>
             </div>
           </div>

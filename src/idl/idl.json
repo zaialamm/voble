@@ -1,5 +1,5 @@
 {
-  "address": "B4WnYsj1AoX2dNdgXyzKDEZCjmVqNT8fBc8DPoHn8P2C",
+  "address": "HuYE2h48SBwHHPNNT9hW8pD5ncmtu9nFcg9Wsxe1SScn",
   "metadata": {
     "name": "voble",
     "version": "0.1.0",
@@ -29,7 +29,11 @@
           "signer": true
         },
         {
+          "name": "mint"
+        },
+        {
           "name": "user_profile",
+          "writable": true,
           "pda": {
             "seeds": [
               {
@@ -47,30 +51,6 @@
                   105,
                   108,
                   101
-                ]
-              },
-              {
-                "kind": "account",
-                "path": "payer"
-              }
-            ]
-          }
-        },
-        {
-          "name": "session",
-          "writable": true,
-          "pda": {
-            "seeds": [
-              {
-                "kind": "const",
-                "value": [
-                  115,
-                  101,
-                  115,
-                  115,
-                  105,
-                  111,
-                  110
                 ]
               },
               {
@@ -258,8 +238,73 @@
           }
         },
         {
+          "name": "payer_token_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "payer"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "global_config.usdc_mint",
+                "account": "GlobalConfig"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
           "name": "system_program",
           "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
         }
       ],
       "args": [
@@ -368,8 +413,103 @@
           "signer": true
         },
         {
+          "name": "winner_token_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "winner"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "usdc_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "global_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103,
+                  95,
+                  118,
+                  50
+                ]
+              }
+            ]
+          }
+        },
+        {
           "name": "system_program",
           "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "usdc_mint"
         }
       ],
       "args": []
@@ -477,8 +617,103 @@
           "signer": true
         },
         {
+          "name": "winner_token_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "winner"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "usdc_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "global_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103,
+                  95,
+                  118,
+                  50
+                ]
+              }
+            ]
+          }
+        },
+        {
           "name": "system_program",
           "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "usdc_mint"
         }
       ],
       "args": []
@@ -584,8 +819,103 @@
           "signer": true
         },
         {
+          "name": "winner_token_account",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "account",
+                "path": "winner"
+              },
+              {
+                "kind": "account",
+                "path": "token_program"
+              },
+              {
+                "kind": "account",
+                "path": "usdc_mint"
+              }
+            ],
+            "program": {
+              "kind": "const",
+              "value": [
+                140,
+                151,
+                37,
+                143,
+                78,
+                36,
+                137,
+                241,
+                187,
+                61,
+                16,
+                41,
+                20,
+                142,
+                13,
+                131,
+                11,
+                90,
+                19,
+                153,
+                218,
+                255,
+                16,
+                132,
+                4,
+                142,
+                123,
+                216,
+                219,
+                233,
+                248,
+                89
+              ]
+            }
+          }
+        },
+        {
+          "name": "global_config",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  103,
+                  108,
+                  111,
+                  98,
+                  97,
+                  108,
+                  95,
+                  99,
+                  111,
+                  110,
+                  102,
+                  105,
+                  103,
+                  95,
+                  118,
+                  50
+                ]
+              }
+            ]
+          }
+        },
+        {
           "name": "system_program",
           "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "associated_token_program",
+          "address": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+        },
+        {
+          "name": "usdc_mint"
         }
       ],
       "args": []
@@ -1198,38 +1528,38 @@
             "program": {
               "kind": "const",
               "value": [
-                149,
-                123,
-                74,
-                66,
-                157,
-                100,
-                84,
-                3,
-                78,
-                111,
-                190,
-                254,
-                137,
+                251,
+                48,
+                127,
+                171,
+                68,
+                150,
+                182,
+                37,
                 214,
-                53,
-                66,
-                60,
-                41,
-                89,
-                131,
-                51,
-                135,
-                120,
-                19,
-                97,
-                45,
-                49,
-                186,
-                93,
-                93,
-                226,
-                197
+                71,
+                128,
+                50,
+                225,
+                52,
+                252,
+                165,
+                182,
+                46,
+                242,
+                7,
+                124,
+                52,
+                149,
+                230,
+                214,
+                3,
+                225,
+                197,
+                169,
+                133,
+                132,
+                103
               ]
             }
           }
@@ -1311,7 +1641,7 @@
         },
         {
           "name": "owner_program",
-          "address": "B4WnYsj1AoX2dNdgXyzKDEZCjmVqNT8fBc8DPoHn8P2C"
+          "address": "HuYE2h48SBwHHPNNT9hW8pD5ncmtu9nFcg9Wsxe1SScn"
         },
         {
           "name": "delegation_program",
@@ -1855,6 +2185,10 @@
           "type": {
             "vec": "u16"
           }
+        },
+        {
+          "name": "usdc_mint",
+          "type": "pubkey"
         }
       ]
     },
@@ -2229,6 +2563,9 @@
           }
         },
         {
+          "name": "usdc_mint"
+        },
+        {
           "name": "authority",
           "writable": true,
           "signer": true,
@@ -2239,6 +2576,13 @@
         {
           "name": "system_program",
           "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "token_program"
+        },
+        {
+          "name": "rent",
+          "address": "SysvarRent111111111111111111111111111111111"
         }
       ],
       "args": []
@@ -2324,9 +2668,43 @@
         {
           "name": "session",
           "writable": true
+        },
+        {
+          "name": "user_profile",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  117,
+                  115,
+                  101,
+                  114,
+                  95,
+                  112,
+                  114,
+                  111,
+                  102,
+                  105,
+                  108,
+                  101
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "session.player",
+                "account": "SessionAccount"
+              }
+            ]
+          }
         }
       ],
-      "args": []
+      "args": [
+        {
+          "name": "period_id",
+          "type": "string"
+        }
+      ]
     },
     {
       "name": "set_config",
@@ -2638,8 +3016,14 @@
           "writable": true
         },
         {
+          "name": "usdc_mint"
+        },
+        {
           "name": "system_program",
           "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "token_program"
         }
       ],
       "args": [
@@ -3274,6 +3658,16 @@
       "code": 6029,
       "name": "InvalidInput",
       "msg": "Invalid input"
+    },
+    {
+      "code": 6030,
+      "name": "InvalidTicketReceipt",
+      "msg": "Invalid ticket receipt"
+    },
+    {
+      "code": 6031,
+      "name": "TicketAlreadyUsed",
+      "msg": "Ticket receipt already used for this session"
     }
   ],
   "types": [
@@ -3427,6 +3821,10 @@
           {
             "name": "paused",
             "type": "bool"
+          },
+          {
+            "name": "usdc_mint",
+            "type": "pubkey"
           }
         ]
       }
@@ -4327,6 +4725,10 @@
           },
           {
             "name": "last_played_period",
+            "type": "string"
+          },
+          {
+            "name": "last_paid_period",
             "type": "string"
           },
           {

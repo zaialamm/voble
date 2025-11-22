@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { LAMPORTS_PER_SOL } from '@solana/web3.js'
+
 
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -16,7 +16,7 @@ const formatNumber = (num: number): string => {
   return num.toLocaleString()
 }
 
-const formatSol = (amount: number, digits = 3) => `${amount.toFixed(digits)} SOL`
+const formatUSDC = (amount: number, digits = 2) => `${amount.toFixed(digits)} USDC`
 
 const getLeaderboardFallback = (isLoading: boolean, value: number) =>
   isLoading ? <Skeleton className="h-8 w-20 mx-auto" /> : formatNumber(value)
@@ -76,14 +76,24 @@ export default function StatsPage() {
     return formatNumber(protocolStatsQuery.data?.totalPlayers ?? 0)
   }, [protocolStatsQuery.isLoading, protocolStatsQuery.data?.totalPlayers])
 
-  const totalPrizeClaimedSol = useMemo(() => {
+  const totalPrizeClaimedUSDC = useMemo(() => {
     if (!protocolStatsQuery.data) return 0
-    return (protocolStatsQuery.data.totalPrizeClaimedLamports || 0) / LAMPORTS_PER_SOL
+    // Assuming totalPrizeClaimedLamports is actually in atomic USDC units (6 decimals)
+    // If the contract was updated to track USDC, this value might be in atomic USDC.
+    // However, the query fetches `totalPrizeClaimedLamports` which implies SOL.
+    // Let's check the queryFn. It sums `item.account.amount`.
+    // If the contract now uses USDC, `amount` is in atomic USDC.
+    // So we should divide by 1_000_000 (6 decimals) instead of LAMPORTS_PER_SOL (9 decimals).
+    // But wait, `useVaultBalances` returns `balance` in USDC (ui amount).
+    // The `protocolStatsQuery` fetches from `winnerEntitlement`.
+    // If `winnerEntitlement` stores atomic units, we need to know the decimals.
+    // Assuming standard USDC 6 decimals.
+    return (protocolStatsQuery.data.totalPrizeClaimedLamports || 0) / 1_000_000
   }, [protocolStatsQuery.data])
 
   const totalPrizeClaimedDisplay = protocolStatsQuery.isLoading
     ? <Skeleton className="h-8 w-24 mx-auto" />
-    : formatSol(totalPrizeClaimedSol)
+    : formatUSDC(totalPrizeClaimedUSDC)
 
   const recentDailyLeaders = dailyLeaderboard.entries.slice(0, 5)
   const weeklySnapshot = weeklyLeaderboard.entries.slice(0, 5)
@@ -100,7 +110,7 @@ export default function StatsPage() {
           <StatCard title="Total Players" value={totalPlayersDisplay} />
           <StatCard
             title="Active Prize Pool"
-            value={vaults.isLoading ? <Skeleton className="h-8 w-24 mx-auto" /> : formatSol(prizeTotals)}
+            value={vaults.isLoading ? <Skeleton className="h-8 w-24 mx-auto" /> : formatUSDC(prizeTotals)}
           />
           <StatCard title="Total Prize Claimed" value={totalPrizeClaimedDisplay} />
         </div>
@@ -119,7 +129,7 @@ export default function StatsPage() {
                     <Skeleton className="h-6 w-20" />
                   ) : (
                     <span className="text-xl font-semibold text-slate-900 dark:text-white">
-                      {formatSol(vaults.balances?.[period].balance ?? 0)}
+                      {formatUSDC(vaults.balances?.[period].balance ?? 0)}
                     </span>
                   )}
                 </div>
@@ -129,7 +139,7 @@ export default function StatsPage() {
                 {vaults.isLoading ? (
                   <Skeleton className="h-6 w-24" />
                 ) : (
-                  <span className="text-2xl font-bold text-slate-900 dark:text-white">{formatSol(prizeTotals)}</span>
+                  <span className="text-2xl font-bold text-slate-900 dark:text-white">{formatUSDC(prizeTotals)}</span>
                 )}
               </div>
             </CardContent>

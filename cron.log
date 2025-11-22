@@ -1,0 +1,16 @@
+Running init-period-leaderboard.ts at Sat Nov 22 21:32:41 WITA 2025
+🚀 Initializing leaderboard(s)
+   Program: HuYE2h48SBwHHPNNT9hW8pD5ncmtu9nFcg9Wsxe1SScn
+   Authority: ZaikXX6zRGseZdyGnpdBaTkBdetDNgZcGEqzeZgAXtM
+
+🕒 Period: daily 2025-11-22
+   Leaderboard PDA: 8u2BWxZCdbsjVAq4caQQWXKQNTqM15nLAfiyZAXAWaFa
+   ✅ Already initialized
+
+🕒 Period: weekly 2025-W47
+   Leaderboard PDA: 2VUeCrAWfQVTUVvmTzfjKZXvxznyHAEV25x9UFZGaAYA
+   ✅ Already initialized
+
+🕒 Period: monthly 2025-11
+   Leaderboard PDA: 53nnnDph1roBVfGh1eUxLmrPGs2RihUXkmcMaiXqTRC9
+   ✅ Already initialized

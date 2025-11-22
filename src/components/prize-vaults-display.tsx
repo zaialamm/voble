@@ -45,7 +45,7 @@ export function PrizeVaultsDisplay() {
               <Loader2 className="h-4 w-4 animate-spin text-slate-600 mx-auto" />
             ) : (
               <p className="text-sm font-bold text-slate-900 dark:text-white">
-                {balances?.daily.balance.toFixed(3) || '0.000'} SOL
+                {balances?.daily.balance.toFixed(2) || '0.00'} USDC
               </p>
             )}
           </div>
@@ -57,7 +57,7 @@ export function PrizeVaultsDisplay() {
               <Loader2 className="h-4 w-4 animate-spin text-slate-600 mx-auto" />
             ) : (
               <p className="text-sm font-bold text-slate-900 dark:text-white">
-                {balances?.weekly.balance.toFixed(3) || '0.000'} SOL
+                {balances?.weekly.balance.toFixed(2) || '0.00'} USDC
               </p>
             )}
           </div>
@@ -69,7 +69,7 @@ export function PrizeVaultsDisplay() {
               <Loader2 className="h-4 w-4 animate-spin text-slate-600 mx-auto" />
             ) : (
               <p className="text-sm font-bold text-slate-900 dark:text-white">
-                {balances?.monthly.balance.toFixed(3) || '0.000'} SOL
+                {balances?.monthly.balance.toFixed(2) || '0.00'} USDC
               </p>
             )}
           </div>

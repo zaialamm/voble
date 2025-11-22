@@ -215,6 +215,7 @@ mod tests {
             average_guesses: 0.0,
             guess_distribution: [0; 7],
             last_played_period: String::new(),
+            last_paid_period: String::new(),
             has_played_this_period: false,
             achievements: Vec::new(),
             created_at: 0,

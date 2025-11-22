@@ -21,27 +21,30 @@ const PERIOD_TYPE_BYTES = {
 type PeriodType = keyof typeof PERIOD_TYPE_BYTES;
 
 function getDefaultPeriodId(type: PeriodType): string {
+  // Get current time in UTC+8
   const now = new Date();
+  const utc8TimeStr = now.toLocaleString("en-US", { timeZone: "Asia/Singapore" });
+  const nowUtc8 = new Date(utc8TimeStr);
 
   if (type === "daily") {
-    const year = now.getFullYear();
-    const month = (now.getMonth() + 1).toString().padStart(2, "0");
-    const day = now.getDate().toString().padStart(2, "0");
+    const year = nowUtc8.getFullYear();
+    const month = (nowUtc8.getMonth() + 1).toString().padStart(2, "0");
+    const day = nowUtc8.getDate().toString().padStart(2, "0");
     return `${year}-${month}-${day}`;
   }
 
   if (type === "weekly") {
-    const year = now.getFullYear();
+    const year = nowUtc8.getFullYear();
     const startOfYear = new Date(year, 0, 1);
     const days = Math.floor(
-      (now.getTime() - startOfYear.getTime()) / (24 * 60 * 60 * 1000)
+      (nowUtc8.getTime() - startOfYear.getTime()) / (24 * 60 * 60 * 1000)
     );
     const week = Math.ceil((days + startOfYear.getDay() + 1) / 7);
     return `${year}-W${week.toString().padStart(2, "0")}`;
   }
 
-  const year = now.getFullYear();
-  const month = (now.getMonth() + 1).toString().padStart(2, "0");
+  const year = nowUtc8.getFullYear();
+  const month = (nowUtc8.getMonth() + 1).toString().padStart(2, "0");
   return `${year}-${month}`; // monthly
 }
 
@@ -96,10 +99,17 @@ async function main() {
     "confirmed"
   );
 
-  const walletPath = `${os.homedir()}/.config/solana/id.json`;
-  const walletKeypair = anchor.web3.Keypair.fromSecretKey(
-    Buffer.from(JSON.parse(fs.readFileSync(walletPath, "utf-8")))
-  );
+  let walletKeypair: anchor.web3.Keypair;
+
+  if (process.env.WALLET_PRIVATE_KEY) {
+    const secretKey = Uint8Array.from(JSON.parse(process.env.WALLET_PRIVATE_KEY));
+    walletKeypair = anchor.web3.Keypair.fromSecretKey(secretKey);
+  } else {
+    const walletPath = `${os.homedir()}/.config/solana/id.json`;
+    walletKeypair = anchor.web3.Keypair.fromSecretKey(
+      Buffer.from(JSON.parse(fs.readFileSync(walletPath, "utf-8")))
+    );
+  }
   const wallet = new anchor.Wallet(walletKeypair);
 
   const provider = new anchor.AnchorProvider(connection, wallet, {

@@ -1,6 +1,8 @@
 use anchor_lang::prelude::*;
 use crate::constants::*;
 use crate::state::*;
+use anchor_spl::token_interface::{self, TokenInterface, TokenAccount, Mint};
+use anchor_spl::associated_token::AssociatedToken;
 
 /// Finalize daily period
 #[derive(Accounts)]
@@ -125,7 +127,6 @@ pub struct FinalizeMonthly<'info> {
     pub system_program: Program<'info, System>,
 }
 
-/// Claim daily prize
 #[derive(Accounts)]
 pub struct ClaimDaily<'info> {
     #[account(
@@ -138,18 +139,36 @@ pub struct ClaimDaily<'info> {
     #[account(
         mut,
         seeds = [SEED_DAILY_PRIZE_VAULT],
-        bump
+        bump,
+        token::mint = global_config.usdc_mint,
+        token::authority = daily_prize_vault,
     )]
-    /// CHECK: This is a PDA vault account
-    pub daily_prize_vault: AccountInfo<'info>,
+    pub daily_prize_vault: InterfaceAccount<'info, TokenAccount>,
 
     #[account(mut)]
     pub winner: Signer<'info>,
 
+    #[account(
+        init_if_needed,
+        payer = winner,
+        associated_token::mint = usdc_mint,
+        associated_token::authority = winner,
+        associated_token::token_program = token_program
+    )]
+    pub winner_token_account: InterfaceAccount<'info, TokenAccount>,
+
+    #[account(
+        seeds = [SEED_GLOBAL_CONFIG],
+        bump,
+    )]
+    pub global_config: Account<'info, GlobalConfig>,
+
     pub system_program: Program<'info, System>,
+    pub token_program: Interface<'info, TokenInterface>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
+    pub usdc_mint: InterfaceAccount<'info, Mint>,
 }
 
-/// Claim weekly prize
 #[derive(Accounts)]
 pub struct ClaimWeekly<'info> {
     #[account(
@@ -162,18 +181,35 @@ pub struct ClaimWeekly<'info> {
     #[account(
         mut,
         seeds = [SEED_WEEKLY_PRIZE_VAULT],
-        bump
+        bump,
+        token::mint = global_config.usdc_mint,
+        token::authority = weekly_prize_vault,
     )]
-    /// CHECK: This is a PDA vault account
-    pub weekly_prize_vault: AccountInfo<'info>,
+    pub weekly_prize_vault: InterfaceAccount<'info, TokenAccount>,
 
     #[account(mut)]
     pub winner: Signer<'info>,
 
+    #[account(
+        mut,
+        associated_token::mint = usdc_mint,
+        associated_token::authority = winner,
+        associated_token::token_program = token_program
+    )]
+    pub winner_token_account: InterfaceAccount<'info, TokenAccount>,
+
+    #[account(
+        seeds = [SEED_GLOBAL_CONFIG],
+        bump,
+    )]
+    pub global_config: Account<'info, GlobalConfig>,
+
     pub system_program: Program<'info, System>,
+    pub token_program: Interface<'info, TokenInterface>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
+    pub usdc_mint: InterfaceAccount<'info, Mint>,
 }
 
-/// Claim monthly prize
 #[derive(Accounts)]
 pub struct ClaimMonthly<'info> {
     #[account(
@@ -186,15 +222,33 @@ pub struct ClaimMonthly<'info> {
     #[account(
         mut,
         seeds = [SEED_MONTHLY_PRIZE_VAULT],
-        bump
+        bump,
+        token::mint = global_config.usdc_mint,
+        token::authority = monthly_prize_vault,
     )]
-    /// CHECK: This is a PDA vault account
-    pub monthly_prize_vault: AccountInfo<'info>,
+    pub monthly_prize_vault: InterfaceAccount<'info, TokenAccount>,
 
     #[account(mut)]
     pub winner: Signer<'info>,
 
+    #[account(
+        mut,
+        associated_token::mint = usdc_mint,
+        associated_token::authority = winner,
+        associated_token::token_program = token_program
+    )]
+    pub winner_token_account: InterfaceAccount<'info, TokenAccount>,
+
+    #[account(
+        seeds = [SEED_GLOBAL_CONFIG],
+        bump,
+    )]
+    pub global_config: Account<'info, GlobalConfig>,
+
     pub system_program: Program<'info, System>,
+    pub token_program: Interface<'info, TokenInterface>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
+    pub usdc_mint: InterfaceAccount<'info, Mint>,
 }
 
 /// Create daily winner entitlement

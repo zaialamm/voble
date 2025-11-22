@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { Connection, PublicKey, LAMPORTS_PER_SOL } from '@solana/web3.js'
 
-import { 
+import {
   getDailyPrizeVaultPDA,
   getWeeklyPrizeVaultPDA,
   getMonthlyPrizeVaultPDA,
@@ -12,8 +12,8 @@ import {
 
 export interface VaultBalance {
   address: string
-  balance: number // in SOL
-  balanceLamports: number // in lamports
+  balance: number // in USDC
+  balanceLamports: number // in atomic units
 }
 
 export interface VaultBalances {
@@ -22,7 +22,7 @@ export interface VaultBalances {
   monthly: VaultBalance
   luckyDraw: VaultBalance
   platform: VaultBalance
-  totalPrizePool: number 
+  totalPrizePool: number
 }
 
 export interface VaultBalancesResult {
@@ -55,7 +55,7 @@ export function useVaultBalances(): VaultBalancesResult {
           daily: vaultPDAs.daily[0].toString(),
           weekly: vaultPDAs.weekly[0].toString(),
           monthly: vaultPDAs.monthly[0].toString(),
-          luckyDraw: vaultPDAs.luckyDraw[0].toString(), 
+          luckyDraw: vaultPDAs.luckyDraw[0].toString(),
           platform: vaultPDAs.platform[0].toString(),
         })
       }
@@ -63,20 +63,20 @@ export function useVaultBalances(): VaultBalancesResult {
       try {
         // Fetch all vault balances in parallel
         const [dailyBalance, weeklyBalance, monthlyBalance, luckyDrawBalance, platformBalance] = await Promise.all([
-          connection.getBalance(vaultPDAs.daily[0]),
-          connection.getBalance(vaultPDAs.weekly[0]),
-          connection.getBalance(vaultPDAs.monthly[0]),
-          connection.getBalance(vaultPDAs.luckyDraw[0]),
-          connection.getBalance(vaultPDAs.platform[0]),
+          connection.getTokenAccountBalance(vaultPDAs.daily[0]).catch(() => ({ value: { uiAmount: 0, amount: '0' } })),
+          connection.getTokenAccountBalance(vaultPDAs.weekly[0]).catch(() => ({ value: { uiAmount: 0, amount: '0' } })),
+          connection.getTokenAccountBalance(vaultPDAs.monthly[0]).catch(() => ({ value: { uiAmount: 0, amount: '0' } })),
+          connection.getTokenAccountBalance(vaultPDAs.luckyDraw[0]).catch(() => ({ value: { uiAmount: 0, amount: '0' } })),
+          connection.getTokenAccountBalance(vaultPDAs.platform[0]).catch(() => ({ value: { uiAmount: 0, amount: '0' } })),
         ])
 
         if (process.env.NODE_ENV === 'development') {
           console.log('✅ [useVaultBalances] Balances fetched:', {
-            daily: `${dailyBalance / LAMPORTS_PER_SOL} SOL`,
-            weekly: `${weeklyBalance / LAMPORTS_PER_SOL} SOL`,
-            monthly: `${monthlyBalance / LAMPORTS_PER_SOL} SOL`,
-            luckyDraw: `${luckyDrawBalance / LAMPORTS_PER_SOL} SOL`,
-            platform: `${platformBalance / LAMPORTS_PER_SOL} SOL`,
+            daily: `${dailyBalance.value.uiAmount} USDC`,
+            weekly: `${weeklyBalance.value.uiAmount} USDC`,
+            monthly: `${monthlyBalance.value.uiAmount} USDC`,
+            luckyDraw: `${luckyDrawBalance.value.uiAmount} USDC`,
+            platform: `${platformBalance.value.uiAmount} USDC`,
           })
         }
 
@@ -84,30 +84,30 @@ export function useVaultBalances(): VaultBalancesResult {
         const balances: VaultBalances = {
           daily: {
             address: vaultPDAs.daily[0].toString(),
-            balance: dailyBalance / LAMPORTS_PER_SOL,
-            balanceLamports: dailyBalance,
+            balance: dailyBalance.value.uiAmount || 0,
+            balanceLamports: Number(dailyBalance.value.amount),
           },
           weekly: {
             address: vaultPDAs.weekly[0].toString(),
-            balance: weeklyBalance / LAMPORTS_PER_SOL,
-            balanceLamports: weeklyBalance,
+            balance: weeklyBalance.value.uiAmount || 0,
+            balanceLamports: Number(weeklyBalance.value.amount),
           },
           monthly: {
             address: vaultPDAs.monthly[0].toString(),
-            balance: monthlyBalance / LAMPORTS_PER_SOL,
-            balanceLamports: monthlyBalance,
+            balance: monthlyBalance.value.uiAmount || 0,
+            balanceLamports: Number(monthlyBalance.value.amount),
           },
-          luckyDraw: {  
+          luckyDraw: {
             address: vaultPDAs.luckyDraw[0].toString(),
-            balance: luckyDrawBalance / LAMPORTS_PER_SOL,
-            balanceLamports: luckyDrawBalance,
+            balance: luckyDrawBalance.value.uiAmount || 0,
+            balanceLamports: Number(luckyDrawBalance.value.amount),
           },
           platform: {
             address: vaultPDAs.platform[0].toString(),
-            balance: platformBalance / LAMPORTS_PER_SOL,
-            balanceLamports: platformBalance,
+            balance: platformBalance.value.uiAmount || 0,
+            balanceLamports: Number(platformBalance.value.amount),
           },
-          totalPrizePool: (dailyBalance + weeklyBalance + monthlyBalance) / LAMPORTS_PER_SOL,
+          totalPrizePool: (dailyBalance.value.uiAmount || 0) + (weeklyBalance.value.uiAmount || 0) + (monthlyBalance.value.uiAmount || 0),
         }
 
         return balances
@@ -117,9 +117,9 @@ export function useVaultBalances(): VaultBalancesResult {
         throw new Error(`Failed to fetch vault balances: ${error.message}`)
       }
     },
-    staleTime: Infinity, 
+    staleTime: Infinity,
     refetchInterval: false,
-    refetchOnWindowFocus: false, 
+    refetchOnWindowFocus: false,
     retry: 3,
   })
 
@@ -167,8 +167,8 @@ export function useVaultBalance(vaultType: 'daily' | 'weekly' | 'monthly' | 'luc
           vaultPDA = getMonthlyPrizeVaultPDA()[0]
           break
         case 'luckyDraw':  // NEW
-        vaultPDA = getLuckyDrawVaultPDA()[0]
-        break
+          vaultPDA = getLuckyDrawVaultPDA()[0]
+          break
         case 'platform':
           vaultPDA = getPlatformVaultPDA()[0]
           break
@@ -181,16 +181,16 @@ export function useVaultBalance(vaultType: 'daily' | 'weekly' | 'monthly' | 'luc
       }
 
       try {
-        const balance = await connection.getBalance(vaultPDA)
+        const tokenBalance = await connection.getTokenAccountBalance(vaultPDA).catch(() => ({ value: { uiAmount: 0, amount: '0' } }))
 
         if (process.env.NODE_ENV === 'development') {
-          console.log(`✅ [useVaultBalance] ${vaultType} balance:`, `${balance / LAMPORTS_PER_SOL} SOL`)
+          console.log(`✅ [useVaultBalance] ${vaultType} balance:`, `${tokenBalance.value.uiAmount} USDC`)
         }
 
         return {
           address: vaultPDA.toString(),
-          balance: balance / LAMPORTS_PER_SOL,
-          balanceLamports: balance,
+          balance: tokenBalance.value.uiAmount || 0,
+          balanceLamports: Number(tokenBalance.value.amount),
         }
       } catch (err: unknown) {
         const error = err as Error & { message?: string }
@@ -198,9 +198,9 @@ export function useVaultBalance(vaultType: 'daily' | 'weekly' | 'monthly' | 'luc
         throw new Error(`Failed to fetch ${vaultType} vault balance: ${error.message}`)
       }
     },
-    staleTime: Infinity, 
+    staleTime: Infinity,
     refetchInterval: false,
-    refetchOnWindowFocus: false, 
+    refetchOnWindowFocus: false,
     retry: 3,
   })
 
@@ -225,7 +225,7 @@ export function useTotalPrizePool(): {
 
   return {
     totalSOL: balances?.totalPrizePool || 0,
-    totalLamports: balances 
+    totalLamports: balances
       ? balances.daily.balanceLamports + balances.weekly.balanceLamports + balances.monthly.balanceLamports + balances.luckyDraw.balanceLamports
       : 0,
     isLoading,

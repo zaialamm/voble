@@ -62,4 +62,8 @@ pub enum VobleError {
     TooManyKeystrokes,
     #[msg("Invalid input")]
     InvalidInput,
+    #[msg("Invalid ticket receipt")]
+    InvalidTicketReceipt,
+    #[msg("Ticket receipt already used for this session")]
+    TicketAlreadyUsed,
 }

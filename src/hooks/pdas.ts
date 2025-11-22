@@ -12,11 +12,11 @@ export const PDA_SEEDS = {
   WEEKLY_PRIZE_VAULT: 'weekly_prize_vault',
   MONTHLY_PRIZE_VAULT: 'monthly_prize_vault',
   PLATFORM_VAULT: 'platform_vault',
+  LUCKY_DRAW_VAULT: 'lucky_draw_vault',
   LEADERBOARD: 'leaderboard',
   DAILY_PERIOD: 'daily_period',
   WEEKLY_PERIOD: 'weekly_period',
   MONTHLY_PERIOD: 'monthly_period',
-  LUCKY_DRAW_VAULT: 'lucky_draw_vault',
   WINNER_ENTITLEMENT: 'winner_entitlement',
   DAILY: 'daily',
   WEEKLY: 'weekly',
@@ -109,6 +109,8 @@ export function getLuckyDrawVaultPDA(): [PublicKey, number] {
     VOBLE_PROGRAM_ID
   )
 }
+
+
 
 /**
  * Derive leaderboard PDA

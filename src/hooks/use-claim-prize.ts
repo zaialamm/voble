@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useConnectedStandardWallets } from '@privy-io/react-auth/solana'
 import { PublicKey, Connection, Transaction } from '@solana/web3.js'
 import bs58 from 'bs58'
+import { getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } from '@solana/spl-token';
 
 import { vobleProgram, SYSTEM_PROGRAM_ID } from './program'
 import {
@@ -176,7 +177,11 @@ export function useClaimPrize() {
             winnerEntitlement: entitlementPda,
             dailyPrizeVault: vaultPda,
             winner: playerPublicKey,
+            winnerTokenAccount: getAssociatedTokenAddressSync(new PublicKey("4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU"), playerPublicKey),
+            usdcMint: new PublicKey("4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU"),
             systemProgram: SYSTEM_PROGRAM_ID,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
           })
           .instruction()
       } else if (periodType === 'weekly') {
@@ -186,7 +191,11 @@ export function useClaimPrize() {
             winnerEntitlement: entitlementPda,
             weeklyPrizeVault: vaultPda,
             winner: playerPublicKey,
+            winnerTokenAccount: getAssociatedTokenAddressSync(new PublicKey("4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU"), playerPublicKey),
+            usdcMint: new PublicKey("4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU"),
             systemProgram: SYSTEM_PROGRAM_ID,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
           })
           .instruction()
       } else {
@@ -196,7 +205,11 @@ export function useClaimPrize() {
             winnerEntitlement: entitlementPda,
             monthlyPrizeVault: vaultPda,
             winner: playerPublicKey,
+            winnerTokenAccount: getAssociatedTokenAddressSync(new PublicKey("4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU"), playerPublicKey),
+            usdcMint: new PublicKey("4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU"),
             systemProgram: SYSTEM_PROGRAM_ID,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
           })
           .instruction()
       }

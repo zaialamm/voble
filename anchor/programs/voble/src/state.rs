@@ -20,6 +20,7 @@ pub struct GlobalConfig {
     #[max_len(3)]
     pub winner_splits: Vec<u16>,
     pub paused: bool,
+    pub usdc_mint: Pubkey,
 }
 
 // ============================================================================
@@ -49,6 +50,8 @@ pub struct UserProfile {
     // Period tracking (7-minute periods for testing)
     #[max_len(20)]
     pub last_played_period: String, // Period ID like "D123"
+    #[max_len(20)]
+    pub last_paid_period: String,   // Track last payment to prevent free play on ER
     pub has_played_this_period: bool,
 
     // Achievements (optimized - only ID and unlock timestamp)
@@ -122,7 +125,6 @@ pub struct Achievement {
 // ============================================================================
 
 /// Period identifiers for daily, weekly, and monthly competitions
-/// Note: Helper methods have been moved to utils/period.rs to avoid duplication
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, InitSpace)]
 pub struct PeriodIds {
     #[max_len(20)]

@@ -2,11 +2,10 @@ import { useState } from 'react'
 import { useConnectedStandardWallets } from '@privy-io/react-auth/solana'
 import { PublicKey, Transaction, Connection, sendAndConfirmTransaction } from '@solana/web3.js'
 import bs58 from 'bs58';
+import { getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID, ASSOCIATED_TOKEN_PROGRAM_ID } from '@solana/spl-token';
 
 import { useTempKeypair } from '@/hooks/use-temp-keypair'
 import { erConnection } from '@/hooks/mb-er/er-connection'
-
-// import { Connection } from "@magicblock-labs/ephemeral-rollups-kit"
 
 import {
   vobleProgram,
@@ -68,13 +67,6 @@ export function useBuyTicket() {
       const playerPublicKey = new PublicKey(selectedWallet.address)
       const trimmedPeriodId = periodId.trim()
 
-      if (process.env.NODE_ENV === 'development') {
-        console.log('🎫 [useBuyTicket] Creating instruction for:', {
-          wallet: selectedWallet.address,
-          periodId: trimmedPeriodId,
-        })
-      }
-
       // Derive all required PDAs
       const [userProfilePDA] = getUserProfilePDA(playerPublicKey)
       const [sessionPDA] = getSessionPDA(playerPublicKey)
@@ -85,61 +77,33 @@ export function useBuyTicket() {
       const [platformVaultPDA] = getPlatformVaultPDA()
       const [luckyDrawVaultPDA] = getLuckyDrawVaultPDA()
 
-      if (process.env.NODE_ENV === 'development') {
-        console.log('🔑 [useBuyTicket] Derived PDAs:', {
-          userProfile: userProfilePDA.toString(),
-          session: sessionPDA.toString(),
-          globalConfig: globalConfigPDA.toString(),
-          dailyVault: dailyPrizeVaultPDA.toString(),
-          weeklyVault: weeklyPrizeVaultPDA.toString(),
-          monthlyVault: monthlyPrizeVaultPDA.toString(),
-          luckyDrawVault: luckyDrawVaultPDA.toString(),
-          platformVault: platformVaultPDA.toString()
-        })
-      }
-
-      // === Buy Ticket and Delegate Session === \\
+      // === Buy Ticket === \\
 
       // Create buy ticket instruction
       const buyTicketInstruction = await vobleProgram.methods
         .buyTicketAndStartGame(trimmedPeriodId)
         .accounts({
           payer: playerPublicKey,
-          session: sessionPDA,
-          userProfile: userProfilePDA,
+          userProfile: userProfilePDA, // Updated to use userProfile for payment tracking
           globalConfig: globalConfigPDA,
           dailyPrizeVault: dailyPrizeVaultPDA,
           weeklyPrizeVault: weeklyPrizeVaultPDA,
           monthlyPrizeVault: monthlyPrizeVaultPDA,
           platformVault: platformVaultPDA,
           luckyDrawVault: luckyDrawVaultPDA,
+          payerTokenAccount: getAssociatedTokenAddressSync(new PublicKey("4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU"), playerPublicKey),
+          mint: new PublicKey("4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU"),
           systemProgram: SYSTEM_PROGRAM_ID,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
         })
         .instruction()
-
-      // Create delegate session instruction
-      const delegateInstruction = await vobleProgram.methods
-        .delegateSession()
-        .accounts({
-          payer: playerPublicKey,
-          pda: sessionPDA,
-        })
-        .instruction()
-
 
       // get connection
       const connection = new Connection(
         process.env.NEXT_PUBLIC_RPC_DEVNET || 'https://api.devnet.solana.com',
         'confirmed'
       )
-
-      /*
-      // Initialize connection
-      const connection = await Connection.create(
-        "https://devnet-router.magicblock.app",
-        "wss://devnet-router.magicblock.app"
-      );
-      */
 
       // get latest blockhash
       const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash()
@@ -148,7 +112,7 @@ export function useBuyTicket() {
         blockhash,
         lastValidBlockHeight,
         feePayer: playerPublicKey
-      }).add(buyTicketInstruction, delegateInstruction)
+      }).add(buyTicketInstruction)
 
       const result = await selectedWallet.signAndSendTransaction!({
         chain: 'solana:devnet',
@@ -163,21 +127,16 @@ export function useBuyTicket() {
       // get signature
       const signature = bs58.encode(result.signature)
 
-      console.log('✅ Success Buy Ticket and Delegate Session:', signature)
+      console.log('✅ Success Buy Ticket:', signature)
 
       // === Reset Session on ER === \\
-      // This is critical to ensure any stale state on ER (from previous games) is cleared
-      // before the user starts playing the new game.
       if (tempKeypair) {
         try {
-          if (process.env.NODE_ENV === 'development') {
-            console.log('🔄 [useBuyTicket] Resetting session on ER...')
-          }
-
           const resetSessionTx = await (vobleProgram.methods as any)
-            .resetSession()
+            .resetSession(trimmedPeriodId) // Add periodId argument
             .accounts({
               session: sessionPDA,
+              userProfile: userProfilePDA, // Use userProfile instead of ticketReceipt
             })
             .transaction()
 

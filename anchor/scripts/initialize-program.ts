@@ -59,8 +59,11 @@ async function main() {
       console.log("   Ticket Price:", existingConfig.ticketPrice.toString(), "lamports");
       console.log("   Authority:", existingConfig.authority.toString());
     } else {
+      // USDC Devnet Mint
+      const USDC_MINT = new anchor.web3.PublicKey("4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU");
+
       // Initialize with default values
-      const ticketPrice = new anchor.BN(1_000_000); // 0.001 SOL (1 million lamports)
+      const ticketPrice = new anchor.BN(1_000_000); // 1 USDC (6 decimals)
       const prizeSplitDaily = 4000;    // 40%
       const prizeSplitWeekly = 3000;   // 30%
       const prizeSplitMonthly = 2000;  // 20%
@@ -76,7 +79,8 @@ async function main() {
           prizeSplitMonthly,
           platformRevenueSplit,
           luckyDrawSplit,
-          winnerSplits
+          winnerSplits,
+          USDC_MINT
         )
         .accounts({
           authority: authority,
@@ -86,7 +90,7 @@ async function main() {
       console.log("✅ Global Config initialized!");
       console.log("   Transaction:", tx);
       console.log("   Config PDA:", globalConfigPda.toString());
-      console.log("   Ticket Price:", ticketPrice.toString(), "lamports (0.001 SOL)");
+      console.log("   Ticket Price:", ticketPrice.toString(), "USDC (6 decimals)");
     }
   } catch (error) {
     console.error("❌ Error initializing global config:", error);
@@ -139,6 +143,9 @@ async function main() {
         .initializeVaults()
         .accounts({
           authority: authority,
+          usdcMint: new anchor.web3.PublicKey("4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU"),
+          tokenProgram: anchor.utils.token.TOKEN_PROGRAM_ID,
+          rent: anchor.web3.SYSVAR_RENT_PUBKEY,
         })
         .rpc();
 

@@ -1,6 +1,8 @@
 use crate::constants::*;
 use crate::state::*;
+use crate::state::*;
 use anchor_lang::prelude::*;
+use anchor_spl::token_interface::{TokenInterface, TokenAccount, Mint};
 
 /// Initialize global configuration
 #[derive(Accounts)]
@@ -34,7 +36,6 @@ pub struct SetConfig<'info> {
     pub authority: Signer<'info>,
 }
 
-/// Initialize all prize vaults
 #[derive(Accounts)]
 pub struct InitializeVaults<'info> {
     #[account(
@@ -47,61 +48,63 @@ pub struct InitializeVaults<'info> {
     #[account(
         init,
         payer = authority,
-        space = 8,
         seeds = [SEED_DAILY_PRIZE_VAULT],
-        bump
+        bump,
+        token::mint = usdc_mint,
+        token::authority = daily_prize_vault,
     )]
-    /// CHECK: This is a PDA vault account for daily prizes
-    pub daily_prize_vault: AccountInfo<'info>,
+    pub daily_prize_vault: InterfaceAccount<'info, TokenAccount>,
 
     #[account(
         init,
         payer = authority,
-        space = 8,
         seeds = [SEED_WEEKLY_PRIZE_VAULT],
-        bump
+        bump,
+        token::mint = usdc_mint,
+        token::authority = weekly_prize_vault,
     )]
-    /// CHECK: This is a PDA vault account for weekly prizes
-    pub weekly_prize_vault: AccountInfo<'info>,
+    pub weekly_prize_vault: InterfaceAccount<'info, TokenAccount>,
 
     #[account(
         init,
         payer = authority,
-        space = 8,
         seeds = [SEED_MONTHLY_PRIZE_VAULT],
-        bump
+        bump,
+        token::mint = usdc_mint,
+        token::authority = monthly_prize_vault,
     )]
-    /// CHECK: This is a PDA vault account for monthly prizes
-    pub monthly_prize_vault: AccountInfo<'info>,
+    pub monthly_prize_vault: InterfaceAccount<'info, TokenAccount>,
 
     #[account(
         init,
         payer = authority,
-        space = 8,
         seeds = [SEED_PLATFORM_VAULT],
-        bump
+        bump,
+        token::mint = usdc_mint,
+        token::authority = platform_vault,
     )]
-    /// CHECK: This is a PDA vault for platform revenue
-    pub platform_vault: AccountInfo<'info>,
+    pub platform_vault: InterfaceAccount<'info, TokenAccount>,
 
     #[account(
         init,
         payer = authority,
-        space = 8,
         seeds = [SEED_LUCKY_DRAW_VAULT],
-        bump
+        bump,
+        token::mint = usdc_mint,
+        token::authority = lucky_draw_vault,
     )]
+    pub lucky_draw_vault: InterfaceAccount<'info, TokenAccount>,
 
-    /// CHECK: This is a PDA vault for lucky draw prizes
-    pub lucky_draw_vault: AccountInfo<'info>,
+    pub usdc_mint: InterfaceAccount<'info, Mint>,
 
     #[account(mut)]
     pub authority: Signer<'info>,
 
     pub system_program: Program<'info, System>,
+    pub token_program: Interface<'info, TokenInterface>,
+    pub rent: Sysvar<'info, Rent>,
 }
 
-/// Withdraw platform revenue
 #[derive(Accounts)]
 pub struct WithdrawPlatformRevenue<'info> {
     #[account(
@@ -114,17 +117,23 @@ pub struct WithdrawPlatformRevenue<'info> {
     #[account(
         mut,
         seeds = [SEED_PLATFORM_VAULT],
-        bump
+        bump,
+        token::mint = global_config.usdc_mint,
+        token::authority = platform_vault,
     )]
-    /// CHECK: This is a PDA vault for platform revenue
-    pub platform_vault: AccountInfo<'info>,
+    pub platform_vault: InterfaceAccount<'info, TokenAccount>,
 
     #[account(mut)]
     pub authority: Signer<'info>,
 
-    /// CHECK: Destination account for withdrawn funds
-    #[account(mut)]
-    pub destination: AccountInfo<'info>,
+    #[account(
+        mut,
+        token::mint = global_config.usdc_mint,
+    )]
+    pub destination: InterfaceAccount<'info, TokenAccount>,
+
+    pub usdc_mint: InterfaceAccount<'info, Mint>,
 
     pub system_program: Program<'info, System>,
+    pub token_program: Interface<'info, TokenInterface>,
 }

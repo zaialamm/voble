@@ -27,16 +27,13 @@ pub fn withdraw_platform_revenue(
     ctx: Context<WithdrawPlatformRevenue>,
     amount: Option<u64>,
 ) -> Result<()> {
-    let vault_balance = ctx.accounts.platform_vault.lamports();
+    let vault_balance = ctx.accounts.platform_vault.amount;
 
-    // Get rent-exempt minimum for the vault
-    let rent = Rent::get()?;
-    let min_balance = rent.minimum_balance(ctx.accounts.platform_vault.data_len());
+    // Calculate maximum withdrawable amount
+    // For Token Accounts, we can withdraw everything (no rent exemption needed for balance itself)
+    let max_withdrawable = vault_balance;
 
-    // Calculate maximum withdrawable amount (total balance minus rent-exempt minimum)
-    let max_withdrawable = vault_balance.saturating_sub(min_balance);
-
-    // If no amount specified, withdraw all available funds (minus rent)
+    // If no amount specified, withdraw all available funds
     let withdraw_amount = amount.unwrap_or(max_withdrawable);
 
     // ========== VALIDATION ==========
@@ -46,33 +43,30 @@ pub fn withdraw_platform_revenue(
         VobleError::InsufficientVaultBalance
     );
 
-    // Double-check vault will remain rent-exempt after withdrawal
-    require!(
-        vault_balance >= withdraw_amount + min_balance,
-        VobleError::InsufficientVaultBalance
-    );
-
     msg!("💰 Withdrawal validation passed");
-    msg!("   Vault balance: {} lamports", vault_balance);
-    msg!("   Rent-exempt minimum: {} lamports", min_balance);
-    msg!("   Max withdrawable: {} lamports", max_withdrawable);
-    msg!("   Requested amount: {} lamports", withdraw_amount);
+    msg!("   Vault balance: {} USDC", vault_balance);
+    msg!("   Requested amount: {} USDC", withdraw_amount);
 
     // ========== TRANSFER ==========
     // Transfer from platform vault to destination using secure CPI
     let vault_seeds = &[SEED_PLATFORM_VAULT, &[ctx.bumps.platform_vault]];
     let signer_seeds = &[&vault_seeds[..]];
 
-    anchor_lang::system_program::transfer(
+    let decimals = ctx.accounts.usdc_mint.decimals;
+
+    anchor_spl::token_interface::transfer_checked(
         CpiContext::new_with_signer(
-            ctx.accounts.system_program.to_account_info(),
-            anchor_lang::system_program::Transfer {
+            ctx.accounts.token_program.to_account_info(),
+            anchor_spl::token_interface::TransferChecked {
                 from: ctx.accounts.platform_vault.to_account_info(),
                 to: ctx.accounts.destination.to_account_info(),
+                authority: ctx.accounts.platform_vault.to_account_info(),
+                mint: ctx.accounts.usdc_mint.to_account_info(),
             },
             signer_seeds,
         ),
         withdraw_amount,
+        decimals,
     )?;
 
     let remaining_balance = vault_balance - withdraw_amount;
@@ -86,8 +80,8 @@ pub fn withdraw_platform_revenue(
     });
 
     msg!("✅ Platform revenue withdrawn successfully");
-    msg!("💸 Amount withdrawn: {} lamports", withdraw_amount);
-    msg!("🏦 Remaining vault balance: {} lamports", remaining_balance);
+    msg!("💸 Amount withdrawn: {} USDC", withdraw_amount);
+    msg!("🏦 Remaining vault balance: {} USDC", remaining_balance);
     msg!("📍 Destination: {}", ctx.accounts.destination.key());
 
     Ok(())

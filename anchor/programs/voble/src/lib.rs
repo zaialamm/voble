@@ -23,7 +23,7 @@ use instructions::prize;
 use instructions::profile;
 
 
-declare_id!("B4WnYsj1AoX2dNdgXyzKDEZCjmVqNT8fBc8DPoHn8P2C");
+declare_id!("HuYE2h48SBwHHPNNT9hW8pD5ncmtu9nFcg9Wsxe1SScn");
 
 #[ephemeral]
 #[program]
@@ -41,6 +41,7 @@ pub mod voble {
         platform_revenue_split: u16,
         lucky_draw_split: u16,
         winner_splits: Vec<u16>,
+        usdc_mint: Pubkey,
     ) -> Result<()> {
         admin::initialize_global_config(
             ctx,
@@ -51,6 +52,7 @@ pub mod voble {
             platform_revenue_split,
             lucky_draw_split,
             winner_splits,
+            usdc_mint,
         )
     }
 
@@ -178,8 +180,8 @@ pub mod voble {
     }
 
     /// Reset session state after commit, before undelegation
-    pub fn reset_session(ctx: Context<RecordKeystroke>) -> Result<()> {
-        game::reset_session(ctx)
+    pub fn reset_session(ctx: Context<ResetSession>, period_id: String) -> Result<()> {
+        game::reset_session(ctx, period_id)
     }
 
     pub fn submit_guess(ctx: Context<SubmitGuess>, period_id: String, guess: String) -> Result<()> {

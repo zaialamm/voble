@@ -68,7 +68,7 @@ export default function RafflePage() {
                     <div className="h-7 w-20 bg-slate-200 dark:bg-slate-800 animate-pulse rounded mt-1" />
                   ) : (
                     <p className="text-lg font-bold text-slate-900 dark:text-white">
-                      {currentBalance.toLocaleString(undefined, { maximumFractionDigits: 4 })} SOL
+                      {currentBalance.toLocaleString(undefined, { maximumFractionDigits: 2 })} USDC
                     </p>
                   )}
                 </div>
@@ -199,7 +199,7 @@ export default function RafflePage() {
                       </div>
                       <div className="text-right">
                         <p className="font-bold text-green-600 dark:text-green-400">
-                          +{winner.amount} SOL
+                          +{winner.amount} USDC
                         </p>
                       </div>
                     </div>
@@ -238,7 +238,7 @@ export default function RafflePage() {
                   <div className="h-8 w-24 bg-slate-200 dark:bg-slate-800 animate-pulse rounded mx-auto mb-2" />
                 ) : (
                   <p className="text-2xl font-bold text-slate-900 dark:text-white">
-                    {weeklyStats.totalRevenue.toLocaleString(undefined, { maximumFractionDigits: 2 })} SOL
+                    {weeklyStats.totalRevenue.toLocaleString(undefined, { maximumFractionDigits: 2 })} USDC
                   </p>
                 )}
                 <p className="text-sm text-slate-600 dark:text-slate-400">Est. Total Revenue</p>
@@ -249,7 +249,7 @@ export default function RafflePage() {
                   <div className="h-8 w-24 bg-slate-200 dark:bg-slate-800 animate-pulse rounded mx-auto mb-2" />
                 ) : (
                   <p className="text-2xl font-bold text-slate-900 dark:text-white">
-                    {weeklyStats.luckyDrawAllocation.toLocaleString(undefined, { maximumFractionDigits: 4 })} SOL
+                    {weeklyStats.luckyDrawAllocation.toLocaleString(undefined, { maximumFractionDigits: 4 })} USDC
                   </p>
                 )}
                 <p className="text-sm text-slate-600 dark:text-slate-400">Lucky Draw Pool</p>

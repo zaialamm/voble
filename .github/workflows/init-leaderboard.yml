@@ -1,15 +1,14 @@
-name: Initialize Daily Leaderboard
+name: Init Period Leaderboard
 
 on:
   schedule:
-    # Run at 16:00 UTC every day (which is 00:00 UTC+8)
+    # Runs at 00:00 UTC+8 (16:00 UTC previous day)
     - cron: '0 16 * * *'
   workflow_dispatch: # Allow manual trigger
 
 jobs:
   init-leaderboard:
     runs-on: ubuntu-latest
-    
     defaults:
       run:
         working-directory: ./anchor
@@ -28,14 +27,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Setup Solana Wallet
-        run: |
-          mkdir -p ~/.config/solana
-          echo "$WALLET_JSON" > ~/.config/solana/id.json
+      - name: Run initialization script
         env:
-          WALLET_JSON: ${{ secrets.ANCHOR_WALLET_JSON }}
-
-      - name: Initialize Daily Leaderboard
-        run: npx ts-node scripts/init-period-leaderboard.ts --type daily
-        env:
-          ANCHOR_PROVIDER_URL: https://api.devnet.solana.com
+          WALLET_PRIVATE_KEY: ${{ secrets.WALLET_PRIVATE_KEY }}
+        run: npx ts-node scripts/init-period-leaderboard.ts --type all

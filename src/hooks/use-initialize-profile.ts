@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import { useConnectedStandardWallets } from '@privy-io/react-auth/solana'
 import { useQueryClient } from '@tanstack/react-query'
-import {PublicKey, Connection, Transaction} from '@solana/web3.js';
+import { PublicKey, Connection, Transaction } from '@solana/web3.js';
 import bs58 from 'bs58';
 
-import { 
-  vobleProgram, 
-  SYSTEM_PROGRAM_ID 
+import {
+  vobleProgram,
+  SYSTEM_PROGRAM_ID
 } from './program'
 
 import { getUserProfilePDA } from './pdas'
@@ -28,10 +28,6 @@ export function useInitializeProfile() {
   const selectedWallet = wallets[0]
 
   const initializeProfile = async (username: string): Promise<InitializeProfileResult> => {
-
-    if (process.env.NODE_ENV === 'development') {
-      console.log('🚀 [useInitializeProfile] Starting profile creation for:', username)
-    }
 
     setIsLoading(true)
     setError(null)
@@ -59,10 +55,10 @@ export function useInitializeProfile() {
       if (process.env.NODE_ENV === 'development') {
         console.log('📝 [useInitializeProfile] Creating instruction for wallet:', selectedWallet.address)
       }
-      
+
       // Derive the user profile PDA
       const [userProfilePDA, userProfileBump] = getUserProfilePDA(payerPublicKey)
-      
+
       if (process.env.NODE_ENV === 'development') {
         console.log('🔑 [useInitializeProfile] User profile PDA:', {
           address: userProfilePDA.toString(),
@@ -79,8 +75,8 @@ export function useInitializeProfile() {
       )
 
       // get blockhash
-      const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash()     
-      
+      const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash()
+
       // create instruction
       const createProfileIx = await vobleProgram.methods
         .initializeUserProfile(trimmedUsername)
@@ -90,7 +86,7 @@ export function useInitializeProfile() {
           systemProgram: SYSTEM_PROGRAM_ID,
         })
         .instruction()
-      
+
       // build transaction
       const tx = new Transaction({
         blockhash,
@@ -100,22 +96,22 @@ export function useInitializeProfile() {
 
       // send tx with Privy
       const result = await selectedWallet.signAndSendTransaction!({
-          chain: 'solana:devnet',
-          transaction: new Uint8Array(
-            tx.serialize({
-              requireAllSignatures: false,
-              verifySignatures: false
-            })
-          )
+        chain: 'solana:devnet',
+        transaction: new Uint8Array(
+          tx.serialize({
+            requireAllSignatures: false,
+            verifySignatures: false
+          })
+        )
       })
-      
+
       // get signature
       const signature = bs58.encode(result.signature)
 
       console.log('✅ Profile created:', signature)
 
-      await queryClient.invalidateQueries({ 
-        queryKey: ['userProfile', selectedWallet.address] 
+      await queryClient.invalidateQueries({
+        queryKey: ['userProfile', selectedWallet.address]
       })
 
       setIsLoading(false)
@@ -126,7 +122,7 @@ export function useInitializeProfile() {
     } catch (err: any) {
       console.error('❌ [useInitializeProfile] Error initializing profile:', err)
       let errorMessage = handleTransactionError(err)
-      
+
       // Check for specific profile creation errors
       if (err?.message?.includes('User rejected')) {
         errorMessage = 'Transaction was rejected'
@@ -137,7 +133,7 @@ export function useInitializeProfile() {
       } else if (err?.message?.includes('invalid username')) {
         errorMessage = 'Invalid username provided'
       }
-      
+
       setError(errorMessage)
       setIsLoading(false)
       return {

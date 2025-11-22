@@ -1,6 +1,6 @@
 use crate::{constants::*, contexts::*, errors::VobleError, events::*};
 use anchor_lang::prelude::*;
-use anchor_lang::system_program;
+
 
 /// Claim a prize for a finalized period
 ///
@@ -53,7 +53,9 @@ pub fn claim_daily(ctx: Context<ClaimDaily>) -> Result<()> {
         &mut ctx.accounts.winner_entitlement,
         &ctx.accounts.daily_prize_vault,
         &ctx.accounts.winner,
-        &ctx.accounts.system_program,
+        &ctx.accounts.winner_token_account,
+        &ctx.accounts.token_program,
+        &ctx.accounts.usdc_mint,
         ctx.bumps.daily_prize_vault,
         SEED_DAILY_PRIZE_VAULT,
         "daily",
@@ -65,7 +67,9 @@ pub fn claim_weekly(ctx: Context<ClaimWeekly>) -> Result<()> {
         &mut ctx.accounts.winner_entitlement,
         &ctx.accounts.weekly_prize_vault,
         &ctx.accounts.winner,
-        &ctx.accounts.system_program,
+        &ctx.accounts.winner_token_account,
+        &ctx.accounts.token_program,
+        &ctx.accounts.usdc_mint,
         ctx.bumps.weekly_prize_vault,
         SEED_WEEKLY_PRIZE_VAULT,
         "weekly",
@@ -77,7 +81,9 @@ pub fn claim_monthly(ctx: Context<ClaimMonthly>) -> Result<()> {
         &mut ctx.accounts.winner_entitlement,
         &ctx.accounts.monthly_prize_vault,
         &ctx.accounts.winner,
-        &ctx.accounts.system_program,
+        &ctx.accounts.winner_token_account,
+        &ctx.accounts.token_program,
+        &ctx.accounts.usdc_mint,
         ctx.bumps.monthly_prize_vault,
         SEED_MONTHLY_PRIZE_VAULT,
         "monthly",
@@ -91,9 +97,11 @@ pub fn claim_monthly(ctx: Context<ClaimMonthly>) -> Result<()> {
 /// vault seeds, and period type.
 fn claim_prize_internal<'info>(
     entitlement: &mut Account<'info, crate::state::WinnerEntitlement>,
-    vault: &AccountInfo<'info>,
+    vault: &InterfaceAccount<'info, anchor_spl::token_interface::TokenAccount>,
     winner: &Signer<'info>,
-    _system_program: &Program<'info, System>,
+    winner_token_account: &InterfaceAccount<'info, anchor_spl::token_interface::TokenAccount>,
+    token_program: &Interface<'info, anchor_spl::token_interface::TokenInterface>,
+    usdc_mint: &InterfaceAccount<'info, anchor_spl::token_interface::Mint>,
     _vault_bump: u8,
     _vault_seed: &[u8],
     period_type: &str,
@@ -107,51 +115,49 @@ fn claim_prize_internal<'info>(
     require!(!entitlement.claimed, VobleError::AlreadyClaimed);
 
     let amount = entitlement.amount;
-    let vault_balance = vault.lamports();
+    let vault_balance = vault.amount;
 
     msg!("💰 Prize details:");
-    msg!("   Amount: {} lamports", amount);
-    msg!("   Vault balance: {} lamports", vault_balance);
+    msg!("   Amount: {} USDC", amount);
+    msg!("   Vault balance: {} USDC", vault_balance);
 
     // ========== VALIDATION: Vault Balance ==========
-    // Get rent-exempt minimum for the vault
-    let rent = Rent::get()?;
-    let min_balance = rent.minimum_balance(vault.data_len());
-
-    msg!("   Rent-exempt minimum: {} lamports", min_balance);
-
-    // Ensure vault has enough for prize + rent
+    // Ensure vault has enough for prize
     require!(
-        vault_balance >= amount + min_balance,
+        vault_balance >= amount,
         VobleError::InsufficientVaultBalance
     );
 
     msg!("✅ Validation passed - vault has sufficient balance");
 
     // ========== TRANSFER PRIZE ==========
-    msg!("💸 Transferring {} lamports to winner", amount);
+    msg!("💸 Transferring {} USDC to winner", amount);
 
-    {
-        let mut vault_lamports = vault.try_borrow_mut_lamports()?;
-        let mut winner_info = winner.to_account_info();
-        let mut winner_lamports = winner_info.try_borrow_mut_lamports()?;
+    let vault_seeds = &[_vault_seed, &[_vault_bump]];
+    let signer_seeds = &[&vault_seeds[..]];
 
-        // Subtract from vault, ensuring we don't underflow
-        **vault_lamports = vault_lamports
-            .checked_sub(amount)
-            .ok_or(VobleError::InsufficientVaultBalance)?;
+    let decimals = usdc_mint.decimals;
 
-        // Add to winner, ensuring we don't overflow
-        **winner_lamports = winner_lamports
-            .checked_add(amount)
-            .ok_or(VobleError::InvalidPrizeAmount)?;
-    }
+    anchor_spl::token_interface::transfer_checked(
+        CpiContext::new_with_signer(
+            token_program.to_account_info(),
+            anchor_spl::token_interface::TransferChecked {
+                from: vault.to_account_info(),
+                to: winner_token_account.to_account_info(),
+                authority: vault.to_account_info(),
+                mint: usdc_mint.to_account_info(),
+            },
+            signer_seeds,
+        ),
+        amount,
+        decimals,
+    )?;
 
     let remaining_balance = vault_balance - amount;
 
     msg!("✅ Transfer successful");
-    msg!("   Transferred: {} lamports", amount);
-    msg!("   Remaining vault balance: {} lamports", remaining_balance);
+    msg!("   Transferred: {} USDC", amount);
+    msg!("   Remaining vault balance: {} USDC", remaining_balance);
 
     // ========== MARK AS CLAIMED ==========
     entitlement.claimed = true;
@@ -173,7 +179,7 @@ fn claim_prize_internal<'info>(
     msg!("   Winner: {}", winner.key());
     msg!("   Period: {} ({})", entitlement.period_id, period_type);
     msg!("   Rank: #{}", entitlement.rank);
-    msg!("   Amount: {} lamports", amount);
+    msg!("   Amount: {} USDC", amount);
     msg!("   Status: Successfully claimed");
     msg!("");
     msg!("🎉 Congratulations on your win!");

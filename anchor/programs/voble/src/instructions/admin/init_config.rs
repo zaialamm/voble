@@ -32,6 +32,7 @@ pub fn initialize_global_config(
     platform_revenue_split: u16,
     lucky_draw_split: u16,
     winner_splits: Vec<u16>,
+    usdc_mint: Pubkey,
 ) -> Result<()> {
     // ========== VALIDATION: Ticket Price ==========
     // Validate ticket price (minimum 0.0001 SOL = 100,000 lamports)
@@ -99,6 +100,7 @@ pub fn initialize_global_config(
     config.lucky_draw_split = lucky_draw_split;
     config.winner_splits = winner_splits;
     config.paused = false;
+    config.usdc_mint = usdc_mint;
 
     // ========== EMIT EVENT ==========
     emit!(GlobalConfigInitialized {
