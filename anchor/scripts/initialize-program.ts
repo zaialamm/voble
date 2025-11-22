@@ -19,14 +19,14 @@ async function main() {
     "https://api.devnet.solana.com",
     "confirmed"
   );
-  
+
   // Load wallet from Solana CLI config (~/.config/solana/id.json)
   const walletPath = `${os.homedir()}/.config/solana/id.json`;
   const walletKeypair = anchor.web3.Keypair.fromSecretKey(
     Buffer.from(JSON.parse(fs.readFileSync(walletPath, "utf-8")))
   );
   const wallet = new anchor.Wallet(walletKeypair);
-  
+
   const provider = new anchor.AnchorProvider(connection, wallet, {
     commitment: "confirmed",
   });
@@ -44,7 +44,7 @@ async function main() {
 
   // Step 1: Initialize Global Config
   console.log("Step 1: Initializing Global Config...");
-  
+
   const [globalConfigPda] = anchor.web3.PublicKey.findProgramAddressSync(
     [Buffer.from("global_config_v2")],
     program.programId
@@ -53,7 +53,7 @@ async function main() {
   try {
     // Check if already initialized
     const existingConfig = await (program.account as any).globalConfig.fetchNullable(globalConfigPda);
-    
+
     if (existingConfig) {
       console.log("✅ Global Config already initialized!");
       console.log("   Ticket Price:", existingConfig.ticketPrice.toString(), "lamports");
@@ -126,7 +126,7 @@ async function main() {
   try {
     // Check if vaults already exist by checking account info
     const dailyVaultInfo = await provider.connection.getAccountInfo(dailyVaultPda);
-    
+
     if (dailyVaultInfo) {
       console.log("✅ Vaults already initialized!");
       console.log("   Daily Vault:", dailyVaultPda.toString());
@@ -156,6 +156,53 @@ async function main() {
   }
 
   console.log("");
+
+  console.log("Step 3: Initializing today's daily leaderboard...");
+
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = (now.getMonth() + 1).toString().padStart(2, "0");
+  const day = now.getDate().toString().padStart(2, "0");
+  const todayPeriodId = `${year}-${month}-${day}`;
+
+  const [todayDailyLeaderboardPda] = anchor.web3.PublicKey.findProgramAddressSync(
+    [
+      Buffer.from("leaderboard"),
+      Buffer.from(todayPeriodId),
+      Buffer.from([0]),
+    ],
+    program.programId
+  );
+
+  try {
+    const leaderboardInfo = await provider.connection.getAccountInfo(
+      todayDailyLeaderboardPda
+    );
+
+    if (leaderboardInfo) {
+      console.log("✅ Daily leaderboard already initialized for period:", todayPeriodId);
+      console.log("   Leaderboard PDA:", todayDailyLeaderboardPda.toString());
+    } else {
+      const tx = await program.methods
+        .initializePeriodLeaderboard(todayPeriodId, 0)
+        .accounts({
+          leaderboard: todayDailyLeaderboardPda,
+          globalConfig: globalConfigPda,
+          authority,
+          systemProgram: anchor.web3.SystemProgram.programId,
+        })
+        .rpc();
+
+      console.log("✅ Daily leaderboard initialized for period:", todayPeriodId);
+      console.log("   Transaction:", tx);
+      console.log("   Leaderboard PDA:", todayDailyLeaderboardPda.toString());
+    }
+  } catch (error) {
+    console.error("❌ Error initializing daily leaderboard:", error);
+    throw error;
+  }
+
+  console.log("");
   console.log("🎉 Voble Program Initialization Complete!");
   console.log("");
   console.log("📝 Summary:");
@@ -164,8 +211,9 @@ async function main() {
   console.log("   Daily Vault:", dailyVaultPda.toString());
   console.log("   Weekly Vault:", weeklyVaultPda.toString());
   console.log("   Monthly Vault:", monthlyVaultPda.toString());
-  console.log("   Platform Vault:", platformVaultPda.toString()); 
+  console.log("   Platform Vault:", platformVaultPda.toString());
   console.log("   Lucky Draw Vault:", luckyDrawVaultPda.toString());
+  console.log("   Daily Leaderboard (today):", todayDailyLeaderboardPda.toString());
   console.log("");
   console.log("✅ Users can now create profiles and play games!");
 }

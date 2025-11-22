@@ -12,8 +12,6 @@
 //!
 //! Using basis points avoids floating-point arithmetic and maintains precision.
 
-use anchor_lang::prelude::*;
-
 /// Total basis points representing 100%
 pub const BASIS_POINTS_TOTAL: u64 = 10_000;
 

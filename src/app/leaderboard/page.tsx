@@ -1,47 +1,75 @@
 'use client'
 
-import { useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Trophy, Medal, Award, Clock, Target, Zap } from 'lucide-react'
+import { Trophy, Users, TrendingUp, Clock } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
-// Mock data representing smart contract leaderboard data
-const mockLeaderboardData = {
-  daily: [
-    { rank: 1, username: 'WordMaster', score: 2850, guesses: 3, time: 45000, address: '7xKXt...9mPq' },
-    { rank: 2, username: 'QuickSolver', score: 2720, guesses: 4, time: 52000, address: '9kLmN...3rTy' },
-    { rank: 3, username: 'PuzzleKing', score: 2680, guesses: 3, time: 68000, address: '2vBnM...8wQx' },
-    { rank: 4, username: 'WordNinja', score: 2540, guesses: 4, time: 71000, address: '5cDfG...1hJk' },
-    { rank: 5, username: 'LetterLord', score: 2480, guesses: 5, time: 58000, address: '8xPqR...4mNb' },
-    { rank: 6, username: 'GuessGuru', score: 2420, guesses: 4, time: 89000, address: '3yTgH...7sLp' },
-    { rank: 7, username: 'WordWiz', score: 2380, guesses: 5, time: 76000, address: '6nFkJ...2qWe' },
-    { rank: 8, username: 'SpeedSolver', score: 2340, guesses: 6, time: 43000, address: '1mCxV...9rTy' },
-    { rank: 9, username: 'BrainBox', score: 2300, guesses: 5, time: 94000, address: '4bNhK...6pLm' },
-    { rank: 10, username: 'WordSmith', score: 2280, guesses: 6, time: 82000, address: '7qWxZ...3dFg' },
-  ],
-  weekly: [
-    { rank: 1, username: 'WeeklyChamp', score: 15420, guesses: 3.2, time: 48000, address: '9xKLm...4rTy' },
-    { rank: 2, username: 'ConsistentPro', score: 14890, guesses: 3.8, time: 55000, address: '2vBnM...8wQx' },
-    { rank: 3, username: 'SteadyPlayer', score: 14650, guesses: 4.1, time: 62000, address: '5cDfG...1hJk' },
-  ],
-  monthly: [
-    { rank: 1, username: 'MonthlyKing', score: 58420, guesses: 3.5, time: 51000, address: '8xPqR...4mNb' },
-    { rank: 2, username: 'LongTermPro', score: 56890, guesses: 3.9, time: 58000, address: '3yTgH...7sLp' },
-    { rank: 3, username: 'MarathonMaster', score: 55650, guesses: 4.2, time: 65000, address: '6nFkJ...2qWe' },
-  ]
-}
-
-const periodStats = {
-  daily: { totalPlayers: 1247, prizePool: 12.5, endsIn: '8h 23m' },
-  weekly: { totalPlayers: 5832, prizePool: 89.3, endsIn: '3d 14h' },
-  monthly: { totalPlayers: 18429, prizePool: 342.7, endsIn: '18d 6h' }
-}
+import { useLeaderboard } from '@/hooks/use-leaderboard'
+import { useVaultBalances } from '@/hooks/use-vault-balances'
 
 type PeriodType = 'daily' | 'weekly' | 'monthly'
 
 export default function LeaderboardPage() {
   const [activePeriod, setActivePeriod] = useState<PeriodType>('daily')
+  const { entries, totalPlayers, isLoading, error } = useLeaderboard(activePeriod)
+  const { balances } = useVaultBalances()
+  const [timeLeft, setTimeLeft] = useState('')
+
+  useEffect(() => {
+    const calculateTimeLeft = () => {
+      // 1. Get current time in UTC+8
+      const now = new Date()
+      const utc8TimeStr = now.toLocaleString('en-US', { timeZone: 'Asia/Singapore' })
+      const nowUtc8 = new Date(utc8TimeStr)
+
+      let targetDate = new Date(nowUtc8)
+
+      if (activePeriod === 'daily') {
+        // Next day at 00:00:00
+        targetDate.setDate(nowUtc8.getDate() + 1)
+        targetDate.setHours(0, 0, 0, 0)
+      } else if (activePeriod === 'weekly') {
+        // Next Monday at 00:00:00
+        const day = nowUtc8.getDay() // 0 is Sunday, 1 is Monday
+        const daysUntilMonday = (8 - day) % 7 || 7
+        targetDate.setDate(nowUtc8.getDate() + daysUntilMonday)
+        targetDate.setHours(0, 0, 0, 0)
+      } else if (activePeriod === 'monthly') {
+        // 1st of next month at 00:00:00
+        targetDate.setMonth(nowUtc8.getMonth() + 1)
+        targetDate.setDate(1)
+        targetDate.setHours(0, 0, 0, 0)
+      }
+
+      const diff = targetDate.getTime() - nowUtc8.getTime()
+
+
+
+      if (diff <= 0) {
+        return 'Calculating...'
+      }
+
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24))
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000)
+
+      if (activePeriod === 'daily') {
+        return `${hours}h ${minutes}m ${seconds}s`
+      }
+      return `${days}d ${hours}h ${minutes}m ${seconds}s`
+    }
+
+    const timer = setInterval(() => {
+      setTimeLeft(calculateTimeLeft())
+    }, 1000)
+
+    setTimeLeft(calculateTimeLeft())
+
+    return () => clearInterval(timer)
+  }, [activePeriod])
 
   const formatTime = (ms: number) => {
     const seconds = Math.floor(ms / 1000)
@@ -50,200 +78,214 @@ export default function LeaderboardPage() {
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
   }
 
-  const getRankIcon = (rank: number) => {
-    switch (rank) {
-      case 1:
-        return <Trophy className="h-5 w-5 text-yellow-500" />
-      case 2:
-        return <Medal className="h-5 w-5 text-gray-400" />
-      case 3:
-        return <Award className="h-5 w-5 text-amber-600" />
-      default:
-        return <span className="h-5 w-5 flex items-center justify-center text-sm font-bold text-muted-foreground">#{rank}</span>
-    }
+  const formatAddress = (address: string) => {
+    if (!address || address.length <= 8) return address
+    return `${address.slice(0, 4)}...${address.slice(-4)}`
   }
+
+
 
   const getPeriodLabel = (period: PeriodType) => {
     return period.charAt(0).toUpperCase() + period.slice(1)
   }
 
+  const getPrizePoolForPeriod = (period: PeriodType) => {
+    if (!balances) return 0
+
+    switch (period) {
+      case 'daily':
+        return balances.daily.balance
+      case 'weekly':
+        return balances.weekly.balance
+      case 'monthly':
+        return balances.monthly.balance
+      default:
+        return 0
+    }
+  }
+
   return (
-    <div className="container mx-auto py-8 space-y-8">
-      {/* Header */}
-      <div className="text-center space-y-4">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-          🏆 Leaderboard
-        </h1>
-        <p className="text-muted-foreground max-w-2xl mx-auto">
-          Compete with players worldwide in daily, weekly, and monthly competitions. 
-          Buy tickets, play games, and climb the rankings to win SOL prizes!
-        </p>
-      </div>
-
-      {/* Period Tabs */}
-      <div className="flex justify-center">
-        <div className="flex bg-muted rounded-lg p-1">
-          {(['daily', 'weekly', 'monthly'] as PeriodType[]).map((period) => (
-            <Button
-              key={period}
-              variant={activePeriod === period ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setActivePeriod(period)}
-              className="px-6"
-            >
-              {getPeriodLabel(period)}
-            </Button>
-          ))}
+    <div className="min-h-screen bg-slate-100 dark:bg-[#0f0f0f]">
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
+        {/* Header */}
+        <div className="mb-6 md:mb-8">
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white mb-2">
+            Leaderboard
+          </h1>
+          <p className="text-sm md:text-base text-slate-600 dark:text-slate-400">
+            Top players competing for daily, weekly, and monthly prizes
+          </p>
         </div>
-      </div>
 
-      {/* Period Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center space-x-2">
-              <Target className="h-5 w-5 text-blue-500" />
-              <div>
-                <p className="text-sm text-muted-foreground">Total Players</p>
-                <p className="text-2xl font-bold">{periodStats[activePeriod].totalPlayers.toLocaleString()}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center space-x-2">
-              <Zap className="h-5 w-5 text-yellow-500" />
-              <div>
-                <p className="text-sm text-muted-foreground">Prize Pool</p>
-                <p className="text-2xl font-bold">{periodStats[activePeriod].prizePool} SOL</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center space-x-2">
-              <Clock className="h-5 w-5 text-green-500" />
-              <div>
-                <p className="text-sm text-muted-foreground">Period Ends In</p>
-                <p className="text-2xl font-bold">{periodStats[activePeriod].endsIn}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Leaderboard */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Trophy className="h-6 w-6 text-yellow-500" />
-            {getPeriodLabel(activePeriod)} Leaderboard
-          </CardTitle>
-          <CardDescription>
-            Top 10 players competing for {getPeriodLabel(activePeriod).toLowerCase()} prizes
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {mockLeaderboardData[activePeriod].map((player) => (
-              <div
-                key={player.rank}
-                className={`flex items-center justify-between p-4 rounded-lg border ${
-                  player.rank <= 3 
-                    ? 'bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200 dark:from-yellow-950/20 dark:to-orange-950/20 dark:border-yellow-800' 
-                    : 'bg-muted/50'
-                }`}
+        {/* Period Tabs */}
+        <div className="mb-6 md:mb-8">
+          <div className="flex bg-slate-100 dark:bg-slate-800 rounded-lg p-1 w-full sm:w-fit overflow-x-auto">
+            {(['daily', 'weekly', 'monthly'] as PeriodType[]).map((period) => (
+              <Button
+                key={period}
+                variant={activePeriod === period ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setActivePeriod(period)}
+                className={`flex-1 sm:flex-none px-4 ${activePeriod === period
+                  ? 'bg-white dark:bg-slate-700 shadow-sm'
+                  : 'hover:bg-slate-200 dark:hover:bg-slate-700'
+                  }`}
               >
-                <div className="flex items-center space-x-4">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-background border-2">
-                    {getRankIcon(player.rank)}
-                  </div>
-                  
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold">{player.username}</h3>
-                      {player.rank <= 3 && (
-                        <Badge variant="secondary" className="text-xs">
-                          Winner
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="text-sm text-muted-foreground">{player.address}</p>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-6 text-sm">
-                  <div className="text-center">
-                    <p className="font-bold text-lg">{player.score.toLocaleString()}</p>
-                    <p className="text-muted-foreground">Score</p>
-                  </div>
-                  
-                  <div className="text-center">
-                    <p className="font-semibold">{Number.isInteger(player.guesses) ? player.guesses : player.guesses.toFixed(1)}</p>
-                    <p className="text-muted-foreground">Avg Guesses</p>
-                  </div>
-                  
-                  <div className="text-center">
-                    <p className="font-semibold">{formatTime(player.time)}</p>
-                    <p className="text-muted-foreground">Avg Time</p>
-                  </div>
-                </div>
-              </div>
+                {getPeriodLabel(period)}
+              </Button>
             ))}
           </div>
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* Prize Distribution Info */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Prize Distribution</CardTitle>
-          <CardDescription>
-            How prizes are distributed among winners
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="text-center p-4 rounded-lg bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-950/20 dark:to-yellow-900/20">
-              <Trophy className="h-8 w-8 text-yellow-500 mx-auto mb-2" />
-              <h4 className="font-semibold">1st Place</h4>
-              <p className="text-2xl font-bold text-yellow-600">50%</p>
-              <p className="text-sm text-muted-foreground">of prize pool</p>
+        {/* Stats Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <div className="bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-slate-200 dark:border-white/10 p-6 rounded-2xl shadow-sm dark:shadow-none flex items-center gap-4">
+            <div className="p-3 bg-blue-500/10 rounded-xl text-blue-600 dark:text-blue-400">
+              <Users className="w-6 h-6" />
             </div>
-            
-            <div className="text-center p-4 rounded-lg bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-950/20 dark:to-gray-900/20">
-              <Medal className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-              <h4 className="font-semibold">2nd Place</h4>
-              <p className="text-2xl font-bold text-gray-600">30%</p>
-              <p className="text-sm text-muted-foreground">of prize pool</p>
-            </div>
-            
-            <div className="text-center p-4 rounded-lg bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-950/20 dark:to-amber-900/20">
-              <Award className="h-8 w-8 text-amber-600 mx-auto mb-2" />
-              <h4 className="font-semibold">3rd Place</h4>
-              <p className="text-2xl font-bold text-amber-600">20%</p>
-              <p className="text-sm text-muted-foreground">of prize pool</p>
+            <div>
+              <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Active Players</p>
+              <p className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+                {totalPlayers.toLocaleString()}
+              </p>
             </div>
           </div>
-        </CardContent>
-      </Card>
 
-      {/* Call to Action */}
-      <Card className="text-center">
-        <CardContent className="pt-6">
-          <h3 className="text-xl font-semibold mb-2">Ready to Compete?</h3>
-          <p className="text-muted-foreground mb-4">
-            Buy a ticket and start playing to climb the leaderboard!
-          </p>
-          <Button size="lg" className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-            Play Now
-          </Button>
-        </CardContent>
-      </Card>
+          <div className="bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-slate-200 dark:border-white/10 p-6 rounded-2xl shadow-sm dark:shadow-none flex items-center gap-4">
+            <div className="p-3 bg-yellow-500/10 rounded-xl text-yellow-600 dark:text-yellow-400">
+              <Trophy className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Prize Pool</p>
+              <p className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight">
+                {getPrizePoolForPeriod(activePeriod).toFixed(4)} <span className="text-sm font-normal text-slate-500">SOL</span>
+              </p>
+            </div>
+          </div>
+
+          <div className="bg-white/50 dark:bg-white/5 backdrop-blur-xl border border-slate-200 dark:border-white/10 p-6 rounded-2xl shadow-sm dark:shadow-none flex items-center gap-4">
+            <div className="p-3 bg-purple-500/10 rounded-xl text-purple-600 dark:text-purple-400">
+              <Clock className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Time Remaining</p>
+              <p className="text-2xl font-bold text-slate-900 dark:text-white tracking-tight tabular-nums">
+                {timeLeft}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Leaderboard List */}
+        <div className="bg-white dark:bg-[#1a1a1a] rounded-2xl border border-slate-200 dark:border-white/5 overflow-hidden shadow-sm">
+          <div className="px-6 py-4 border-b border-slate-200 dark:border-white/5 flex items-center justify-between bg-slate-50/50 dark:bg-white/5">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-slate-500" />
+              <h2 className="text-sm font-semibold text-slate-900 dark:text-white uppercase tracking-wider">
+                Rankings
+              </h2>
+            </div>
+            {isLoading && (
+              <span className="text-xs text-slate-500 dark:text-slate-400 animate-pulse">
+                Updating...
+              </span>
+            )}
+          </div>
+
+          <div className="overflow-x-auto">
+            <div className="divide-y divide-slate-200 dark:divide-white/5 min-w-[600px]">
+              {entries.length === 0 && !isLoading && !error && (
+                <div className="px-6 py-12 text-center">
+                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 mb-4">
+                    <Users className="w-6 h-6 text-slate-400" />
+                  </div>
+                  <p className="text-slate-500 dark:text-slate-400">No players on the leaderboard yet.</p>
+                </div>
+              )}
+
+              {entries.map((player) => {
+                let rankIcon = <span className="font-mono text-slate-400 dark:text-slate-500 font-medium">#{player.rank}</span>
+                if (player.rank === 1) rankIcon = <span className="text-2xl">🥇</span>
+                if (player.rank === 2) rankIcon = <span className="text-2xl">🥈</span>
+                if (player.rank === 3) rankIcon = <span className="text-2xl">🥉</span>
+
+                return (
+                  <div
+                    key={player.rank}
+                    className="px-6 py-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-white/5 transition-colors group"
+                  >
+                    <div className="flex items-center space-x-4 min-w-0">
+                      <div className="flex-shrink-0 w-8 text-center">
+                        {rankIcon}
+                      </div>
+
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-semibold text-slate-900 dark:text-white group-hover:text-primary transition-colors">
+                            {player.username || 'Anonymous Player'}
+                          </h3>
+                          {player.rank <= 3 && (
+                            <Badge variant="secondary" className="text-xs border-0 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400">
+                              Winner
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-xs text-slate-500 dark:text-slate-400 font-mono">
+                          {formatAddress(player.player)}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center space-x-8 text-sm flex-shrink-0 ml-3">
+                      <div className="text-right w-24">
+                        <p className="font-bold text-slate-900 dark:text-white tabular-nums">
+                          {player.score.toLocaleString()}
+                        </p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">Score</p>
+                      </div>
+
+                      <div className="text-right w-20 hidden sm:block">
+                        <p className="font-medium text-slate-900 dark:text-white tabular-nums">
+                          {player.guessesUsed}
+                        </p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">Guesses</p>
+                      </div>
+
+                      <div className="text-right w-20 hidden sm:block">
+                        <p className="font-medium text-slate-900 dark:text-white tabular-nums">
+                          {formatTime(player.timeMs)}
+                        </p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">Time</p>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Prize Distribution */}
+        <div className="mt-8 bg-white dark:bg-[#1a1a1a] rounded-lg border border-slate-200 dark:border-slate-800 p-6">
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
+            Prize Distribution
+          </h3>
+          <div className="grid grid-cols-3 gap-4 text-center">
+            <div>
+              <p className="text-2xl font-bold text-slate-900 dark:text-white">50%</p>
+              <p className="text-sm text-slate-600 dark:text-slate-400">1st Place</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-slate-900 dark:text-white">30%</p>
+              <p className="text-sm text-slate-600 dark:text-slate-400">2nd Place</p>
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-slate-900 dark:text-white">20%</p>
+              <p className="text-sm text-slate-600 dark:text-slate-400">3rd Place</p>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

@@ -1,4 +1,4 @@
-use crate::{constants::*, contexts::*, errors::VobleError, events::*, state::*};
+use crate::{constants::*, contexts::*, errors::VobleError, events::*};
 use anchor_lang::prelude::*;
 use anchor_lang::system_program;
 use ephemeral_rollups_sdk::cpi::DelegateConfig;
@@ -8,6 +8,7 @@ use ephemeral_rollups_sdk::{ActionArgs, ShortAccountMeta};
 
 // Import helper modules
 use super::word_selection;
+use solana_address::Address;
 
 /// Buy ticket and start a new Voble game in one transaction
 ///
@@ -90,7 +91,7 @@ pub fn buy_ticket_and_start_game(
     // ========== PAYMENT PROCESSING ==========
     let ticket_price = config.ticket_price;
 
-    msg!("💰 Processing ticket payment: {} lamports", ticket_price);
+    msg!("💰 Processing ticket payment: {} USDC ", ticket_price);
 
     // Calculate prize distribution splits (basis points -> lamports)
     let daily_amount = 
@@ -179,6 +180,7 @@ pub fn buy_ticket_and_start_game(
         ),
         lucky_draw_amount,
     )?;
+    
 
     msg!("✅ Payment distributed to all vaults");
 
@@ -308,8 +310,19 @@ pub fn undelegate_session(ctx: Context<UndelegateSession>) -> Result<()> {
 
 
 /// Commit and update stats when undelegate
-pub fn commit_and_update_stats(ctx: Context<CommitAndUpdateStats>, _period_id: String) -> Result<()> {
+pub fn commit_and_update_stats(
+    ctx: Context<CommitAndUpdateStats>,
+    daily_period_id: String,
+    weekly_period_id: String,
+    monthly_period_id: String,
+) -> Result<()> {
     msg!("🔄 Committing session from ER to base layer with handler");
+    msg!(
+        "   Period IDs → daily: {}, weekly: {}, monthly: {}",
+        daily_period_id,
+        weekly_period_id,
+        monthly_period_id
+    );
     
     // Build handler instruction data
     let instruction_data = anchor_lang::InstructionData::data(
@@ -326,15 +339,23 @@ pub fn commit_and_update_stats(ctx: Context<CommitAndUpdateStats>, _period_id: S
         destination_program: crate::ID,
         accounts: vec![
             ShortAccountMeta {
-                pubkey: ctx.accounts.leaderboard.key(),
+                pubkey: Address::new_from_array(ctx.accounts.daily_leaderboard.key().to_bytes()),
                 is_writable: true,
             },
             ShortAccountMeta {
-                pubkey: ctx.accounts.user_profile.key(),
+                pubkey: Address::new_from_array(ctx.accounts.weekly_leaderboard.key().to_bytes()),
                 is_writable: true,
             },
             ShortAccountMeta {
-                pubkey: ctx.accounts.session.key(),
+                pubkey: Address::new_from_array(ctx.accounts.monthly_leaderboard.key().to_bytes()),
+                is_writable: true,
+            },
+            ShortAccountMeta {
+                pubkey: Address::new_from_array(ctx.accounts.user_profile.key().to_bytes()),
+                is_writable: true,
+            },
+            ShortAccountMeta {
+                pubkey: Address::new_from_array(ctx.accounts.session.key().to_bytes()),
                 is_writable: false,
             },
         ],
@@ -353,123 +374,6 @@ pub fn commit_and_update_stats(ctx: Context<CommitAndUpdateStats>, _period_id: S
     magic_builder.build_and_invoke()?;
 
     msg!("✅ Session committed - handler will update leaderboard automatically");
-    
-    Ok(())
-}
-
-
-/// Update leaderboard after game completion (runs on base layer)
-pub fn update_leaderboard_after_game(
-    ctx: Context<UpdateLeaderboardAfterGame>,
-    _period_id: String,
-) -> Result<()> {
-    msg!("📊 Updating leaderboard on base layer");
-    
-    let session = &ctx.accounts.session;
-    let leaderboard = &mut ctx.accounts.leaderboard;
-    let now = Clock::get()?.unix_timestamp;
-    
-    // Only update if game was completed
-    require!(session.completed, VobleError::InvalidPeriodState);
-    require!(session.score > 0, VobleError::InvalidScore);
-    require!(!leaderboard.finalized, VobleError::PeriodAlreadyFinalized);
-    
-    let new_entry = LeaderEntry {
-        player: session.player,
-        score: session.score,
-        guesses_used: session.guesses_used,
-        time_ms: session.time_ms,
-        timestamp: now,
-        username: ctx.accounts.user_profile.username.clone(),
-    };
-    
-    // Check if player already on leaderboard
-    let mut updated = false;
-    for entry in &mut leaderboard.entries {
-        if entry.player == session.player {
-            if session.score > entry.score {
-                *entry = new_entry.clone();
-                updated = true;
-                msg!("✅ Updated leaderboard entry");
-            }
-            break;
-        }
-    }
-    
-    if !updated {
-        leaderboard.entries.push(new_entry);
-        leaderboard.total_players += 1;
-        msg!("✅ Added new leaderboard entry");
-    }
-    
-    // Sort by score (highest first)
-    leaderboard.entries.sort_by(|a, b| {
-        match b.score.cmp(&a.score) {
-            std::cmp::Ordering::Equal => a.time_ms.cmp(&b.time_ms),
-            other => other,
-        }
-    });
-    
-    if leaderboard.entries.len() > 100 {
-        leaderboard.entries.truncate(100);
-    }
-    
-    if let Some(rank) = leaderboard.entries.iter().position(|e| e.player == session.player) {
-        msg!("🏆 Player rank: #{}", rank + 1);
-    }
-    
-    Ok(())
-}
-
-/// Update user profile after game completion (runs on base layer)
-pub fn update_profile_after_game(
-    ctx: Context<UpdateProfileAfterGame>,
-) -> Result<()> {
-    msg!("👤 Updating user profile on base layer");
-    
-    let session = &ctx.accounts.session;
-    let profile = &mut ctx.accounts.user_profile;
-    let now = Clock::get()?.unix_timestamp;
-    
-    require!(session.completed, VobleError::InvalidPeriodState);
-    
-    profile.total_games_played += 1;
-    
-    if session.is_solved {
-        profile.games_won += 1;
-        profile.current_streak += 1;
-        
-        if profile.current_streak > profile.max_streak {
-            profile.max_streak = profile.current_streak;
-        }
-        
-        msg!("✅ Win! Streak: {}", profile.current_streak);
-    } else {
-        profile.current_streak = 0;
-        msg!("📊 Loss. Streak reset.");
-    }
-    
-    profile.total_score += session.score as u64;
-    
-    if session.score > profile.best_score {
-        profile.best_score = session.score;
-    }
-    
-    if session.is_solved && session.guesses_used > 0 && session.guesses_used <= 7 {
-        let idx = (session.guesses_used - 1) as usize;
-        profile.guess_distribution[idx] += 1;
-    }
-    
-    if profile.games_won > 0 {
-        let total_guesses: u32 = profile.guess_distribution.iter().enumerate()
-            .map(|(i, &count)| (i as u32 + 1) * count)
-            .sum();
-        profile.average_guesses = total_guesses as f32 / profile.games_won as f32;
-    }
-    
-    profile.last_played = now;
-    
-    msg!("✅ Profile updated");
     
     Ok(())
 }
