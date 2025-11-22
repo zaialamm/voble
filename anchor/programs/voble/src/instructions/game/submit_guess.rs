@@ -81,7 +81,6 @@ pub fn submit_guess(ctx: Context<SubmitGuess>, _period_id: String, guess: String
 
     // ========== GET TARGET WORD ==========
     let target_word = word_selection::get_word_by_index(session.word_index)?;
-    let target_word_string = target_word.to_string();
 
     msg!("🎯 Evaluating guess against target");
 
@@ -143,7 +142,6 @@ pub fn submit_guess(ctx: Context<SubmitGuess>, _period_id: String, guess: String
         );
         session.score = final_score;
         session.completed = true;
-        session.target_word = target_word_string;
         
         msg!("   Final score: {}", final_score);
         msg!("   Time: {}ms", time_elapsed);

@@ -3,7 +3,6 @@ pub mod start_game;
 pub mod submit_guess;
 pub mod update_player_stats;
 pub mod record_keystroke;
-pub mod reset_session;
 
 // Helper modules
 pub mod achievements;
@@ -15,7 +14,6 @@ pub use start_game::*;
 pub use submit_guess::*;
 pub use update_player_stats::*;
 pub use record_keystroke::*;
-pub use reset_session::*;
 
 // Re-export helper functions that might be needed externally
 pub use achievements::{check_and_unlock_achievements, get_unlocked_count};

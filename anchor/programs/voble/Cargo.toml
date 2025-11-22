@@ -9,7 +9,6 @@ crate-type = ["cdylib", "lib"]
 name = "voble"
 
 [features]
-anchor-debug = []
 no-entrypoint = []
 no-idl = []
 no-log-ix-name = []
@@ -17,10 +16,11 @@ cpi = ["no-entrypoint"]
 default = []
 idl-build = ["anchor-lang/idl-build"]
 
-
 [dependencies]
-anchor-lang = { version = "0.32.1", features = ["init-if-needed"] }
-ephemeral-rollups-sdk = { version = "0.4.1", features = ["anchor", "disable-realloc"] }
-solana-address = "2.0.0"
-solana-program = "3.0.0"
+anchor-lang = { version = "0.31.1", features = ["init-if-needed"] }
+ephemeral-rollups-sdk = { version = "0.4.1", features = ["anchor"] }
+ephemeral-vrf-sdk = { version = "0.2.0", features = ["anchor"] }
+
+
+
 

@@ -1,6 +1,6 @@
 use crate::constants::*;
 use anchor_lang::prelude::*;
-use solana_program::hash::hash;
+use anchor_lang::solana_program::hash::hash;
 
 /// Data returned from word selection
 pub struct WordSelectionData {

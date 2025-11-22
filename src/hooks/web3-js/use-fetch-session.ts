@@ -1,10 +1,10 @@
 import { useQuery, QueryObserverResult } from '@tanstack/react-query'
 import { useConnectedStandardWallets } from '@privy-io/react-auth/solana'
 import { PublicKey, Connection } from '@solana/web3.js'
-import { Program } from '@coral-xyz/anchor'
+import { Program } from '@coral-xyz/anchor' 
 import { vobleProgram, createReadOnlyProvider } from './program'
 import { getSessionPDA } from './pdas'
-import IDL from '@/idl/idl.json'
+import IDL from '@/idl/idl.json' 
 
 export type LetterResult = 'Correct' | 'Present' | 'Absent'
 
@@ -28,7 +28,6 @@ export interface SessionData {
   completed: boolean
   periodId: string
   vrfRequestTimestamp: number
-  isCurrentPeriod: boolean
 }
 
 export interface FetchSessionResult {
@@ -75,10 +74,9 @@ export function useFetchSession(periodId: string): FetchSessionResult {
         const erConnection = new Connection('https://devnet.magicblock.app', 'confirmed')
         const erProvider = createReadOnlyProvider(erConnection)
         const erProgram = new Program(IDL as any, erProvider)
-
+        
         let sessionAccount: any  // Declare variable
-        let source: 'er' | 'base' = 'er'
-
+        
         try {
           // During active gameplay, ONLY check ER (faster)
           sessionAccount = await (erProgram.account as any).sessionAccount.fetch(sessionPDA)
@@ -92,7 +90,6 @@ export function useFetchSession(periodId: string): FetchSessionResult {
               console.log('ℹ️ [useFetchSession] Not on ER, trying base layer...')
             }
             sessionAccount = await (vobleProgram.account as any).sessionAccount.fetch(sessionPDA)
-            source = 'base'
             if (process.env.NODE_ENV === 'development') {
               console.log('✅ [useFetchSession] Session fetched from Base Layer')
             }
@@ -102,50 +99,6 @@ export function useFetchSession(periodId: string): FetchSessionResult {
           }
         }
 
-        if (sessionAccount?.periodId && sessionAccount.periodId !== trimmedPeriodId) {
-          if (process.env.NODE_ENV === 'development') {
-            console.log('ℹ️ [useFetchSession] Session period mismatch detected', {
-              source,
-              sessionPeriodId: sessionAccount.periodId,
-              requestedPeriodId: trimmedPeriodId,
-            })
-          }
-
-          if (source === 'er') {
-            try {
-              const baseSession = await (vobleProgram.account as any).sessionAccount.fetch(sessionPDA)
-              if (process.env.NODE_ENV === 'development') {
-                console.log('✅ [useFetchSession] Session fetched from Base Layer after mismatch:', {
-                  periodId: baseSession.periodId,
-                })
-              }
-              if (baseSession.periodId === trimmedPeriodId) {
-                sessionAccount = baseSession
-                source = 'base'
-              } else {
-                if (process.env.NODE_ENV === 'development') {
-                  console.log('ℹ️ [useFetchSession] Base layer still reflects previous period; reusing existing session account')
-                }
-              }
-            } catch (baseErr: any) {
-              if (baseErr.message?.includes('Account does not exist')) {
-                if (process.env.NODE_ENV === 'development') {
-                  console.log('ℹ️ [useFetchSession] No session account found on base layer; keeping ER session data')
-                }
-              } else {
-                throw baseErr
-              }
-            }
-          }
-        }
-
-        if (!sessionAccount) {
-          if (process.env.NODE_ENV === 'development') {
-            console.log('ℹ️ [useFetchSession] No session account found')
-          }
-          return null
-        }
-
         if (process.env.NODE_ENV === 'development') {
           console.log('✅ [useFetchSession] Session fetched:', {
             sessionId: sessionAccount.sessionId,
@@ -153,8 +106,6 @@ export function useFetchSession(periodId: string): FetchSessionResult {
             isSolved: sessionAccount.isSolved,
             completed: sessionAccount.completed,
             score: sessionAccount.score,
-            periodId: sessionAccount.periodId,
-            source,
           })
         }
 
@@ -185,7 +136,6 @@ export function useFetchSession(periodId: string): FetchSessionResult {
           score: sessionAccount.score,
           completed: sessionAccount.completed,
           periodId: sessionAccount.periodId,
-          isCurrentPeriod: sessionAccount.periodId === trimmedPeriodId,
           vrfRequestTimestamp: sessionAccount.vrfRequestTimestamp?.toNumber() || 0,
         }
 
@@ -197,14 +147,14 @@ export function useFetchSession(periodId: string): FetchSessionResult {
           }
           return null
         }
-
+        
         console.error('❌ [useFetchSession] Error fetching session:', err)
         throw new Error(`Failed to fetch session: ${err.message}`)
       }
     },
     enabled: !!selectedWallet?.address && !!periodId,
-    staleTime: 1000,
-    refetchInterval: false,
+    staleTime: 1000, 
+    refetchInterval: false, 
     retry: (failureCount, error) => {
       // Don't retry if account doesn't exist
       if (error.message?.includes('Account does not exist')) {

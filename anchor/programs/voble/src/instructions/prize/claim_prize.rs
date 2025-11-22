@@ -93,9 +93,9 @@ fn claim_prize_internal<'info>(
     entitlement: &mut Account<'info, crate::state::WinnerEntitlement>,
     vault: &AccountInfo<'info>,
     winner: &Signer<'info>,
-    _system_program: &Program<'info, System>,
-    _vault_bump: u8,
-    _vault_seed: &[u8],
+    system_program: &Program<'info, System>,
+    vault_bump: u8,
+    vault_seed: &[u8],
     period_type: &str,
 ) -> Result<()> {
     msg!("🎁 Claiming {} prize", period_type);
@@ -129,23 +129,23 @@ fn claim_prize_internal<'info>(
     msg!("✅ Validation passed - vault has sufficient balance");
 
     // ========== TRANSFER PRIZE ==========
+    // Transfer from vault to winner using secure CPI with PDA signer
+    let vault_seeds = &[vault_seed, &[vault_bump]];
+    let signer_seeds = &[&vault_seeds[..]];
+
     msg!("💸 Transferring {} lamports to winner", amount);
 
-    {
-        let mut vault_lamports = vault.try_borrow_mut_lamports()?;
-        let mut winner_info = winner.to_account_info();
-        let mut winner_lamports = winner_info.try_borrow_mut_lamports()?;
-
-        // Subtract from vault, ensuring we don't underflow
-        **vault_lamports = vault_lamports
-            .checked_sub(amount)
-            .ok_or(VobleError::InsufficientVaultBalance)?;
-
-        // Add to winner, ensuring we don't overflow
-        **winner_lamports = winner_lamports
-            .checked_add(amount)
-            .ok_or(VobleError::InvalidPrizeAmount)?;
-    }
+    system_program::transfer(
+        CpiContext::new_with_signer(
+            system_program.to_account_info(),
+            system_program::Transfer {
+                from: vault.to_account_info(),
+                to: winner.to_account_info(),
+            },
+            signer_seeds,
+        ),
+        amount,
+    )?;
 
     let remaining_balance = vault_balance - amount;
 

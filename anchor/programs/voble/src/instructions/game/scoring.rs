@@ -1,5 +1,6 @@
 use crate::constants::*;
 use crate::state::LetterResult;
+use anchor_lang::prelude::*;
 
 /// Calculate the final score for a completed game
 ///

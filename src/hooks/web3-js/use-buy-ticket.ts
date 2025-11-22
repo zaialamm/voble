@@ -1,27 +1,21 @@
 import { useState } from 'react'
 import { useConnectedStandardWallets } from '@privy-io/react-auth/solana'
-import { PublicKey, Transaction, Connection, sendAndConfirmTransaction } from '@solana/web3.js'
+import { PublicKey, Transaction, Connection } from '@solana/web3.js'
 import bs58 from 'bs58';
 
-import { useTempKeypair } from '@/hooks/use-temp-keypair'
-import { erConnection } from '@/hooks/mb-er/er-connection'
-
-// import { Connection } from "@magicblock-labs/ephemeral-rollups-kit"
-
-import {
-  vobleProgram,
-  SYSTEM_PROGRAM_ID,
-  createVobleProgram,
+import { 
+  vobleProgram, 
+  SYSTEM_PROGRAM_ID
 } from './program'
-import {
-  getUserProfilePDA,
-  getSessionPDA,
+import { 
+  getUserProfilePDA, 
+  getSessionPDA, 
   getGlobalConfigPDA,
   getDailyPrizeVaultPDA,
   getWeeklyPrizeVaultPDA,
   getMonthlyPrizeVaultPDA,
   getPlatformVaultPDA,
-  getLuckyDrawVaultPDA
+  getLuckyDrawVaultPDA 
 } from './pdas'
 import { handleTransactionError } from './utils'
 
@@ -34,11 +28,10 @@ export interface BuyTicketResult {
 
 export function useBuyTicket() {
   const { wallets } = useConnectedStandardWallets()
-  const tempKeypair = useTempKeypair()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-
+  
   const selectedWallet = wallets[0]
 
   const buyTicket = async (periodId: string): Promise<BuyTicketResult> => {
@@ -116,7 +109,7 @@ export function useBuyTicket() {
           systemProgram: SYSTEM_PROGRAM_ID,
         })
         .instruction()
-
+      
       // Create delegate session instruction
       const delegateInstruction = await vobleProgram.methods
         .delegateSession()
@@ -126,30 +119,21 @@ export function useBuyTicket() {
         })
         .instruction()
 
-
       // get connection
       const connection = new Connection(
         process.env.NEXT_PUBLIC_RPC_DEVNET || 'https://api.devnet.solana.com',
         'confirmed'
       )
 
-      /*
-      // Initialize connection
-      const connection = await Connection.create(
-        "https://devnet-router.magicblock.app",
-        "wss://devnet-router.magicblock.app"
-      );
-      */
-
       // get latest blockhash
-      const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash()
+      const {blockhash, lastValidBlockHeight} = await connection.getLatestBlockhash()
 
       const tx = new Transaction({
         blockhash,
         lastValidBlockHeight,
         feePayer: playerPublicKey
       }).add(buyTicketInstruction, delegateInstruction)
-
+  
       const result = await selectedWallet.signAndSendTransaction!({
         chain: 'solana:devnet',
         transaction: new Uint8Array(
@@ -164,42 +148,7 @@ export function useBuyTicket() {
       const signature = bs58.encode(result.signature)
 
       console.log('✅ Success Buy Ticket and Delegate Session:', signature)
-
-      // === Reset Session on ER === \\
-      // This is critical to ensure any stale state on ER (from previous games) is cleared
-      // before the user starts playing the new game.
-      if (tempKeypair) {
-        try {
-          if (process.env.NODE_ENV === 'development') {
-            console.log('🔄 [useBuyTicket] Resetting session on ER...')
-          }
-
-          const resetSessionTx = await (vobleProgram.methods as any)
-            .resetSession()
-            .accounts({
-              session: sessionPDA,
-            })
-            .transaction()
-
-          const resetSignature = await sendAndConfirmTransaction(
-            erConnection,
-            resetSessionTx,
-            [tempKeypair],
-            { skipPreflight: true, commitment: 'confirmed' }
-          )
-
-          if (process.env.NODE_ENV === 'development') {
-            console.log('✅ Session reset on ER:', resetSignature)
-          }
-        } catch (erErr: any) {
-          // We don't fail the whole process if ER reset fails, but we log it
-          console.error('⚠️ [useBuyTicket] Failed to reset session on ER:', erErr)
-          // The user might face issues on ER, but their ticket is bought on base layer.
-        }
-      } else {
-        console.warn('⚠️ [useBuyTicket] No temp keypair available, skipping ER session reset')
-      }
-
+      
       // Generate session ID for tracking
       const sessionId = `voble-${selectedWallet.address}-${trimmedPeriodId}`
 
@@ -213,9 +162,9 @@ export function useBuyTicket() {
         error: err,
         message: err?.message,
       })
-
+      
       let errorMessage = handleTransactionError(err)
-
+      
       // Check for specific game-related errors
       if (err?.message?.includes('User rejected')) {
         errorMessage = 'Transaction was rejected'
@@ -224,7 +173,7 @@ export function useBuyTicket() {
       } else if (err?.message?.includes('already exists')) {
         errorMessage = 'You already have an active game session for this period'
       }
-
+      
       setError(errorMessage)
       setIsLoading(false)
       return {
@@ -236,7 +185,7 @@ export function useBuyTicket() {
 
   return {
     buyTicket,
-    isLoading,
+    isLoading,  // ← Fixed: removed isERTransacting
     error,
   }
 }

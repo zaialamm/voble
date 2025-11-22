@@ -636,13 +636,41 @@
           }
         },
         {
-          "name": "daily_leaderboard"
-        },
-        {
-          "name": "weekly_leaderboard"
-        },
-        {
-          "name": "monthly_leaderboard"
+          "name": "leaderboard",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  101,
+                  97,
+                  100,
+                  101,
+                  114,
+                  98,
+                  111,
+                  97,
+                  114,
+                  100
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "period_id"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  97,
+                  105,
+                  108,
+                  121
+                ]
+              }
+            ]
+          }
         },
         {
           "name": "user_profile",
@@ -687,15 +715,7 @@
       ],
       "args": [
         {
-          "name": "daily_period_id",
-          "type": "string"
-        },
-        {
-          "name": "weekly_period_id",
-          "type": "string"
-        },
-        {
-          "name": "monthly_period_id",
+          "name": "period_id",
           "type": "string"
         }
       ]
@@ -1428,7 +1448,41 @@
           "docs": [
             "Leaderboard to get top winners"
           ],
-          "writable": true
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  101,
+                  97,
+                  100,
+                  101,
+                  114,
+                  98,
+                  111,
+                  97,
+                  114,
+                  100
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "period_id"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  100,
+                  97,
+                  105,
+                  108,
+                  121
+                ]
+              }
+            ]
+          }
         },
         {
           "name": "authority",
@@ -1623,7 +1677,43 @@
           "docs": [
             "Leaderboard to get top winners"
           ],
-          "writable": true
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  101,
+                  97,
+                  100,
+                  101,
+                  114,
+                  98,
+                  111,
+                  97,
+                  114,
+                  100
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "period_id"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  111,
+                  110,
+                  116,
+                  104,
+                  108,
+                  121
+                ]
+              }
+            ]
+          }
         },
         {
           "name": "authority",
@@ -1751,7 +1841,42 @@
           "docs": [
             "Leaderboard to get top winners"
           ],
-          "writable": true
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  108,
+                  101,
+                  97,
+                  100,
+                  101,
+                  114,
+                  98,
+                  111,
+                  97,
+                  114,
+                  100
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "period_id"
+              },
+              {
+                "kind": "const",
+                "value": [
+                  119,
+                  101,
+                  101,
+                  107,
+                  108,
+                  121
+                ]
+              }
+            ]
+          }
         },
         {
           "name": "authority",
@@ -2306,29 +2431,6 @@
       ]
     },
     {
-      "name": "reset_session",
-      "docs": [
-        "Reset session state after commit, before undelegation"
-      ],
-      "discriminator": [
-        207,
-        171,
-        19,
-        218,
-        22,
-        160,
-        71,
-        53
-      ],
-      "accounts": [
-        {
-          "name": "session",
-          "writable": true
-        }
-      ],
-      "args": []
-    },
-    {
       "name": "set_config",
       "discriminator": [
         108,
@@ -2517,42 +2619,28 @@
       ],
       "accounts": [
         {
-          "name": "daily_leaderboard",
-          "docs": [
-            "Daily leaderboard to update - THIRD"
-          ],
+          "name": "escrow",
           "writable": true
         },
         {
-          "name": "weekly_leaderboard",
-          "docs": [
-            "Weekly leaderboard to update - FOURTH"
-          ],
-          "writable": true
+          "name": "escrow_auth"
         },
         {
-          "name": "monthly_leaderboard",
+          "name": "leaderboard",
           "docs": [
-            "Monthly leaderboard to update - FIFTH"
+            "Leaderboard to update - THIRD"
           ],
           "writable": true
         },
         {
           "name": "user_profile",
           "docs": [
-            "User profile to update stats - SIXTH"
+            "User profile to update stats - FOURTH"
           ],
           "writable": true
         },
         {
           "name": "committed_session"
-        },
-        {
-          "name": "escrow_auth"
-        },
-        {
-          "name": "escrow",
-          "writable": true
         }
       ],
       "args": []

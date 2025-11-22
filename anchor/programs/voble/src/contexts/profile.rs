@@ -10,7 +10,7 @@ pub struct InitializeUserProfile<'info> {
         init,
         payer = payer,
         space = 8 + UserProfile::INIT_SPACE,
-        seeds = [SEED_USER_PROFILE, payer.key().as_ref()],
+        seeds = [b"user_profile", payer.key().as_ref()],
         bump
     )]
     pub user_profile: Account<'info, UserProfile>,
@@ -19,4 +19,32 @@ pub struct InitializeUserProfile<'info> {
     pub payer: Signer<'info>,
     
     pub system_program: Program<'info, System>,
+}
+
+/// Update session score (used by vocabrush)
+#[derive(Accounts)]
+pub struct UpdateSessionScore<'info> {
+    #[account(
+        mut,
+        seeds = [b"user_profile", player.key().as_ref()],
+        bump,
+        has_one = player
+    )]
+    pub user_profile: Account<'info, UserProfile>,
+    
+    pub player: Signer<'info>,
+}
+
+/// Update user profile (generic)
+#[derive(Accounts)]
+pub struct UpdateUserProfile<'info> {
+    #[account(
+        mut,
+        seeds = [b"user_profile", player.key().as_ref()],
+        bump,
+        has_one = player
+    )]
+    pub user_profile: Account<'info, UserProfile>,
+    
+    pub player: Signer<'info>,
 }

@@ -2,19 +2,22 @@
 
 import { PrivyLoginButton } from '@/components/privy-login-button'
 import { usePathname } from 'next/navigation'
+import { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { BarChart3 } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Menu, X } from 'lucide-react'
 
 export function AppHeader({ links = [] }: { links: { label: string; path: string }[] }) {
   const pathname = usePathname()
+  const [showMenu, setShowMenu] = useState(false)
 
   function isActive(path: string) {
     return path === '/' ? pathname === '/' : pathname.startsWith(path)
   }
 
   return (
-    <header className="relative z-50 px-4 py-3 md:py-4 border-b border-slate-800" style={{ backgroundColor: '#0e0e0e' }}>
+    <header className="relative z-50 px-4 py-3 md:py-4" style={{ backgroundColor: '#0e0e0e' }}>
       <div className="mx-auto flex justify-between items-center">
         {/* Logo - Left */}
         <div className="flex items-center">
@@ -49,24 +52,38 @@ export function AppHeader({ links = [] }: { links: { label: string; path: string
           </ul>
         </div>
 
-        {/* Stats & Auth - Right */}
-        <div className="flex items-center gap-3">
-          {/* Stats Icon - Mobile Only */}
-          <Link 
-            href="/stats"
-            className="md:hidden p-2 rounded-lg hover:bg-slate-800 transition-colors group relative"
-            title="Stats"
-          >
-            <BarChart3 className="h-5 w-5 text-gray-400 hover:text-white transition-colors" />
-            {/* Tooltip */}
-            <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-slate-700 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
-              Stats
-            </div>
-          </Link>
-          
+        {/* Mobile Menu Button */}
+        <Button variant="ghost" size="icon" className="md:hidden text-white hover:text-gray-300" onClick={() => setShowMenu(!showMenu)}>
+          {showMenu ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+        </Button>
+
+        {/* Auth - Right */}
+        <div className="hidden md:flex items-center gap-4">
           <PrivyLoginButton />
         </div>
 
+        {showMenu && (
+          <div className="md:hidden fixed inset-x-0 top-[52px] bottom-0 backdrop-blur-sm" style={{ backgroundColor: 'rgba(14, 14, 14, 0.95)' }}>
+            <div className="flex flex-col p-4 gap-4 border-t dark:border-neutral-800">
+              <div className="flex justify-end items-center gap-4">
+                <PrivyLoginButton />
+              </div>
+              <ul className="flex flex-col gap-4">
+                {links.map(({ label, path }) => (
+                  <li key={path}>
+                    <Link
+                      className={`block text-lg py-2 ${isActive(path) ? 'text-white' : 'text-gray-300'} hover:text-white`}
+                      href={path}
+                      onClick={() => setShowMenu(false)}
+                    >
+                      {label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
       </div>
     </header>
   )

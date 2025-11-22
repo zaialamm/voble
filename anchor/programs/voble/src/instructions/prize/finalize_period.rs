@@ -89,7 +89,7 @@ fn finalize_period_internal<'info>(
     mut accounts: impl FinalizePeriodAccounts<'info>,
     period_id: String,
     period_type: &str,
-    _vault_bump: u8,
+    vault_bump: u8,
 ) -> Result<()> {
     msg!("🏁 Finalizing {} period", period_type);
     msg!("   Period ID: {}", period_id);
@@ -102,7 +102,7 @@ fn finalize_period_internal<'info>(
 
     // Scope all immutable borrows together to extract needed data
     let (
-        _paused,
+        paused,
         winner_splits_vec,
         vault_balance,
         leaderboard_finalized,

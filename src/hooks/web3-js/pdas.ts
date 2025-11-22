@@ -114,14 +114,11 @@ export function getLuckyDrawVaultPDA(): [PublicKey, number] {
  * Derive leaderboard PDA
  */
 export function getLeaderboardPDA(periodId: string, leaderboardType: 'daily' | 'weekly' | 'monthly'): [PublicKey, number] {
-  const periodTypeByte =
-    leaderboardType === 'daily' ? 0 : leaderboardType === 'weekly' ? 1 : 2
-
   return PublicKey.findProgramAddressSync(
     [
       Buffer.from(PDA_SEEDS.LEADERBOARD, 'utf8'),
       Buffer.from(periodId, 'utf8'),
-      Buffer.from(Uint8Array.of(periodTypeByte)),
+      Buffer.from(leaderboardType, 'utf8'),
     ],
     VOBLE_PROGRAM_ID
   )
@@ -192,7 +189,7 @@ export function getAllVaultPDAs(): {
   daily: [PublicKey, number]
   weekly: [PublicKey, number]
   monthly: [PublicKey, number]
-  luckyDraw: [PublicKey, number]
+  luckyDraw: [PublicKey, number] 
   platform: [PublicKey, number]
 } {
   return {
@@ -240,46 +237,31 @@ export function validatePDA(
 /**
  * Get period ID for current day (YYYY-MM-DD format)
  */
-/**
- * Get period ID for current day (YYYY-MM-DD format) in UTC+8
- */
 export function getCurrentDayPeriodId(): string {
-  const formatter = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Singapore',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  })
-  return formatter.format(new Date()) // Returns YYYY-MM-DD
+  const now = new Date()
+  return now.toISOString().split('T')[0] // YYYY-MM-DD
 }
 
 /**
- * Get period ID for current week (YYYY-WW format) in UTC+8
+ * Get period ID for current week (YYYY-WW format)
  */
 export function getCurrentWeekPeriodId(): string {
-  // Get current time in UTC+8
   const now = new Date()
-  const utc8TimeStr = now.toLocaleString('en-US', { timeZone: 'Asia/Singapore' })
-  const nowUtc8 = new Date(utc8TimeStr)
-
-  const year = nowUtc8.getFullYear()
+  const year = now.getFullYear()
   const startOfYear = new Date(year, 0, 1)
-  const days = Math.floor((nowUtc8.getTime() - startOfYear.getTime()) / (24 * 60 * 60 * 1000))
+  const days = Math.floor((now.getTime() - startOfYear.getTime()) / (24 * 60 * 60 * 1000))
   const week = Math.ceil((days + startOfYear.getDay() + 1) / 7)
   return `${year}-W${week.toString().padStart(2, '0')}`
 }
 
 /**
- * Get period ID for current month (YYYY-MM format) in UTC+8
+ * Get period ID for current month (YYYY-MM format)
  */
 export function getCurrentMonthPeriodId(): string {
-  const formatter = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Singapore',
-    year: 'numeric',
-    month: '2-digit',
-  })
-  // en-CA returns YYYY-MM-DD, we just need YYYY-MM
-  return formatter.format(new Date()).slice(0, 7)
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = (now.getMonth() + 1).toString().padStart(2, '0')
+  return `${year}-${month}`
 }
 
 /**

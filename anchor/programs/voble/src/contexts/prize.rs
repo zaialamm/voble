@@ -32,7 +32,7 @@ pub struct FinalizeDaily<'info> {
     /// Leaderboard to get top winners
     #[account(
         mut,
-        seeds = [SEED_LEADERBOARD, period_id.as_bytes(), &[0]],
+        seeds = [SEED_LEADERBOARD, period_id.as_bytes(), b"daily"],
         bump
     )]
     pub leaderboard: Account<'info, PeriodLeaderboard>,
@@ -73,7 +73,7 @@ pub struct FinalizeWeekly<'info> {
     /// Leaderboard to get top winners
     #[account(
         mut,
-        seeds = [SEED_LEADERBOARD, period_id.as_bytes(), &[1]],
+        seeds = [SEED_LEADERBOARD, period_id.as_bytes(), b"weekly"],
         bump
     )]
     pub leaderboard: Account<'info, PeriodLeaderboard>,
@@ -114,7 +114,7 @@ pub struct FinalizeMonthly<'info> {
     /// Leaderboard to get top winners
     #[account(
         mut,
-        seeds = [SEED_LEADERBOARD, period_id.as_bytes(), &[2]],
+        seeds = [SEED_LEADERBOARD, period_id.as_bytes(), b"monthly"],
         bump
     )]
     pub leaderboard: Account<'info, PeriodLeaderboard>,

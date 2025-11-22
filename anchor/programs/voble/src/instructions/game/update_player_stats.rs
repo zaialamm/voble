@@ -26,15 +26,13 @@ pub fn update_player_stats(ctx: Context<UpdatePlayerStats>) -> Result<()> {
     let player = session.player;
     let now = Clock::get()?.unix_timestamp;
     
-    // ========== UPDATE LEADERBOARDS ==========
-    msg!("📊 Updating period leaderboards");
-
-    let mut update_daily = |leaderboard: &mut PeriodLeaderboard| {
-        if leaderboard.finalized || final_score == 0 {
-            return;
-        }
-
-        let new_entry = LeaderEntry {
+    // ========== UPDATE LEADERBOARD ==========
+    msg!("📊 Updating leaderboard");
+    
+    let leaderboard = &mut ctx.accounts.leaderboard;
+    
+    if !leaderboard.finalized && final_score > 0 {
+        let new_entry = crate::state::LeaderEntry {
             player,
             score: final_score,
             guesses_used: session.guesses_used,
@@ -42,78 +40,52 @@ pub fn update_player_stats(ctx: Context<UpdatePlayerStats>) -> Result<()> {
             timestamp: now,
             username: ctx.accounts.user_profile.username.clone(),
         };
-
+        
+        // Check if player already has an entry
         let mut updated_existing = false;
         for entry in &mut leaderboard.entries {
             if entry.player == player {
+                // Update if new score is better
                 if final_score > entry.score {
                     *entry = new_entry.clone();
                     updated_existing = true;
-                    msg!("   ✅ Updated daily entry with better score");
+                    msg!("   ✅ Updated existing entry with better score");
+                } else {
+                    msg!("   ℹ️  Score not higher than existing entry");
                 }
-                return;
-            }
-        }
-
-        leaderboard.entries.push(new_entry);
-        leaderboard.total_players += 1;
-        msg!("   ✅ Added daily leaderboard entry");
-    };
-
-    let mut accumulate_score = |leaderboard: &mut PeriodLeaderboard| {
-        if leaderboard.finalized || final_score == 0 {
-            return;
-        }
-
-        let mut updated_existing = false;
-        for entry in &mut leaderboard.entries {
-            if entry.player == player {
-                entry.score = entry.score.saturating_add(final_score);
-                entry.timestamp = now;
-                entry.username = ctx.accounts.user_profile.username.clone();
-                entry.guesses_used = session.guesses_used;
-                entry.time_ms = session.time_ms;
-                updated_existing = true;
-                msg!("   ➕ Aggregated score for existing entry");
                 break;
             }
         }
-
+        
+        // Add new entry if player not on leaderboard
         if !updated_existing {
-            leaderboard.entries.push(LeaderEntry {
-                player,
-                score: final_score,
-                guesses_used: session.guesses_used,
-                time_ms: session.time_ms,
-                timestamp: now,
-                username: ctx.accounts.user_profile.username.clone(),
-            });
+            leaderboard.entries.push(new_entry);
             leaderboard.total_players += 1;
-            msg!("   ✅ Added aggregated entry");
+            msg!("   ✅ Added new leaderboard entry");
         }
-    };
-
-    update_daily(&mut ctx.accounts.daily_leaderboard);
-    accumulate_score(&mut ctx.accounts.weekly_leaderboard);
-    accumulate_score(&mut ctx.accounts.monthly_leaderboard);
-
-    for leaderboard in [
-        &mut ctx.accounts.daily_leaderboard,
-        &mut ctx.accounts.weekly_leaderboard,
-        &mut ctx.accounts.monthly_leaderboard,
-    ] {
-        // Sort by score (highest first, tie-breaker by time)
-        leaderboard.entries.sort_by(|a, b| {
-            match b.score.cmp(&a.score) {
-                std::cmp::Ordering::Equal => a.time_ms.cmp(&b.time_ms),
-                other => other,
-            }
-        });
-
+        
+        // Sort by score (highest first)
+        leaderboard.entries.sort_by(|a, b| b.score.cmp(&a.score));
+        
         // Keep only top 100
         if leaderboard.entries.len() > 100 {
             leaderboard.entries.truncate(100);
         }
+        
+        // Log player's rank
+        let player_rank = leaderboard
+            .entries
+            .iter()
+            .position(|entry| entry.player == player)
+            .map(|pos| pos + 1);
+            
+        if let Some(rank) = player_rank {
+            msg!("   🏆 Player rank: #{} (score: {})", rank, final_score);
+        }
+    } else if leaderboard.finalized {
+        msg!("   ⚠️  Leaderboard finalized for this period");
+    } else {
+        msg!("   ⚠️  Score is 0, not added to leaderboard");
     }
     
     // ========== UPDATE USER PROFILE STATS ==========
@@ -135,30 +107,7 @@ pub fn update_player_stats(ctx: Context<UpdatePlayerStats>) -> Result<()> {
         profile.current_streak = 0;
         msg!("   📊 Loss recorded. Streak reset.");
     }
-
-    profile.total_score += final_score as u64;
-
-    if final_score > profile.best_score {
-        profile.best_score = final_score;
-    }
-
-    if session.is_solved && session.guesses_used > 0 && session.guesses_used <= 7 {
-        let idx = (session.guesses_used - 1) as usize;
-        profile.guess_distribution[idx] += 1;
-    }
-
-    if profile.games_won > 0 {
-        let total_guesses: u32 = profile
-            .guess_distribution
-            .iter()
-            .enumerate()
-            .map(|(i, &count)| (i as u32 + 1) * count)
-            .sum();
-        profile.average_guesses = total_guesses as f32 / profile.games_won as f32;
-    }
-
-    profile.last_played_period = session.period_id.clone();
-    profile.has_played_this_period = true;
+    
     profile.last_played = now;
     
     msg!("✅ [Magic Handler] Game completion processed successfully");

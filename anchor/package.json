@@ -5,15 +5,13 @@
   "scripts": {
     "test": "anchor test",
     "test:unit": "mocha -t 1000000 tests/**/*.test.ts",
-    "initialize": "ts-node scripts/initialize-program.ts",
-    "init-period-leaderboard": "ts-node scripts/init-period-leaderboard.ts --type all",
-    "finalize-period": "ts-node scripts/finalize-period-and-entitlements.ts"
+    "initialize": "ts-node scripts/initialize-program.ts"
   },
   "dependencies": {
     "@codama/nodes-from-anchor": "^1.2.9",
     "@codama/renderers-js": "^1.4.2",
     "@codama/renderers-rust": "^1.2.7",
-    "@coral-xyz/anchor": "0.32.1",
+    "@coral-xyz/anchor": "^0.31.1",
     "@solana/web3.js": "^1.95.0",
     "codama": "^1.3.7"
   },

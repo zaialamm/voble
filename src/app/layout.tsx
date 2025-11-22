@@ -13,8 +13,6 @@ const links: { label: string; path: string }[] = [
   { label: 'Home', path: '/' },
   { label: 'Game', path: '/game' },
   { label: 'Leaderboard', path: '/leaderboard' },
-  { label: 'Stats', path: '/stats' },
-  { label: 'Raffle', path: '/raffle' },
   { label: 'Profile', path: '/profile' },
 ]
 
